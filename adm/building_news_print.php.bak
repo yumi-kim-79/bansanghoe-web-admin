@@ -1,0 +1,64 @@
+<?php
+include_once('./_common.php');
+
+//auth_check($auth[$sub_menu], "w");
+
+$g5['title'] = '안내문 인쇄하기';
+include_once(G5_PATH.'/head.sub.php');
+
+$building_bbs = "SELECT * FROM a_building_bbs WHERE bb_id = '{$bb_idx}'";
+$building_bbs_row = sql_fetch($building_bbs);
+//echo $building_bbs;
+
+//print_r2($building_bbs_row);
+?>
+<style>
+.news_content {width: 100%;}
+.preset_info {padding: 45mm 5mm 34mm !important;}
+.print-container {
+    width: 210mm;
+    height: 297mm;
+    margin: auto;
+    padding: 153px 5mm 123px;
+    position: relative;
+    background: url('/images/building_news_sample.jpg') no-repeat center center;
+    background-size: cover;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.building_news_sample_hd {width: 100%;max-width: 210mm;padding:15px;display: flex;justify-content:flex-end;}
+.building_news_sample_hd button {padding:10px 15px;border-radius:6px;border:none;background: var(--colorMain);color: #fff;font-size: 14px;}
+
+@media print {
+    body {
+        visibility: hidden; /* 전체 요소 숨김 */
+    }
+
+    .print-container {
+        padding: 0;
+    }
+}
+</style>
+<div class="building_news_sample_hd">
+    <button type="button" onclick="printBuildingNews();">인쇄</button>
+</div>
+<div class="building_news_sample_wrap">
+    <div class="news_content">
+        <?php echo $building_bbs_row['bb_content']; ?>
+    </div>
+</div>
+<script>
+function printBuildingNews() {
+    var content = document.querySelector(".building_news_sample_wrap").outerHTML;
+    var originalContent = document.body.innerHTML; // 기존 페이지 내용 저장
+
+    document.body.innerHTML = content; // 특정 영역만 출력하도록 변경
+    window.print(); // 인쇄 실행
+
+    document.body.innerHTML = originalContent; // 원래 페이지 복원
+    location.reload(); // JavaScript로 원래 상태 복구 (스크립트/이벤트 재적용)
+}
+</script>
+<?php
+include_once(G5_PATH.'/tail.sub.php');
+?>

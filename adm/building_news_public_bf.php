@@ -1,0 +1,306 @@
+<?php
+$sub_menu = "200700";
+require_once './_common.php';
+
+
+auth_check_menu($auth, $sub_menu, 'r');
+
+$sql_common = " from official_notice ont
+   left outer join s3_file s3 on ont.s3_file = s3.seq
+   left outer join estate e on ont.estate = e.seq
+   left outer join admin a1 on ont.create_admin = a1.seq
+   left outer join admin a2 on ont.update_admin = a2.seq ";
+
+$sql_search = " WHERE (1) ";
+
+if ($stx) {
+    $sql_search .= " and ( ";
+    switch ($sfl) {
+        case 'mb_point':
+            $sql_search .= " ({$sfl} >= '{$stx}') ";
+            break;
+        case 'user_name':
+            $sql_search .= " (a1.username like '%{$stx}%') ";
+            break;
+        case 'title':
+            $sql_search .= " (ont.title like '%{$stx}%') ";
+            break;
+        case 'building_name':
+            if($stx == '전체'){
+                $sql_search .= " (bb.building_id = '-1') ";
+            }else{
+                $sql_search .= " (e.name like '%{$stx}%') ";
+            }
+            break;
+        default:
+            $sql_search .= " ({$sfl} like '%{$stx}%') ";
+            break;
+    }
+    $sql_search .= " ) ";
+}
+
+if($create_date_time){
+    $sql_search .= " and ont.create_date_time like '{$create_date_time}%' ";
+
+    $qstr .= '&create_date_time='.$create_admin_name;
+}
+
+if($is_view == "1"){
+    $sql_search .= " and is_view = 1 ";
+
+    $qstr .= '&is_view='.$is_view;
+}else if($is_view == "0"){
+    $sql_search .= " and is_view = 0 ";
+
+    $qstr .= '&is_view='.$is_view;
+}
+
+if($post_name){
+    $sql_search .= " and e.address like '{$post_name}%' ";
+
+    $qstr .= '&post_name='.$post_name;
+}
+
+if ($is_admin != 'super') {
+    $sql_search .= " and mb_level <= '{$member['mb_level']}' ";
+}
+
+if (!$sst) {
+    $sst = "std.st_idx";
+    $sod = "desc";
+}
+
+$sql_order = " order by ont.id desc ";
+
+$sql = " select count(*) as cnt {$sql_common} {$sql_search} {$sql_order} ";
+//echo $sql.'<br>';
+$row = sql_fetch($sql);
+$total_count = $row['cnt'];
+
+$rows = $config['cf_page_rows'];
+//$rows = 5;
+$total_page  = ceil($total_count / $rows);  // 전체 페이지 계산
+if ($page < 1) {
+    $page = 1; // 페이지가 없으면 첫 페이지 (1 페이지)
+}
+$from_record = ($page - 1) * $rows; // 시작 열을 구함
+
+
+$g5['title'] = "공문(이전자료)";
+require_once './admin.head.php';
+include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
+
+
+$sql = " select ont.id
+   , ont.doc_num
+   , ont.title
+   , ont.content
+   , ont.estate
+   , e.name as building_name
+   , ont.s3_file
+   , ont.post_end_date
+   , ont.create_date_time
+   , ont.create_admin
+   , concat(a1.username, '(', a1.nick_name ,')') as create_admin_name
+   , a1.duty
+   , ont.update_date_time
+   , ont.update_admin
+   , s3.bucket 's3_bucket'
+   , s3.path 's3_path'
+   , s3.url 'img_url'
+   , e.address {$sql_common} {$sql_search} {$sql_order} limit {$from_record}, {$rows} ";
+$result = sql_query($sql);
+
+$post_sql = "SELECT * FROM a_post_addr ORDER BY is_prior asc, post_idx asc";
+$post_res = sql_query($post_sql);
+
+$colspan = 11;
+
+if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
+    echo $sql;
+}
+//echo $st_status;
+//echo $sub_menu;
+
+?>
+<!-- <div class="local_ov01 local_ov">
+    <span class="btn_ov01"><span class="ov_txt">총 단지 </span><span class="ov_num"> <?php echo number_format($total_count) ?>건 </span></span>
+    <a href="?sst=deleted_at&amp;sod=desc&amp;sfl=<?php echo $sfl ?>&amp;stx=<?php echo $stx ?>" class="btn_ov01" data-tooltip-text="탈퇴된 순으로 정렬합니다.&#xa;전체 데이터를 출력합니다."> <span class="ov_txt">운영 </span><span class="ov_num"><?php echo number_format($leave_count) ?>건</span></a>
+    <span class="btn_ov01"><span class="ov_txt">해지 </span><span class="ov_num"> <?php echo number_format($stop_count) ?>건 </span></span>
+</div> -->
+
+
+<form id="fsearch" name="fsearch" class="local_sch01 local_sch" method="get">
+    <input type="hidden" name="type" value="<?php echo $type; ?>">
+    <label for="sfl" class="sound_only">검색대상</label>
+    <div class="serach_box">
+        <div class="sch_label">작성일</div>
+        <div class="sch_selects ver_flex">
+            <input type="text" name="create_date_time" class="bansang_ipt ver2 ipt_date" id="dates" value="<?php echo $create_date_time; ?>">
+        </div>
+    </div>
+    <div class="serach_box">
+        <div class="sch_label">지역</div>
+        <div class="sch_selects">
+            <select name="post_name" id="post_name" class="bansang_sel">
+                <option value="">지역 선택</option>
+                <?php for($i=0;$post_row = sql_fetch_array($post_res);$i++){?>
+                    <option value="<?php echo $post_row['post_name']; ?>" <?php echo get_selected($post_name, $post_row['post_name']); ?>><?php echo $post_row['post_name']; ?></option>
+                <?php }?>
+            </select>
+        </div>
+    </div>
+    <div class="serach_box">
+        <div class="sch_label">검색어</div>
+        <div class="sch_selects ver_flex">
+            <select name="sfl" id="sfl" class="bansang_sel">
+                <option value="building_name" <?php echo get_selected($sfl, "building_name"); ?>>단지명</option>
+                <option value="title" <?php echo get_selected($sfl, "title"); ?>>제목</option>
+                <option value="user_name" <?php echo get_selected($sfl, "user_name"); ?>>작성자</option>
+            </select>
+            <label for="stx" class="sound_only">검색어<strong class="sound_only"> 필수</strong></label>
+            <input type="text" name="stx" value="<?php echo $stx ?>" id="stx"  class=" bansang_ipt ver2" size="50">
+            <button type="submit" class="bansang_btns ver1">검색</button>
+            <!-- <input type="submit" class="btn_submit" value="검색"> -->
+        </div>
+    </div>
+
+</form>
+
+<!-- <div class="local_desc01 local_desc">
+    <p>
+        회원자료 삭제 시 다른 회원이 기존 회원아이디를 사용하지 못하도록 회원아이디, 이름, 닉네임은 삭제하지 않고 영구 보관합니다.
+    </p>
+</div> -->
+
+
+<form name="fbuilindbbslist" id="fbuilindbbslist" action="./building_news_info_list_update.php" onsubmit="return fbuilindbbslist_submit(this);" method="post">
+    <input type="hidden" name="sst" value="<?php echo $sst ?>">
+    <input type="hidden" name="sod" value="<?php echo $sod ?>">
+    <input type="hidden" name="sfl" value="<?php echo $sfl ?>">
+    <input type="hidden" name="stx" value="<?php echo $stx ?>">
+    <input type="hidden" name="page" value="<?php echo $page ?>">
+    <input type="hidden" name="token" value="">
+    <input type="hidden" name="bbs_type" value="public">
+
+    <div class="tbl_head01 tbl_wrap">
+        <table>
+            <caption><?php echo $g5['title']; ?> 목록</caption>
+            <thead>
+                <tr>
+                    <th scope="col" id="mb_list_chk" >
+                        <label for="chkall" class="sound_only">회원 전체</label>
+                        <input type="checkbox" name="chkall" value="1" id="chkall" onclick="check_all(this.form)">
+                    </th>
+                    <th>번호</th>
+                    <th>지역</th>
+                    <th>단지명</th>
+                    <th>제목</th>
+                    <th>직급</th>
+                    <th>작성자</th>
+                    <th>작성일</th>
+                    
+                    <!-- <th>인쇄</th> -->
+                    <th scope="col" id="mb_list_mng">관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                for ($i = 0; $row = sql_fetch_array($result); $i++) {
+                ?>
+
+                    <tr class="<?php echo $bg; ?>">
+                        <td headers="mb_list_chk" class="td_chk" >
+                            <input type="checkbox" name="chk[]" value="<?php echo $row['bb_id']; ?>" id="chk_<?php echo $i ?>">
+                        </td>
+                        <td>
+                            <?php
+                            
+                            $startNumber = $total_count - (($page - 1) * $rows);
+                            echo $startNumber - $i;
+                            // echo $total_count - $startNumber;
+                            ?>
+                        </td>
+                        <td>
+                            <?php
+                                $addr = explode(" ", $row['address']);
+                                echo $addr[0]; 
+                            ?>
+                        </td>
+                        <td><?php echo $row['building_name']; ?></td>
+                        <td><?php echo $row['title']; ?></td>
+                        <td>
+                            <?php 
+                            echo $row['duty'];
+                            ?>
+                        </td>
+                        <td><?php echo $row['create_admin_name']; ?></td>
+                        <td><?php echo date("Y-m-d", strtotime($row['create_date_time'])); ?></td>
+                        <!-- <td>
+                            <button type="button" onclick="print_info('<?php echo $row['bb_id'];?>');" class="btn btn_02">인쇄</button>
+                        </td> -->
+                        <td headers="mb_list_mng" class="td_mng td_mng_s">
+                            <a href="./building_news_public_form_bf.php?<?=$qstr;?>&amp;w=u&amp;bb_id=<? echo $row['id']; ?>" class="btn btn_03">관리</a>
+                        </td>
+                    </tr>
+                <?php
+                }
+                if ($i == 0) {
+                    echo "<tr><td colspan=\"" . $colspan . "\" class=\"empty_table\">자료가 없습니다.</td></tr>";
+                }
+                ?>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="btn_fixed_top">
+        <?php if($type == "progress"){?>
+        <input type="submit" name="act_button" value="선택삭제" onclick="document.pressed=this.value" class="btn btn_02">
+        <?php }?>
+        <?php if ($is_admin == 'super' && $type == "progress") { ?>
+            <a href="./building_news_public_form.php?type=<?php echo $type;?>" id="member_add" class="btn btn_03">공문 등록</a>
+        <?php } ?>
+
+    </div>
+
+
+</form>
+
+<?php echo get_paging(G5_IS_MOBILE ? $config['cf_mobile_pages'] : $config['cf_write_pages'], $page, $total_page, '?' . $qstr . '&amp;page='); ?>
+
+<script>
+$(function(){
+    $("#dates").datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd", showButtonPanel: true, yearRange: "c-99:c+99", maxDate: "+365d" });
+});
+
+function print_info(bb_idx) // 회원 엑셀 업로드를 위하여 추가
+{ 
+
+    var opt = "width=810,height=1200,left=10,top=10"; 
+    var url = "./building_news_print.php?bb_idx=" + bb_idx;
+
+    window.open(url, "win_news", opt); 
+
+    return false; 
+
+}
+
+
+function fbuilindbbslist_submit(f) {
+    if (!is_checked("chk[]")) {
+        alert(document.pressed + " 하실 항목을 하나 이상 선택하세요.");
+        return false;
+    }
+
+    if (document.pressed == "선택삭제") {
+        if (!confirm("선택한 공문을 정말 삭제하시겠습니까?")) {
+            return false;
+        }
+    }
+
+    return true;
+}
+</script>
+
+<?php
+require_once './admin.tail.php';
