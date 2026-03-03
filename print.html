@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>안내문 미리보기 및 인쇄</title>
+    <style>
+        .print-container {
+            width: 210mm;
+            height: 297mm;
+            margin: auto;
+            padding: 103px 5mm 123px;
+            position: relative;
+            background: url('/images/building_news_sample.jpg') no-repeat center center;
+            background-size: cover;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @media print {
+            body { visibility: hidden; }
+            .print-container {
+                visibility: visible;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h2>미리보기 및 인쇄</h2>
+    <div id="preview" class="print-container"></div>
+    <button onclick="printPage()">인쇄하기</button>
+
+    <script>
+        // 서버에서 저장된 HTML 불러오기
+        fetch('/saved_guide.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('preview').innerHTML = data;
+            });
+
+        function printPage() {
+            window.print();
+        }
+    </script>
+
+</body>
+</html>
