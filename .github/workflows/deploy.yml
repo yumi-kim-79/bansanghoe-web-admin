@@ -1,0 +1,27 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: 223.130.156.223
+          username: root
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            export GITHUB_TOKEN=${{ secrets.DEPLOY_TOKEN }}
+            cd /var/www/html
+            git diff --name-only HEAD~1 HEAD 2>/dev/null | while read file; do
+              curl -H "Authorization: token $GITHUB_TOKEN" \
+                -o "/var/www/html/$file" \
+                "https://raw.githubusercontent.com/yumi-kim-79/bansanghoe-web-admin/main/$file"
+            done
+            systemctl restart httpd
