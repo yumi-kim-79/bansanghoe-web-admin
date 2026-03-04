@@ -14,11 +14,12 @@ $today = date("Y-m-d H:i:s");
 
 // ✅ 안전한 입력값
 $sign_id  = isset($_POST['sign_id']) ? trim($_POST['sign_id']) : '';
+$sign_id  = (int)$sign_id;
 $mb_id    = isset($_POST['mb_id']) ? trim($_POST['mb_id']) : '';
 $signdata = isset($_POST['signdata']) ? trim($_POST['signdata']) : '';
 $data     = isset($_POST['data']) ? trim($_POST['data']) : '';
 
-if ($sign_id === '' || $mb_id === '') {
+if ($sign_id === 0 || $mb_id === '') {
     die(result_data(false, "잘못된 요청입니다.(필수값 누락)", []));
 }
 if ($signdata === '') {
