@@ -2,6 +2,9 @@
 $sub_menu = "800200";
 require_once './_common.php';
 
+// ✅ sign_id 안전 처리
+$sign_id = isset($sign_id) ? (int)$sign_id : 0;
+
 $sql = "SELECT * FROM a_sign_off
         WHERE sign_id = {$sign_id}";
 $row = sql_fetch($sql);
@@ -39,7 +42,7 @@ $sample_sql = "SELECT * FROM a_sign_off_sample WHERE sign_id = '{$sign_id}'";
 $sample_row = sql_fetch($sample_sql);
 
 $sign_check = "";
-                
+
 if(!$row['sign_off_status']){
     $sign_check = $row['sign_off_mng_id1'];
 }else if(!$row['sign_off_status2']){
@@ -66,15 +69,15 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
     //$signature_check = "SELECT *, COUNT(*) as cnt FROM a_signature WHERE mb_id = '{$member['mb_id']}'";
     $signature_check = "SELECT s.*, t.cnt
                 FROM (
-                    SELECT * 
-                    FROM a_signature 
-                    WHERE mb_id = '{$member['mb_id']}' 
-                    ORDER BY sg_idx DESC 
+                    SELECT *
+                    FROM a_signature
+                    WHERE mb_id = '{$member['mb_id']}'
+                    ORDER BY sg_idx DESC
                     LIMIT 1
                 ) s
                 JOIN (
-                    SELECT COUNT(*) AS cnt 
-                    FROM a_signature 
+                    SELECT COUNT(*) AS cnt
+                    FROM a_signature
                     WHERE mb_id = '{$member['mb_id']}'
                 ) t ON 1";
     $signature_check_row = sql_fetch($signature_check);
@@ -85,7 +88,7 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
         <h2 class="h2_frm"><?php echo $sign['sign_cate_name']?> 결재내역</h2>
         <div class="btn_wraps">
             <?php if($row['sign_status'] != 'E' && $row['sign_status'] != 'R'){
-              
+
             if($sign_check == $member['mb_id']){
             ?>
                 <button type="button" onclick="singReject();" class="btn btn_01">반려하기</button>
@@ -215,7 +218,7 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
                         <?php }?>
                     </div>
                 <?php }?>
-                
+
             </td>
         </tr>
         <?php }?>
@@ -291,7 +294,7 @@ function signLoad(id, ele, approval_cont){
         success: function(data) {
             console.log('data:::', data);
 
-            if(data.result == false) { 
+            if(data.result == false) {
                 alert(data.msg);
                 return false;
             }else{
@@ -299,7 +302,10 @@ function signLoad(id, ele, approval_cont){
                 console.log(approval_signature_temp);
 
                 $("#approval_cont").val(approval_cont);
-                $("#approval_signature").val(approval_signature_temp);
+
+                // ✅ 가능한 경우 서버가 준 signature_data를 사용, 없으면 마지막 서명(temp) 사용
+                const sigData = (data && data.data && data.data.signature_data) ? data.data.signature_data : approval_signature_temp;
+                $("#approval_signature").val(sigData);
 
                 let imgSRc = "/data/file/approval/" + data.data.fil_name;
                 let imgs = `<img src='${imgSRc}' />`;
@@ -318,7 +324,7 @@ function singReject(){
     //로딩 팝업
     $("#building_info_pop").show();
 
-    let sign_id = "<?php echo $sign_id; ?>"; 
+    let sign_id = "<?php echo $sign_id; ?>";
     let mb_id = "<?php echo $member['mb_id']; ?>";
 
     let sendData = {'sign_id': sign_id, 'mb_id':mb_id};
@@ -335,7 +341,7 @@ function singReject(){
             success: function(data) {
                 console.log('data:::', data);
 
-                if(data.result == false) { 
+                if(data.result == false) {
                     alert(data.msg);
                     return false;
                 }else{
@@ -358,8 +364,13 @@ function singCheck(){
     let approval_signature = $("#approval_signature").val();
     let approval_cont = $("#approval_cont").val();
 
-    if(approval_cont == ""){
+    if(approval_signature == ""){
         alert('서명을 입력해주세요.');
+        return false;
+    }
+
+    if(approval_cont == ""){
+        alert('결재 단계 정보가 없습니다. 다시 서명하기를 눌러주세요.');
         return false;
     }
 
@@ -375,7 +386,7 @@ function singCheck(){
         success: function(data) {
             console.log('data:::', data);
 
-            if(data.result == false) { 
+            if(data.result == false) {
                 alert(data.msg);
                 return false;
             }else{
@@ -384,9 +395,10 @@ function singCheck(){
 
                setTimeout(() => {
 
-                    location.replace("/holiday_request_sample.php?mem_type=sign_user&sign_id=" + sign_id);
-                    //window.location.reload();
-                }, 700);
+                    // ✅ 서명/승인 후 즉시 현재 페이지를 새로고침하여
+                    //    상단 결재란/결재내역/상태를 바로 반영
+                    window.location.reload();
+                }, 150);
             }
         }
     });
@@ -501,7 +513,7 @@ $(document).on("click", ".paid_holiday_request_add", function(){
                                 </div>
                             </div>
                         </div>
-                        
+
                     </div>
                     <button type="button" onclick="paid_holiday_remove(this)" class="btn btn_01">삭제</button>
                 </div>`;
