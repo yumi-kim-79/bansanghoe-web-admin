@@ -103,12 +103,18 @@ $sign_row = sql_fetch($sign_sql);
 
 $sum_sign = $sign_row['sign_off_status'] + $sign_row['sign_off_status2'] + $sign_row['sign_off_status3'];
 
+// 실제 결재자 수 계산 (빈 값이 아닌 결재자만 카운트)
+$total_approver = 0;
+if($sign_row['sign_off_mng_id1'] != "") $total_approver++;
+if($sign_row['sign_off_mng_id2'] != "") $total_approver++;
+if($sign_row['sign_off_mng_id3'] != "") $total_approver++;
+
 if ($sum_sign === 0) {
-    $status = 'N';
-} elseif ($sum_sign === 3) {
-    $status = 'E';
+    $status = 'N'; // 아무도 서명 안함 → 승인대기
+} elseif ($sum_sign >= $total_approver) {
+    $status = 'E'; // 전체 결재자 서명 완료 → 승인완료
 } else {
-    $status = 'P';
+    $status = 'P'; // 일부 서명 완료 → 승인중
 
      //1차 결재자 승인 후 2차 결재자에게 푸시발송
      if($sign_chk == 'sign_off_status'){
