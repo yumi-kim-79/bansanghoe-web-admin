@@ -381,8 +381,9 @@ function saveSign(){
                         setTimeout(() => {
                             // window.location.reload();
 
-                            location.replace("/holiday_reqeust_info.php?types=<?php echo $types; ?>&sign_id=<?php echo $sign_id; ?>&mng=<?php echo $mng; ?>");
+                            location.replace("/holiday_request_sample.php?mem_type=sign_user2&sign_id=" + sign_id);
                         }, 700);
+
                     
                     }
                 },
@@ -455,7 +456,7 @@ function signLoad(id, ele, approval_cont){
                             setTimeout(() => {
                                 // window.location.reload();
 
-                                location.replace("/holiday_reqeust_info.php?types=<?php echo $types; ?>&sign_id=<?php echo $sign_id; ?>&mng=<?php echo $mng; ?>");
+                                location.replace("/holiday_request_sample.php?mem_type=sign_user2&sign_id=" + sign_id);
 
                             }, 700);
                         
