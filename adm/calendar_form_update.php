@@ -2,7 +2,7 @@
 require_once "./_common.php";
 
 //캘린더 등록
-
+//자동배포 테스트 주석
 //기본
 $today = date("Y-m-d H:i:s");
 $ip_info = $_SERVER['REMOTE_ADDR'];
