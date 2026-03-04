@@ -10,6 +10,7 @@ $today = date("Y-m-d H:i:s");
 //   1) data 파라미터 누락/오염 시에도 현재 결재자를 추론하여 정상 처리
 //   2) 결재자 수(1~3명)에 맞춰 sign_status를 N/P/E 로 정확히 계산
 //   3) 동일 결재자의 중복 row 방지(업서트)
+//   4) 응답 종료(ajax 안정화)
 // -----------------------------------------------------------------------------
 
 // ✅ 안전한 입력값
@@ -26,7 +27,7 @@ if ($signdata === '') {
     die(result_data(false, "서명을 입력해주세요.", []));
 }
 
-// 결재 정보
+// 결재 정보(최신)
 $sign_info = sql_fetch("SELECT * FROM a_sign_off WHERE sign_id = '{$sign_id}'");
 if (!$sign_info || !isset($sign_info['sign_id'])) {
     die(result_data(false, "결재 정보를 찾을 수 없습니다.", []));
@@ -35,7 +36,6 @@ if (!$sign_info || !isset($sign_info['sign_id'])) {
 // ✅ data 파라미터 검증(혹시 잘못 들어오면 현재 결재자를 추론)
 $allowed_keys = ['sign_off_mng_id1', 'sign_off_mng_id2', 'sign_off_mng_id3'];
 if (!in_array($data, $allowed_keys, true)) {
-    // 현재 로그인 사용자가 결재 라인에 포함되어 있으면 해당 키로 추론
     if ($sign_info['sign_off_mng_id1'] === $mb_id) $data = 'sign_off_mng_id1';
     else if ($sign_info['sign_off_mng_id2'] === $mb_id) $data = 'sign_off_mng_id2';
     else if ($sign_info['sign_off_mng_id3'] === $mb_id) $data = 'sign_off_mng_id3';
@@ -64,8 +64,7 @@ $singature_row = sql_fetch("SELECT COUNT(*) as cnt FROM a_signature WHERE mb_id 
 
 $sg_idx = 0;
 
-if ($singature_row['cnt'] == 0) {
-    // 새 서명 저장
+if ((int)$singature_row['cnt'] === 0) {
     $data_uri = $signdata;
     $encoded_image = explode(",", $signdata);
     if (count($encoded_image) < 2) {
@@ -91,9 +90,8 @@ if ($singature_row['cnt'] == 0) {
     sql_query($signature_insert);
     $sg_idx = sql_insert_id();
 } else {
-    // 기존 서명 재사용
-    $singature_row2 = sql_fetch("SELECT * FROM a_signature WHERE mb_id = '{$mb_id}' and signature_data = '{$signdata}'");
-    $sg_idx = isset($singature_row2['sg_idx']) ? $singature_row2['sg_idx'] : 0;
+    $singature_row2 = sql_fetch("SELECT * FROM a_signature WHERE mb_id = '{$mb_id}' and signature_data = '{$signdata}' ORDER BY sg_idx DESC LIMIT 1");
+    $sg_idx = isset($singature_row2['sg_idx']) ? (int)$singature_row2['sg_idx'] : 0;
 }
 
 if (!$sg_idx) {
@@ -105,12 +103,12 @@ if (!$sg_idx) {
 // -----------------------------------------------------------------------------
 $img_confirm = sql_fetch("SELECT COUNT(*) as cnt
                           FROM a_sign_off_mng_sign
-                          WHERE mng_id = '{$mb_id}' AND sign_mng_data = '{$data}' AND sign_id = '{$sign_id}'");
+                          WHERE mng_id = '{$mb_id}' AND sign_mng_data = '{$data}' AND sign_id = '{$sign_id}' AND is_del = 0");
 
-if ($img_confirm['cnt'] > 0) {
+if ((int)$img_confirm['cnt'] > 0) {
     $update_img = "UPDATE a_sign_off_mng_sign SET
                     sg_idx = '{$sg_idx}'
-                    WHERE sign_id = '{$sign_id}' AND sign_mng_data = '{$data}' AND mng_id = '{$mb_id}'";
+                    WHERE sign_id = '{$sign_id}' AND sign_mng_data = '{$data}' AND mng_id = '{$mb_id}' AND is_del = 0";
     sql_query($update_img);
 } else {
     $insert_img = "INSERT INTO a_sign_off_mng_sign SET
@@ -118,7 +116,8 @@ if ($img_confirm['cnt'] > 0) {
             sign_mng_data = '{$data}',
             sign_id = '{$sign_id}',
             mng_id = '{$mb_id}',
-            created_at = '{$today}'";
+            created_at = '{$today}',
+            is_del = 0";
     sql_query($insert_img);
 }
 
@@ -152,19 +151,15 @@ $update_sign = "UPDATE a_sign_off SET
                 WHERE sign_id = '{$sign_id}'";
 sql_query($update_sign);
 
-// 최신 정보 재조회
+// 최신 정보 재조회(이 결과로 상태/푸시도 판단)
 $sign_row = sql_fetch("SELECT * FROM a_sign_off WHERE sign_id = '{$sign_id}'");
 
 // -----------------------------------------------------------------------------
-// 4) 결재 상태(sign_status) 계산 (결재자 수에 맞게)
-//    - N: 승인대기(아무도 결재 안함)
-//    - P: 승인중(일부 결재 완료)
-//    - E: 승인완료(필요 결재자 전원 완료)
+// 4) 결재 상태(sign_status) 계산
 // -----------------------------------------------------------------------------
 $required = 0;
 $done = 0;
 
-// 결재자 존재 여부(빈값 제외)
 $has1 = isset($sign_row['sign_off_mng_id1']) && trim($sign_row['sign_off_mng_id1']) !== '';
 $has2 = isset($sign_row['sign_off_mng_id2']) && trim($sign_row['sign_off_mng_id2']) !== '';
 $has3 = isset($sign_row['sign_off_mng_id3']) && trim($sign_row['sign_off_mng_id3']) !== '';
@@ -173,7 +168,6 @@ if ($has1) $required++;
 if ($has2) $required++;
 if ($has3) $required++;
 
-// 완료 플래그(1/Y 등 truthy 처리)
 $val1 = isset($sign_row['sign_off_status']) ? $sign_row['sign_off_status'] : '';
 $val2 = isset($sign_row['sign_off_status2']) ? $sign_row['sign_off_status2'] : '';
 $val3 = isset($sign_row['sign_off_status3']) ? $sign_row['sign_off_status3'] : '';
@@ -191,19 +185,17 @@ if ($done <= 0) $status = 'N';
 else if ($required > 0 && $done >= $required) $status = 'E';
 else $status = 'P';
 
-// 상태 값 변경
-$update_sign_status = "UPDATE a_sign_off SET
-                        sign_status = '{$status}'
-                        WHERE sign_id = '{$sign_id}'";
-sql_query($update_sign_status);
+sql_query("UPDATE a_sign_off SET sign_status = '{$status}' WHERE sign_id = '{$sign_id}'");
 
 // -----------------------------------------------------------------------------
-// 5) 다음 결재자에게 푸시 발송(기존 로직 유지 + 결재자 존재 시에만)
+// 5) 다음 결재자에게 푸시 발송
 // -----------------------------------------------------------------------------
 if ($status === 'P') {
     // 1차 결재 완료 → 2차 결재자 푸시
     if ($current_idx === 1 && $has2) {
-        $sign_off_id_info = get_member($sign_info['sign_off_mng_id2']);
+        $nextId = $sign_row['sign_off_mng_id2'];
+        $sign_off_id_info = get_member($nextId);
+
         $push_title = '[결재요청] '.$approval_name." 결재 요청이 있습니다.";
         $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
 
@@ -211,21 +203,22 @@ if ($status === 'P') {
             fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/adm/approval_info.php?w=u&sign_id=");
         }
 
-        $insert_push = "INSERT INTO a_push SET
-                        recv_id = '{$sign_info['sign_off_mng_id2']}',
-                        recv_id_type = 'sm',
-                        push_title = '{$push_title}',
-                        push_content = '{$push_content}',
-                        wid = '{$wid}',
-                        push_type = 'sign_off',
-                        push_idx = '{$sign_id}',
-                        created_at = '{$today}'";
-        sql_query($insert_push);
+        sql_query("INSERT INTO a_push SET
+            recv_id = '{$nextId}',
+            recv_id_type = 'sm',
+            push_title = '{$push_title}',
+            push_content = '{$push_content}',
+            wid = '{$wid}',
+            push_type = 'sign_off',
+            push_idx = '{$sign_id}',
+            created_at = '{$today}'");
     }
 
     // 2차 결재 완료 → 3차 결재자 푸시
     if ($current_idx === 2 && $has3) {
-        $sign_off_id_info = get_member($sign_info['sign_off_mng_id3']);
+        $nextId = $sign_row['sign_off_mng_id3'];
+        $sign_off_id_info = get_member($nextId);
+
         $push_title = '[결재요청] '.$approval_name." 결재 요청이 있습니다.";
         $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
 
@@ -233,16 +226,15 @@ if ($status === 'P') {
             fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/adm/approval_info.php?w=u&sign_id=");
         }
 
-        $insert_push = "INSERT INTO a_push SET
-                        recv_id = '{$sign_info['sign_off_mng_id3']}',
-                        recv_id_type = 'sm',
-                        push_title = '{$push_title}',
-                        push_content = '{$push_content}',
-                        wid = '{$wid}',
-                        push_type = 'sign_off',
-                        push_idx = '{$sign_id}',
-                        created_at = '{$today}'";
-        sql_query($insert_push);
+        sql_query("INSERT INTO a_push SET
+            recv_id = '{$nextId}',
+            recv_id_type = 'sm',
+            push_title = '{$push_title}',
+            push_content = '{$push_content}',
+            wid = '{$wid}',
+            push_type = 'sign_off',
+            push_idx = '{$sign_id}',
+            created_at = '{$today}'");
     }
 }
 
@@ -252,3 +244,4 @@ echo result_data(true, "서명이 완료되었습니다.", [
     'done' => $done,
     'current' => $data,
 ]);
+exit;
