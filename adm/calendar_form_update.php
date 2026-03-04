@@ -133,7 +133,7 @@ if($w == "u"){
                         recv_id = '{$mng_row['mng_id']}',
                         push_title = '{$push_title}',
                         push_content = '{$push_content}',
-                        wid = '{$member['mb_id']}',
+                        wid = '{$mb_id}',
                         push_type = 'schedule',
                         push_idx = '{$cal_idx}',
                         created_at = '{$today}'";
