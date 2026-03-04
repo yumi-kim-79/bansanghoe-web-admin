@@ -141,8 +141,13 @@ if($w == "u"){
             $push_content = $calendar_name."캘린더의 ".$cal_title." 일정 담당자로 지정되었습습니다.";
 
             if($mng_row['mb_token'] != "" && $mng_row['noti3']){ //토큰이 있는경우 푸시 발송
-                
-                if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+                if($_SERVER['REMOTE_ADDR'] != ADMIN_IP){
+                    try {
+                        fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+                    } catch(Exception $e) {
+                        // FCM 오류 무시하고 계속 진행
+                    }
+                }
             }
 
             $insert_push = "INSERT INTO a_push SET
@@ -225,8 +230,13 @@ if($w == "u"){
         $push_content = $calendar_name."캘런더에 일정이 등록되었습니다.";
 
         if($mng_row['mb_token'] != "" && $mng_row['noti3']){ //토큰이 있는경우 푸시 발송
-            
-            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP){
+                try {
+                    fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+                } catch(Exception $e) {
+                    // FCM 오류 무시하고 계속 진행
+                }
+            }
         }
 
         $insert_push = "INSERT INTO a_push SET
