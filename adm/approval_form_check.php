@@ -200,7 +200,11 @@ if ($status === 'P') {
         $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
 
         if ($sign_off_id_info['mb_token'] != "") {
-            fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/adm/approval_info.php?w=u&sign_id=");
+            try {
+                fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/adm/approval_info.php?w=u&sign_id=");
+            } catch(Exception $e) {
+                // FCM 오류 무시하고 계속 진행
+            }
         }
 
         sql_query("INSERT INTO a_push SET
@@ -223,7 +227,11 @@ if ($status === 'P') {
         $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
 
         if ($sign_off_id_info['mb_token'] != "") {
-            fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/adm/approval_info.php?w=u&sign_id=");
+            try {
+                fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/adm/approval_info.php?w=u&sign_id=");
+            } catch(Exception $e) {
+                // FCM 오류 무시하고 계속 진행
+            }
         }
 
         sql_query("INSERT INTO a_push SET
