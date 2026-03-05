@@ -394,10 +394,8 @@ function singCheck(){
                alert(data.msg);
 
                setTimeout(() => {
-
-                    // ✅ 서명/승인 후 즉시 현재 페이지를 새로고침하여
-                    //    상단 결재란/결재내역/상태를 바로 반영
-                    window.location.reload();
+                    // 서명 후 holiday_request_sample.php 거쳐서 상단 결재란 이미지 갱신
+                    location.replace("/holiday_request_sample.php?mem_type=admin&sign_id=" + sign_id);
                 }, 150);
             }
         }
