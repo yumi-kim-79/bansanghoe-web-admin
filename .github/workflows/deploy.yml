@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
 
 jobs:
   deploy:
@@ -18,40 +19,40 @@ jobs:
           port: 22
           script: |
             export GITHUB_TOKEN=${{ secrets.DEPLOY_TOKEN }}
-            BACKUP_DIR="/var/www/html/_backups/$(date +%Y%m%d_%H%M%S)"
+
+            # 브랜치에 따라 배포 경로 결정
+            BRANCH="${{ github.ref_name }}"
+            if [ "$BRANCH" = "main" ]; then
+              DEPLOY_DIR="/var/www/html"
+            else
+              DEPLOY_DIR="/var/www/html_test"
+            fi
+
+            BACKUP_DIR="${DEPLOY_DIR}/_backups/$(date +%Y%m%d_%H%M%S)"
             mkdir -p "$BACKUP_DIR"
 
-            cd /var/www/html
-            git fetch origin main
+            cd $DEPLOY_DIR
+            git fetch origin $BRANCH
 
-            # 변경된 파일 목록 추출
-            CHANGED_FILES=$(git diff --name-only HEAD origin/main 2>/dev/null)
+            CHANGED_FILES=$(git diff --name-only HEAD origin/$BRANCH 2>/dev/null)
 
-            # 변경된 파일 백업
             echo "$CHANGED_FILES" | while read file; do
-              if [ -f "/var/www/html/$file" ]; then
+              if [ -f "$DEPLOY_DIR/$file" ]; then
                 mkdir -p "$BACKUP_DIR/$(dirname $file)"
-                cp "/var/www/html/$file" "$BACKUP_DIR/$file"
-                echo "백업 완료: $file"
+                cp "$DEPLOY_DIR/$file" "$BACKUP_DIR/$file"
               fi
             done
 
-            # 변경된 파일 서버에 배포
             echo "$CHANGED_FILES" | while read file; do
               if [ -n "$file" ]; then
-                mkdir -p "/var/www/html/$(dirname $file)"
+                mkdir -p "$DEPLOY_DIR/$(dirname $file)"
                 curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                  -o "/var/www/html/$file" \
-                  "https://raw.githubusercontent.com/yumi-kim-79/bansanghoe-web-admin/main/$file"
-                echo "배포 완료: $file"
+                  -o "$DEPLOY_DIR/$file" \
+                  "https://raw.githubusercontent.com/yumi-kim-79/bansanghoe-web-admin/$BRANCH/$file"
               fi
             done
 
-            # git HEAD 업데이트
-            git merge origin/main
-
-            # 오래된 백업 삭제 (30일 이상)
-            find /var/www/html/_backups -maxdepth 1 -type d -mtime +30 -exec rm -rf {} \; 2>/dev/null || true
-
+            git merge origin/$BRANCH
+            find ${DEPLOY_DIR}/_backups -maxdepth 1 -type d -mtime +30 -exec rm -rf {} \; 2>/dev/null || true
             systemctl restart httpd
-            echo "✅ 배포 완료!"
+            echo "✅ $BRANCH → $DEPLOY_DIR 배포 완료!"
