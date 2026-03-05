@@ -521,7 +521,7 @@ function bbsToImg(){
                     setTimeout(() => {
 
                         if(mem_type == 'admin'){
-                            location.replace("/adm/approval_form.php?w=u&sign_id=" + sign_id);
+                            location.replace("/adm/approval_info.php?w=u&sign_id=" + sign_id);
                         }else if(mem_type == 'sign_user'){
                             location.replace("/adm/approval_info.php?w=u&sign_id=" + sign_id);
                         }else if(mem_type == "sign_user2"){
