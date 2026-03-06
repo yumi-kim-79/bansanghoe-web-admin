@@ -197,39 +197,39 @@ function request_handler(){
 
     let sendData = {"w":w, "mv_idx":mv_idx, "building_id":building_id, "dong_id":dong_id, "ho_id":ho_id, "mb_id":mb_id, "mv_date":mv_date, "move_time":move_time, "move_min":move_min, "mv_estate_name":mv_estate_name, "mv_estate_number":mv_estate_number, "mv_memo":mv_memo};
 
-    setTimeout(() => {
-        $.ajax({
-            type: "POST",
-            url: "/move_request_update.php",
-            data: sendData,
-            cache: false,
-            async: false,
-            dataType: "json",
-            success: function(data) {
-                console.log('data:::', data);
-
-                if(data.result == false) { 
-                    showToast(data.msg);
-                    $("#building_info_pop").hide();
-                    if(data.data != ""){
-                        $("#" + data.data).focus();
-                    }
-                    return false;
-                }else{
-                    showToast(data.msg);
-
-                    $("#building_info_pop").hide();
-
-                    setTimeout(() => {
-                        
-                        location.replace("/");
-                        
-                    }, 500);
-                }
+    $.ajax({
+        type: "POST",
+        url: "/move_request_update.php",
+        data: sendData,
+        cache: false,
+        dataType: "json",
+        timeout: 30000,
+        success: function(data) {
+            console.log('data:::', data);
             
-            },
-        });
-    }, 50);
+            $("#building_info_pop").hide();
+
+            if(data.result == false) { 
+                showToast(data.msg);
+                if(data.data != ""){
+                    $("#" + data.data).focus();
+                }
+                return false;
+            }else{
+                showToast(data.msg);
+                setTimeout(() => {
+                    location.replace("/");
+                }, 500);
+            }
+        },
+        error: function(xhr, status, error) {
+            $("#building_info_pop").hide();
+            console.error('AJAX Error:', xhr.responseText);
+            console.error('Status:', status);
+            console.error('Error:', error);
+            showToast('요청 처리 중 문제가 발생했습니다.');
+        }
+    });
 }
 </script>
 <?php
