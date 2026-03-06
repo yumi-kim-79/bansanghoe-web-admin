@@ -207,12 +207,10 @@ function request_handler(){
             dataType: "json",
             success: function(data) {
                 console.log('data:::', data);
-                
-                // 로딩 팝업 닫기
-                $("#building_info_pop").hide();
 
                 if(data.result == false) { 
                     showToast(data.msg);
+                    $("#building_info_pop").hide();
                     if(data.data != ""){
                         $("#" + data.data).focus();
                     }
@@ -220,17 +218,16 @@ function request_handler(){
                 }else{
                     showToast(data.msg);
 
+                    $("#building_info_pop").hide();
+
                     setTimeout(() => {
+                        
                         location.replace("/");
+                        
                     }, 500);
                 }
+            
             },
-            error: function(xhr, status, error) {
-                // 에러 발생 시에도 로딩 닫기
-                $("#building_info_pop").hide();
-                console.error('AJAX Error:', xhr, status, error);
-                showToast('신청 중 오류가 발생했습니다. 다시 시도해주세요.');
-            }
         });
     }, 50);
 }
