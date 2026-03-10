@@ -1,15 +1,13 @@
 <?php
 /**
- * complain_excel.php
- * 민원 선택 엑셀 다운로드
+ * complain_excel.php - 민원 엑셀 다운로드 (.xlsx)
  */
+ob_start();
 require_once './_common.php';
-auth_check_menu($auth, "500100", 'r');
+ob_end_clean();
 
 $idxList = isset($_POST['idx']) ? $_POST['idx'] : [];
-if (empty($idxList)) {
-    die('선택된 항목이 없습니다.');
-}
+if (empty($idxList)) die('선택된 항목이 없습니다.');
 
 $idxList = array_map('intval', $idxList);
 $inClause = implode(',', $idxList);
@@ -49,96 +47,118 @@ while ($row = sql_fetch_array($result)) {
     $rows[] = $row;
 }
 
-$filename = '민원_' . date('Ymd_His');
 $headers = ['번호','지역','단지명','동','호수','접수날짜','민원인','연락처','작성자','민원 제목','민원 내용','민원 답변','추가 내용','담당자 부서','담당자','완료날짜','상태'];
 
-// PhpSpreadsheet 사용 가능 여부 확인
-$useSpreadsheet = false;
-$spreadsheetPaths = [
-    G5_PATH . '/vendor/autoload.php',
-    dirname(G5_PATH) . '/vendor/autoload.php',
-    $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php',
-];
-foreach ($spreadsheetPaths as $path) {
-    if (file_exists($path)) {
-        require_once $path;
-        if (class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet')) {
-            $useSpreadsheet = true;
-            break;
-        }
-    }
+// xlsx 는 zip 구조이므로 직접 생성
+$filename = '민원_' . date('Ymd_His') . '.xlsx';
+$tmpFile = tempnam(sys_get_temp_dir(), 'complain_xlsx_');
+
+// XML 이스케이프 함수
+function xe($v) {
+    return htmlspecialchars((string)$v, ENT_XML1 | ENT_QUOTES, 'UTF-8');
 }
 
-if ($useSpreadsheet) {
-    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('민원목록');
-
-    foreach ($headers as $col => $header) {
-        $sheet->getCellByColumnAndRow($col + 1, 1)->setValue($header);
-        $sheet->getStyleByColumnAndRow($col + 1, 1)->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '2F75B6']],
-            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
-        ]);
-        $sheet->getColumnDimensionByColumn($col + 1)->setAutoSize(true);
-    }
-
-    foreach ($rows as $i => $row) {
-        $r = $i + 2;
-        $sheet->getCellByColumnAndRow(1,  $r)->setValue($row['complain_idx']);
-        $sheet->getCellByColumnAndRow(2,  $r)->setValue($row['post_name']);
-        $sheet->getCellByColumnAndRow(3,  $r)->setValue($row['building_name']);
-        $sheet->getCellByColumnAndRow(4,  $r)->setValue($row['dong_name'] != '' ? $row['dong_name'].'동' : '');
-        $sheet->getCellByColumnAndRow(5,  $r)->setValue($row['ho_name'] != '' ? $row['ho_name'].'호' : '');
-        $sheet->getCellByColumnAndRow(6,  $r)->setValue($row['wdate']);
-        $sheet->getCellByColumnAndRow(7,  $r)->setValue($row['complain_name']);
-        $sheet->getCellByColumnAndRow(8,  $r)->setValue($row['complain_hp']);
-        $sheet->getCellByColumnAndRow(9,  $r)->setValue($row['wname']);
-        $sheet->getCellByColumnAndRow(10, $r)->setValue($row['complain_title']);
-        $sheet->getCellByColumnAndRow(11, $r)->setValue($row['complain_content']);
-        $sheet->getCellByColumnAndRow(12, $r)->setValue($row['complain_answer']);
-        $sheet->getCellByColumnAndRow(13, $r)->setValue($row['complain_memo']);
-        $sheet->getCellByColumnAndRow(14, $r)->setValue($row['mng_department_name']);
-        $sheet->getCellByColumnAndRow(15, $r)->setValue($row['mng_name']);
-        $sheet->getCellByColumnAndRow(16, $r)->setValue($row['edate']);
-        $sheet->getCellByColumnAndRow(17, $r)->setValue($row['status_name']);
-    }
-
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment; filename="' . urlencode($filename . '.xlsx') . '"');
-    header('Cache-Control: max-age=0');
-
-    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-    $writer->save('php://output');
-
-} else {
-    header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
-    header('Content-Disposition: attachment; filename="' . urlencode($filename . '.xls') . '"');
-    header('Cache-Control: max-age=0');
-    echo "\xEF\xBB\xBF";
-    echo implode("\t", $headers) . "\n";
-    foreach ($rows as $row) {
-        $line = [
-            $row['complain_idx'],
-            $row['post_name'],
-            $row['building_name'],
-            $row['dong_name'] != '' ? $row['dong_name'].'동' : '',
-            $row['ho_name'] != '' ? $row['ho_name'].'호' : '',
-            $row['wdate'],
-            $row['complain_name'],
-            $row['complain_hp'],
-            $row['wname'],
-            $row['complain_title'],
-            str_replace(["\r\n","\r","\n"], ' ', $row['complain_content']),
-            str_replace(["\r\n","\r","\n"], ' ', $row['complain_answer']),
-            str_replace(["\r\n","\r","\n"], ' ', $row['complain_memo']),
-            $row['mng_department_name'],
-            $row['mng_name'],
-            $row['edate'],
-            $row['status_name'],
-        ];
-        echo implode("\t", $line) . "\n";
-    }
+// 공유 문자열 방식 없이 인라인 문자열(t="inlineStr")로 작성
+$rowsXml = '';
+// 헤더행
+$rowsXml .= '<row r="1">';
+foreach ($headers as $ci => $h) {
+    $col = col_name($ci) . '1';
+    $rowsXml .= '<c r="'.$col.'" t="inlineStr"><is><t>' . xe($h) . '</t></is></c>';
 }
+$rowsXml .= '</row>';
+
+// 데이터행
+foreach ($rows as $ri => $row) {
+    $r = $ri + 2;
+    $cells = [
+        $row['complain_idx'],
+        $row['post_name'],
+        $row['building_name'],
+        $row['dong_name'] != '' ? $row['dong_name'].'동' : '',
+        $row['ho_name'] != '' ? $row['ho_name'].'호' : '',
+        $row['wdate'],
+        $row['complain_name'],
+        $row['complain_hp'],
+        $row['wname'],
+        $row['complain_title'],
+        str_replace(["\r\n","\r","\n"], ' ', strip_tags($row['complain_content'])),
+        str_replace(["\r\n","\r","\n"], ' ', strip_tags($row['complain_answer'])),
+        str_replace(["\r\n","\r","\n"], ' ', strip_tags($row['complain_memo'])),
+        $row['mng_department_name'],
+        $row['mng_name'],
+        $row['edate'],
+        $row['status_name'],
+    ];
+    $rowsXml .= '<row r="'.$r.'">';
+    foreach ($cells as $ci => $val) {
+        $col = col_name($ci) . $r;
+        $rowsXml .= '<c r="'.$col.'" t="inlineStr"><is><t>' . xe($val) . '</t></is></c>';
+    }
+    $rowsXml .= '</row>';
+}
+
+function col_name($idx) {
+    $letters = '';
+    $idx++;
+    while ($idx > 0) {
+        $idx--;
+        $letters = chr(65 + ($idx % 26)) . $letters;
+        $idx = intval($idx / 26);
+    }
+    return $letters;
+}
+
+// xlsx 파일 구성 (zip)
+$zip = new ZipArchive();
+$zip->open($tmpFile, ZipArchive::OVERWRITE);
+
+$zip->addFromString('[Content_Types].xml',
+'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>');
+
+$zip->addFromString('_rels/.rels',
+'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>');
+
+$zip->addFromString('xl/workbook.xml',
+'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheets>
+    <sheet name="민원목록" sheetId="1" r:id="rId1"/>
+  </sheets>
+</workbook>');
+
+$zip->addFromString('xl/_rels/workbook.xml.rels',
+'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>');
+
+$zip->addFromString('xl/worksheets/sheet1.xml',
+'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <sheetData>' . $rowsXml . '</sheetData>
+</worksheet>');
+
+$zip->close();
+
+$filesize = filesize($tmpFile);
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment; filename="' . $filename . '"');
+header('Content-Length: ' . $filesize);
+header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+header('Pragma: public');
+header('Expires: 0');
+
+readfile($tmpFile);
+unlink($tmpFile);
 exit;
