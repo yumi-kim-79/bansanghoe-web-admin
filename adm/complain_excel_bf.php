@@ -1,18 +1,13 @@
 <?php
 /**
- * complain_excel_bf.php - 민원(이전자료) 엑셀 다운로드
- * _common.php 의 HTML 출력을 무력화하기 위해 파일로 먼저 생성 후 전송
+ * complain_excel_bf.php - 민원(이전자료) 엑셀 다운로드 (.xlsx)
  */
-
-// output buffering 시작 (common.php HTML 출력 차단)
 ob_start();
 require_once './_common.php';
-ob_end_clean(); // common.php 가 출력한 모든 HTML 버림
+ob_end_clean();
 
 $idxList = isset($_POST['idx']) ? $_POST['idx'] : [];
-if (empty($idxList)) {
-    die('선택된 항목이 없습니다.');
-}
+if (empty($idxList)) die('선택된 항목이 없습니다.');
 
 $idxList = array_map('intval', $idxList);
 $inClause = implode(',', $idxList);
@@ -54,41 +49,55 @@ function get_bf_comments($seq) {
     $sql = "SELECT content FROM question_answer_comment WHERE question_answer = '" . intval($seq) . "' ORDER BY id asc";
     $res = sql_query($sql);
     $comments = [];
-    while ($row = sql_fetch_array($res)) {
-        $comments[] = $row['content'];
-    }
+    while ($r = sql_fetch_array($res)) { $comments[] = $r['content']; }
     return implode(' / ', $comments);
 }
 
-function bf_status_name($status) {
-    switch ((string)$status) {
+function bf_status_name($s) {
+    switch ((string)$s) {
         case "0": return "접수대기";
         case "1": return "완료";
         case "2": return "진행중";
-        default:  return $status;
+        default:  return $s;
     }
 }
 
-function bf_register_type($type) {
-    return $type == 'ADMIN' ? '관리자 접수 민원' : '앱 접수 민원';
+function bf_register_type($t) {
+    return $t == 'ADMIN' ? '관리자 접수 민원' : '앱 접수 민원';
 }
 
-// 임시 파일에 먼저 CSV 내용 작성
-$tmpFile = tempnam(sys_get_temp_dir(), 'complain_excel_bf_');
-$fp = fopen($tmpFile, 'w');
+function col_name($idx) {
+    $letters = ''; $idx++;
+    while ($idx > 0) {
+        $idx--;
+        $letters = chr(65 + ($idx % 26)) . $letters;
+        $idx = intval($idx / 26);
+    }
+    return $letters;
+}
 
-// UTF-8 BOM
-fwrite($fp, "\xEF\xBB\xBF");
+function xe($v) {
+    return htmlspecialchars((string)$v, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+}
 
 $headers = ['번호','접수구분','지역','단지명','동','호수','접수날짜','민원인','연락처','작성자','민원 제목','민원 내용','민원 답변','추가 내용','담당자 직급','담당자','완료날짜','상태'];
-fputcsv($fp, $headers, "\t");
 
-foreach ($rows as $row) {
+// 헤더행 XML
+$rowsXml = '<row r="1">';
+foreach ($headers as $ci => $h) {
+    $col = col_name($ci) . '1';
+    $rowsXml .= '<c r="'.$col.'" t="inlineStr"><is><t>' . xe($h) . '</t></is></c>';
+}
+$rowsXml .= '</row>';
+
+// 데이터행 XML
+foreach ($rows as $ri => $row) {
+    $r = $ri + 2;
     $addr = explode(" ", $row['address']);
     $region = isset($addr[0]) ? $addr[0] : '';
     $comments = get_bf_comments($row['seq']);
 
-    $line = [
+    $cells = [
         $row['seq'],
         bf_register_type($row['register_type']),
         $region,
@@ -108,15 +117,62 @@ foreach ($rows as $row) {
         $row['answer_date'] != '' ? date('Y-m-d', strtotime($row['answer_date'])) : '',
         bf_status_name($row['status']),
     ];
-    fputcsv($fp, $line, "\t");
+
+    $rowsXml .= '<row r="'.$r.'">';
+    foreach ($cells as $ci => $val) {
+        $col = col_name($ci) . $r;
+        $rowsXml .= '<c r="'.$col.'" t="inlineStr"><is><t>' . xe($val) . '</t></is></c>';
+    }
+    $rowsXml .= '</row>';
 }
-fclose($fp);
 
-$filename = '민원(이전자료)_' . date('Ymd_His') . '.xls';
+// xlsx zip 생성
+$filename = '민원(이전자료)_' . date('Ymd_His') . '.xlsx';
+$tmpFile = tempnam(sys_get_temp_dir(), 'complain_bf_xlsx_');
+
+$zip = new ZipArchive();
+$zip->open($tmpFile, ZipArchive::OVERWRITE);
+
+$zip->addFromString('[Content_Types].xml',
+'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>');
+
+$zip->addFromString('_rels/.rels',
+'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>');
+
+$zip->addFromString('xl/workbook.xml',
+'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheets>
+    <sheet name="민원이전자료" sheetId="1" r:id="rId1"/>
+  </sheets>
+</workbook>');
+
+$zip->addFromString('xl/_rels/workbook.xml.rels',
+'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>');
+
+$zip->addFromString('xl/worksheets/sheet1.xml',
+'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <sheetData>' . $rowsXml . '</sheetData>
+</worksheet>');
+
+$zip->close();
+
 $filesize = filesize($tmpFile);
-
-// 헤더 전송 후 파일 출력
-header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
 header('Content-Length: ' . $filesize);
 header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
