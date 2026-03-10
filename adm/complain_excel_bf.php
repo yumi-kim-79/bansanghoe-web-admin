@@ -21,6 +21,7 @@ foreach (array_chunk($idxList, 500) as $chunk) {
     $inClause = implode(',', $chunk);
     $sql = "SELECT 
                 qa.seq,
+                (SELECT COUNT(*) FROM question_answer WHERE seq >= qa.seq) as row_num,
                 qa.title as complain_title,
                 qa.question,
                 qa.answer,
@@ -79,7 +80,7 @@ foreach ($data_rows as $ri => $row) {
     $r = $ri + 2;
     $addr = explode(" ", $row['address']);
     $cells = [
-        $row['seq'], bf_register_type($row['register_type']),
+        $row['row_num'], bf_register_type($row['register_type']),
         isset($addr[0]) ? $addr[0] : '', $row['building_name'],
         $row['dong'] != '' ? $row['dong'].'동' : '',
         $row['ho'] != '' ? $row['ho'].'호' : '',
