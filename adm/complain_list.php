@@ -256,7 +256,7 @@ $colspan = 16;
 </form>
 
 <!-- 엑셀 다운로드 폼 -->
-<form id="fExcelDownload" action="./complain_excel.php" method="post" target="_blank">
+<form id="fExcelDownload" action="./complain_excel.php" method="post">
     <input type="hidden" name="type" value="<?php echo $type; ?>">
 </form>
 
