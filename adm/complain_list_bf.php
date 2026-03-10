@@ -133,11 +133,22 @@ $colspan = 16;
 <!-- 전체 idx JSON (전체선택 다운로드용) -->
 <script>var ALL_IDX = <?php echo $all_idx_json; ?>;</script>
 
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-        <input type="checkbox" id="chkAllTop" onchange="complainCheckAll(this)">
-        <span id="chkAllLabel">전체선택 (현재 페이지)</span>
-    </label>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+    <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
+        <label style="display:flex; align-items:center; gap:5px; cursor:pointer; font-weight:bold;">
+            <input type="checkbox" id="chkAllTop" onchange="complainCheckAll(this)">
+            전체선택
+        </label>
+        <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+            <input type="radio" name="selectScope" id="scopePage" value="page" checked onchange="scopeChange()">
+            현재 페이지만
+        </label>
+        <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+            <input type="radio" name="selectScope" id="scopeAll" value="all" onchange="scopeChange()">
+            전체 <?php echo number_format($total_count); ?>건 모두
+        </label>
+        <span id="chkAllLabel" style="color:#217346; font-weight:bold;"></span>
+    </div>
     <button type="button" onclick="complainExcelDownload()" class="btn btn_03" style="background:#217346; border-color:#217346;">
         &#128229; 선택 엑셀 다운로드
     </button>
