@@ -189,7 +189,7 @@ $colspan = 16;
 </form>
 
 <!-- 엑셀 다운로드 폼 -->
-<form id="fExcelDownload" action="./complain_excel_bf.php" method="post" target="_blank"></form>
+<form id="fExcelDownload" action="./complain_excel_bf.php" method="post"></form>
 
 <?php echo get_paging(G5_IS_MOBILE ? $config['cf_mobile_pages'] : $config['cf_write_pages'], $page, $total_page, '?' . $qstr . '&page='); ?>
 
