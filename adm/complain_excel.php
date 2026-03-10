@@ -13,13 +13,15 @@ if (empty($idx_str)) die('선택된 항목이 없습니다.');
 $idxList = array_filter(array_map('intval', explode(',', $idx_str)));
 if (empty($idxList)) die('유효한 항목이 없습니다.');
 
-// 각 idx의 전체 순번: 자신보다 idx가 크거나 같은 건수 = 내림차순 순번
+// 전체 건수 조회 (웹 목록과 동일한 순번 계산)
+$tc = sql_fetch("SELECT COUNT(*) as cnt FROM a_online_complain");
+$total_count = (int)$tc['cnt'];
+
 $data_rows = [];
 foreach (array_chunk($idxList, 500) as $chunk) {
     $inClause = implode(',', $chunk);
     $sql = "SELECT
                 complain.complain_idx,
-                (SELECT COUNT(*) FROM a_online_complain WHERE complain_idx > complain.complain_idx) + 1 as row_num,
                 post.post_name,
                 building.building_name,
                 dong.dong_name,
@@ -69,7 +71,7 @@ $rowsXml .= '</row>';
 foreach ($data_rows as $ri => $row) {
     $r = $ri + 2;
     $cells = [
-        $row['row_num'], $row['post_name'], $row['building_name'],
+        ($total_count - $ri), $row['post_name'], $row['building_name'],
         $row['dong_name'] != '' ? $row['dong_name'].'동' : '',
         $row['ho_name'] != '' ? $row['ho_name'].'호' : '',
         $row['wdate'], $row['complain_name'], $row['complain_hp'], $row['wname'],
