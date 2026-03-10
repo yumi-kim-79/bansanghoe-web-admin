@@ -1,11 +1,14 @@
 <?php
 /**
- * complain_excel.php
- * 민원 선택 엑셀 다운로드
+ * complain_excel.php - 민원 엑셀 다운로드
+ * _common.php 의 HTML 출력을 무력화하기 위해 파일로 먼저 생성 후 전송
  */
-require_once './_common.php';
 
-// POST 데이터 확인
+// output buffering 시작 (common.php HTML 출력 차단)
+ob_start();
+require_once './_common.php';
+ob_end_clean(); // common.php 가 출력한 모든 HTML 버림
+
 $idxList = isset($_POST['idx']) ? $_POST['idx'] : [];
 if (empty($idxList)) {
     die('선택된 항목이 없습니다.');
@@ -49,21 +52,15 @@ while ($row = sql_fetch_array($result)) {
     $rows[] = $row;
 }
 
-$filename = '민원_' . date('Ymd_His') . '.xls';
-$headers = ['번호','지역','단지명','동','호수','접수날짜','민원인','연락처','작성자','민원 제목','민원 내용','민원 답변','추가 내용','담당자 부서','담당자','완료날짜','상태'];
-
-// 출력 버퍼 초기화 (헤더 전송 전 HTML 출력 방지)
-if (ob_get_length()) ob_end_clean();
-
-header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
-header('Content-Disposition: attachment; filename="' . $filename . '"');
-header('Cache-Control: max-age=0');
-header('Pragma: no-cache');
-header('Expires: 0');
+// 임시 파일에 먼저 CSV 내용 작성
+$tmpFile = tempnam(sys_get_temp_dir(), 'complain_excel_');
+$fp = fopen($tmpFile, 'w');
 
 // UTF-8 BOM
-echo "\xEF\xBB\xBF";
-echo implode("\t", $headers) . "\n";
+fwrite($fp, "\xEF\xBB\xBF");
+
+$headers = ['번호','지역','단지명','동','호수','접수날짜','민원인','연락처','작성자','민원 제목','민원 내용','민원 답변','추가 내용','담당자 부서','담당자','완료날짜','상태'];
+fputcsv($fp, $headers, "\t");
 
 foreach ($rows as $row) {
     $line = [
@@ -85,6 +82,21 @@ foreach ($rows as $row) {
         $row['edate'],
         $row['status_name'],
     ];
-    echo implode("\t", $line) . "\n";
+    fputcsv($fp, $line, "\t");
 }
+fclose($fp);
+
+$filename = '민원_' . date('Ymd_His') . '.xls';
+$filesize = filesize($tmpFile);
+
+// 헤더 전송 후 파일 출력
+header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
+header('Content-Disposition: attachment; filename="' . $filename . '"');
+header('Content-Length: ' . $filesize);
+header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+header('Pragma: public');
+header('Expires: 0');
+
+readfile($tmpFile);
+unlink($tmpFile);
 exit;
