@@ -174,7 +174,7 @@ $colspan = 16;
                     switch($row['complain_status']){ case "0": $status_text="접수대기"; break; case "1": $status_text="완료"; break; case "2": $status_text="진행중"; break; }
                 ?>
                 <tr class="<?php echo $row['register_type'] == 'ADMIN' ? '' : 'status_n'; ?>">
-                    <td><input type="checkbox" class="complain_chk" value="<?php echo $row['seq']; ?>"></td>
+                    <td><input type="checkbox" class="complain_chk" value="<?php echo $row['seq']; ?>" data-num="<?php echo $startNumber - $i; ?>"></td>
                     <td><?php echo $startNumber - $i; ?></td>
                     <td><?php echo isset($addr[0]) ? $addr[0] : ''; ?></td>
                     <td><?php echo $row['building_name']; ?></td>
@@ -259,13 +259,23 @@ function complainExcelDownload() {
         return;
     }
 
+    var numList = [];
+    if (scope === 'all') {
+        numList = ALL_IDX.map(function(_, i){ return ALL_IDX.length - i; });
+    } else {
+        document.querySelectorAll('.complain_chk:checked').forEach(function(cb){ numList.push(cb.getAttribute('data-num')); });
+    }
+
     var form = document.getElementById('fExcelDownload');
-    form.querySelectorAll('input[name="idx_str"]').forEach(function(el){ el.remove(); });
-    var input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'idx_str';
-    input.value = idxList.join(',');
-    form.appendChild(input);
+    form.querySelectorAll('input[name="idx_str"], input[name="num_str"]').forEach(function(el){ el.remove(); });
+
+    var i1 = document.createElement('input');
+    i1.type = 'hidden'; i1.name = 'idx_str'; i1.value = idxList.join(',');
+    form.appendChild(i1);
+
+    var i2 = document.createElement('input');
+    i2.type = 'hidden'; i2.name = 'num_str'; i2.value = numList.join(',');
+    form.appendChild(i2);
 
     form.submit();
 }

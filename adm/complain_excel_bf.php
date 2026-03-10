@@ -15,9 +15,9 @@ if (empty($idx_str)) die('선택된 항목이 없습니다.');
 $idxList = array_filter(array_map('intval', explode(',', $idx_str)));
 if (empty($idxList)) die('유효한 항목이 없습니다.');
 
-// 전체 건수 조회 (웹 목록과 동일한 순번 계산)
-$tc = sql_fetch("SELECT COUNT(*) as cnt FROM question_answer");
-$total_count = (int)$tc['cnt'];
+// 웹에서 전달받은 번호 목록
+$num_str = isset($_POST['num_str']) ? $_POST['num_str'] : '';
+$numList = $num_str ? explode(',', $num_str) : [];
 
 $data_rows = [];
 // 500개씩 나눠서 쿼리
@@ -83,7 +83,7 @@ foreach ($data_rows as $ri => $row) {
     $r = $ri + 2;
     $addr = explode(" ", $row['address']);
     $cells = [
-        ($total_count - $ri), bf_register_type($row['register_type']),
+        (isset($numList[$ri]) ? $numList[$ri] : ($ri+1)), bf_register_type($row['register_type']),
         isset($addr[0]) ? $addr[0] : '', $row['building_name'],
         $row['dong'] != '' ? $row['dong'].'동' : '',
         $row['ho'] != '' ? $row['ho'].'호' : '',
