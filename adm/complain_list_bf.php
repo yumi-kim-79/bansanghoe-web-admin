@@ -19,12 +19,6 @@ $sql_search = " where (1) ";
 if ($stx) {
     $sql_search .= " and ( ";
     switch ($sfl) {
-        case 'mb_point':
-            $sql_search .= " ({$sfl} >= '{$stx}') ";
-            break;
-        case 'mb_level':
-            $sql_search .= " ({$sfl} = '{$stx}') ";
-            break;
         case 'rname':
             $sql_search .= " (u.name like '%{$stx}%') ";
             break;
@@ -41,111 +35,56 @@ if ($stx) {
             $sql_search .= " (a1.username like '%{$stx}%') ";
             break;
         default:
-            $sql_search .= " (complain.{$sfl} like '%{$stx}%') ";
+            $sql_search .= " (qa.title like '%{$stx}%') ";
             break;
     }
     $sql_search .= " ) ";
 }
 
 if($date_type == "wdate" && $dates != ""){
-    $sql_search .= " and complain.wdate = '{$dates}' ";
-
+    $sql_search .= " and DATE(qa.create_date) = '{$dates}' ";
     $qstr .= '&wdate='.$wdate.'&dates='.$dates;
-
 }else if($date_type == "edate" && $dates != ""){
-    $sql_search .= " and complain.edate = '{$dates}' ";
-
+    $sql_search .= " and DATE(qa.answer_date) = '{$dates}' ";
     $qstr .= '&wdate='.$wdate.'&dates='.$dates;
 }
 
-if($complain_status!=""){
+if($complain_status != ""){
     $sql_search .= " and qa.status = '{$complain_status}' ";
-
     $qstr .= '&complain_status='.$complain_status;
 }
 
 if($post_name){
-
     $sql_search .= " and e.address like '{$post_name}%' ";
-
     $qstr .= '&post_name='.$post_name;
-
 }
 
 if($building_name){
-
     $sql_search .= " and e.name like '%{$building_name}%' ";
-
     $qstr .= '&building_name='.$building_name;
-}
-
-if($dong_id){
-
-    $sql_search .= " and complain.dong_id = '{$dong_id}' ";
-
-    $qstr .= '&dong_id='.$dong_id;
-
-}
-
-if($ho_id){
-
-    $sql_search .= " and complain.ho_id = '{$ho_id}' ";
-
-    $qstr .= '&ho_id='.$ho_id;
-
-}
-
-if($sst == 'deleted_at'){
-    $sql_search2 .= " and std.is_del = 1 ";
 }
 
 if ($is_admin != 'super') {
     $sql_search .= " and mb_level <= '{$member['mb_level']}' ";
 }
 
-if (!$sst) {
-    $sst = "std.st_idx";
-    $sod = "desc";
-}
-
 $sql_order = " order by qa.seq desc ";
 
 $sql = " select count(*) as cnt {$sql_common} {$sql_search} {$sql_order} ";
-//echo $sql.'<br>';
 $row = sql_fetch($sql);
 $total_count = $row['cnt'];
 
 $rows = $config['cf_page_rows'];
-//$rows = 5;
-$total_page  = ceil($total_count / $rows);  // 전체 페이지 계산
-if ($page < 1) {
-    $page = 1; // 페이지가 없으면 첫 페이지 (1 페이지)
-}
-$from_record = ($page - 1) * $rows; // 시작 열을 구함
-
-// 탈퇴회원수
-$sql = " select count(*) as cnt {$sql_common} {$sql_search} and std.is_del = 1 {$sql_order} ";
-//echo $sql;
-$row = sql_fetch($sql);
-$leave_count = $row['cnt'];
-
-$sql = " select count(*) as cnt {$sql_common} {$sql_search} and std.st_status = 2 {$sql_order} ";
-//echo $sql;
-$row = sql_fetch($sql);
-$stop_count = $row['cnt'];
+$total_page  = ceil($total_count / $rows);
+if ($page < 1) { $page = 1; }
+$from_record = ($page - 1) * $rows;
 
 $listall = '<a href="' . $_SERVER['SCRIPT_NAME'] . '" class="ov_listall">전체목록</a>';
 
-
 $g5['title'] = "민원(이전자료)";
-
 
 require_once './admin.head.php';
 include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
-
-$grade_sql = "SELECT * FROM a_grade WHERE is_del = 0 ORDER BY is_prior asc, gidx asc";
-$grade_res = sql_query($grade_sql);
-
 
 $sql = " select qa.seq,
 	qa.answer,
@@ -183,17 +122,12 @@ $sql = " select qa.seq,
 
 $result = sql_query($sql);
 
-$colspan = 15;
+$colspan = 16;
 
 $post_sql = "SELECT * FROM a_post_addr ORDER BY is_prior asc, post_idx asc";
 $post_res = sql_query($post_sql);
 
-if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
-    echo $sql;
-}
-//echo $st_status;
-//echo $sub_menu;
-
+if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){ echo $sql; }
 ?>
 
 
@@ -222,10 +156,6 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                 <input type="radio" name="complain_status" id="status1" value="" <?php echo $complain_status == "" ? "checked" : ""?>>
                 <label for="status1">전체</label>
             </div>
-            <!-- <div class="sch_radios">
-                <input type="radio" name="complain_status" id="status2" value="CB" <?php echo $complain_status == "CB" ? "checked" : ""?>>
-                <label for="status2">할당대기</label>
-            </div> -->
             <div class="sch_radios">
                 <input type="radio" name="complain_status" id="status3" value="0" <?php echo $complain_status == "0" ? "checked" : ""?>>
                 <label for="status3">접수대기</label>
@@ -255,8 +185,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         <div class="sch_label">단지</div>
         <div class="sch_selects">
             <div class="sch_ipt_boxs">
-                <div class="sch_result_box sch_result_box1">
-                </div>
+                <div class="sch_result_box sch_result_box1"></div>
                 <input type="hidden" name="building_id" id="building_id" value="<?php echo $building_id; ?>">
                 <input type="text" name="building_name" id="building_name" class="bansang_ipt ver2 building_name_sch" size="50" value="<?php echo $building_name; ?>">
             </div>
@@ -274,12 +203,22 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                 <option value="complete_name" <?php echo get_selected($sfl, "complete_name"); ?>>담당자</option>
             </select>
             <label for="stx" class="sound_only">검색어<strong class="sound_only"> 필수</strong></label>
-            <input type="text" name="stx" value="<?php echo $stx ?>" id="stx"  class=" bansang_ipt ver2" size="50">
+            <input type="text" name="stx" value="<?php echo $stx ?>" id="stx" class="bansang_ipt ver2" size="50">
             <button type="submit" class="bansang_btns ver1">검색</button>
         </div>
     </div>
-
 </form>
+
+<!-- ========== 엑셀 다운로드 버튼 영역 ========== -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input type="checkbox" id="chkAllTop" onclick="complainCheckAll(this)">
+        <span>전체선택</span>
+    </label>
+    <button type="button" onclick="complainExcelDownload()" class="btn btn_03" style="background:#217346; border-color:#217346;">
+        &#128229; 선택 엑셀 다운로드
+    </button>
+</div>
 
 <form name="fcomplainlist" id="fcomplainlist" action="./complain_list_update.php" onsubmit="return fcomplainlist_submit(this);" method="post">
     <input type="hidden" name="sst" value="<?php echo $sst ?>">
@@ -288,17 +227,15 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     <input type="hidden" name="stx" value="<?php echo $stx ?>">
     <input type="hidden" name="page" value="<?php echo $page ?>">
     <input type="hidden" name="token" value="">
-    <input type="hidden" name="type" value="<?php echo $type;?>">
 
     <div class="tbl_head01 tbl_head03 tbl_wrap">
         <table>
             <caption><?php echo $g5['title']; ?> 목록</caption>
             <thead>
                 <tr>
-                    <!-- <th scope="col" id="mb_list_chk" >
-                        <label for="chkall" class="sound_only">회원 전체</label>
-                        <input type="checkbox" name="chkall" value="1" id="chkall" onclick="check_all(this.form)">
-                    </th> -->
+                    <th scope="col" style="width:40px;">
+                        <input type="checkbox" id="chkAllHead" onclick="complainCheckAll(this)">
+                    </th>
                     <th>번호</th>
                     <th>지역</th>
                     <th>단지명</th>
@@ -319,31 +256,22 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             <tbody>
                 <?php
                 for ($i = 0; $row = sql_fetch_array($result); $i++) {
-
-                    $mngs = get_manger($row['mng_id']);
-              
-                    $md_name = get_department_name($row['mng_department']);
-                    $mng_name = get_manger($row['mng_id'])['mng_name'];
-
-                    $members = $row['complain_type'] == 'admin' ? get_member($row['complain_id']) : get_user($row['complain_id']);
                 ?>
-
                     <tr class="<?php echo $row['register_type'] == 'ADMIN' ? '' : 'status_n'; ?>">
-                        <!-- <td headers="mb_list_chk" class="td_chk" >
-                            <input type="checkbox" name="chk[]" value="<?php echo $row['complain_idx']; ?>" id="chk_<?php echo $i ?>">
-                        </td> -->
+                        <td class="td_chk">
+                            <input type="checkbox" class="complain_chk" name="chk[]" value="<?php echo $row['seq']; ?>">
+                        </td>
                         <td>
                             <?php
                             $startNumber = $total_count - (($page - 1) * $rows);
                             echo $startNumber - $i;
-                            // echo $total_count - $startNumber;
                             ?>
                         </td>
                         <td>
                             <?php
-                             $addr = explode(" ", $row['address']);
-                             echo $addr[0]; // 지역명만 표시 
-                             ?>
+                            $addr = explode(" ", $row['address']);
+                            echo $addr[0];
+                            ?>
                         </td>
                         <td><?php echo $row['building_name']; ?></td>
                         <td><?php echo $row['dong'] != '' ? $row['dong'].'동' : ''; ?></td>
@@ -360,21 +288,15 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                             <?php
                             $status = '';
                             switch($row['complain_status']){
-                                case "0":
-                                    $status = "접수대기";
-                                    break;
-                                case "1":
-                                    $status = "완료";
-                                    break;
-                                case "2":
-                                    $status = "진행중";
-                                    break;
+                                case "0": $status = "접수대기"; break;
+                                case "1": $status = "완료"; break;
+                                case "2": $status = "진행중"; break;
                             }
-                             echo $status; 
-                             ?>
+                            echo $status;
+                            ?>
                         </td>
                         <td headers="mb_list_mng" class="td_mng td_mng_s">
-                            <a href="./complain_form_bf.php?<?=$qstr;?>&amp;w=u&amp;complain_idx=<? echo $row['seq']; ?>" class="btn btn_03">관리</a>
+                            <a href="./complain_form_bf.php?<?=$qstr;?>&amp;w=u&amp;complain_idx=<?php echo $row['seq']; ?>" class="btn btn_03">관리</a>
                         </td>
                     </tr>
                 <?php
@@ -386,43 +308,59 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             </tbody>
         </table>
     </div>
+</form>
 
-    <div class="btn_fixed_top">
-        <!-- <input type="submit" name="act_button" value="선택삭제" onclick="document.pressed=this.value" class="btn btn_02"> -->
-        <?php if ($is_admin == 'super' && $type=="progress") { ?>
-            <a href="./complain_form.php?type=<?=$type;?>" id="member_add" class="btn btn_03">민원 등록</a>
-        <?php } ?>
-    </div>
-
-
+<!-- 엑셀 다운로드용 숨김 폼 -->
+<form id="fExcelDownload" action="./complain_excel_bf.php" method="post" target="_blank">
 </form>
 
 <?php echo get_paging(G5_IS_MOBILE ? $config['cf_mobile_pages'] : $config['cf_write_pages'], $page, $total_page, '?' . $qstr . '&amp;page='); ?>
 
 <script>
 $(function(){
-    //minDate:"0d"
     $(".ipt_date").datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd", showButtonPanel: true, yearRange: "c-99:c+99", maxDate: "+365d" });
 });
+
+// 전체선택 (상단/헤더 체크박스 연동)
+function complainCheckAll(source) {
+    var checked = source.checked;
+    document.querySelectorAll('.complain_chk').forEach(function(cb){ cb.checked = checked; });
+    document.getElementById('chkAllTop').checked = checked;
+    document.getElementById('chkAllHead').checked = checked;
+}
+
+// 엑셀 다운로드
+function complainExcelDownload() {
+    var checked = document.querySelectorAll('.complain_chk:checked');
+    if (checked.length === 0) {
+        alert('다운로드할 민원을 하나 이상 선택해주세요.');
+        return;
+    }
+
+    var form = document.getElementById('fExcelDownload');
+
+    // 기존에 추가된 idx 인풋 제거
+    form.querySelectorAll('input[name="idx[]"]').forEach(function(el){ el.remove(); });
+
+    checked.forEach(function(cb) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'idx[]';
+        input.value = cb.value;
+        form.appendChild(input);
+    });
+
+    form.submit();
+}
 
 function fcomplainlist_submit(f) {
     if (!is_checked("chk[]")) {
         alert(document.pressed + " 하실 항목을 하나 이상 선택하세요.");
         return false;
     }
-
     if (document.pressed == "선택삭제") {
-        if (!confirm("선택한 민원을 정말 삭제하시겠습니까?")) {
-            return false;
-        }
+        if (!confirm("선택한 민원을 정말 삭제하시겠습니까?")) { return false; }
     }
-
-    if (document.pressed == "선택승인") {
-        if (!confirm("선택한 회원을 승인하시겠습니까?")) {
-            return false;
-        }
-    }
-
     return true;
 }
 </script>
