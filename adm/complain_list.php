@@ -194,11 +194,11 @@ $colspan = 16;
             전체선택
         </label>
         <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
-            <input type="radio" name="selectScope" id="scopePage" value="page" checked onchange="scopeChange()">
+            <input type="radio" name="selectScope" id="scopePage" value="page" checked onchange="scopeChange('page')">
             현재 페이지만
         </label>
         <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
-            <input type="radio" name="selectScope" id="scopeAll" value="all" onchange="scopeChange()">
+            <input type="radio" name="selectScope" id="scopeAll" value="all" onchange="scopeChange('all')">
             전체 <?php echo number_format($total_count); ?>건 모두
         </label>
         <span id="chkAllLabel" style="color:#217346; font-weight:bold;"></span>
@@ -278,49 +278,47 @@ $(function(){
     $(".ipt_date").datepicker({ changeMonth:true, changeYear:true, dateFormat:"yy-mm-dd", showButtonPanel:true, yearRange:"c-99:c+99", maxDate:"+365d" });
 });
 
-var isAllSelected = false; // 전체 페이지 선택 여부
+// 라디오 버튼 변경 시 즉시 체크 상태 반영 (전체선택 다시 누를 필요 없음)
+function scopeChange(scope) {
+    var allChk = document.getElementById('chkAllTop');
+    if (!allChk.checked) return; // 전체선택 체크 안 된 상태면 무시
+
+    if (scope === 'all') {
+        document.querySelectorAll('.complain_chk').forEach(function(cb){ cb.checked = true; });
+        document.getElementById('chkAllHead').checked = true;
+        document.getElementById('chkAllLabel').innerText = '✅ 전체 ' + ALL_IDX.length + '건 선택됨';
+    } else {
+        document.querySelectorAll('.complain_chk').forEach(function(cb){ cb.checked = true; });
+        document.getElementById('chkAllHead').checked = true;
+        document.getElementById('chkAllLabel').innerText = '✅ 현재 페이지 ' + document.querySelectorAll('.complain_chk').length + '건 선택됨';
+    }
+}
 
 function complainCheckAll(source) {
     var checked = source.checked;
+    var scope = document.querySelector('input[name="selectScope"]:checked').value;
 
-    if (checked) {
-        // 체크 시: 전체 페이지 선택할지 현재 페이지만 선택할지 물어봄
-        var totalAll = ALL_IDX.length;
-        var currentPage = document.querySelectorAll('.complain_chk').length;
-
-        if (totalAll > currentPage) {
-            if (confirm('현재 페이지(' + currentPage + '건)만 선택하시겠습니까?\n\n[확인] 현재 페이지만\n[취소] 전체 ' + totalAll + '건 모두 선택')) {
-                // 현재 페이지만
-                isAllSelected = false;
-                document.querySelectorAll('.complain_chk').forEach(function(cb){ cb.checked = true; });
-                document.getElementById('chkAllLabel').innerText = '전체선택 (현재 페이지 ' + currentPage + '건 선택됨)';
-            } else {
-                // 전체 선택
-                isAllSelected = true;
-                document.querySelectorAll('.complain_chk').forEach(function(cb){ cb.checked = true; });
-                document.getElementById('chkAllLabel').innerText = '✅ 전체 ' + totalAll + '건 선택됨';
-            }
-        } else {
-            isAllSelected = false;
-            document.querySelectorAll('.complain_chk').forEach(function(cb){ cb.checked = true; });
-            document.getElementById('chkAllLabel').innerText = '전체선택 (' + currentPage + '건)';
-        }
-    } else {
-        // 해제
-        isAllSelected = false;
-        document.querySelectorAll('.complain_chk').forEach(function(cb){ cb.checked = false; });
-        document.getElementById('chkAllLabel').innerText = '전체선택 (현재 페이지)';
-    }
-
+    document.querySelectorAll('.complain_chk').forEach(function(cb){ cb.checked = checked; });
     document.getElementById('chkAllTop').checked  = checked;
     document.getElementById('chkAllHead').checked = checked;
+
+    if (checked) {
+        if (scope === 'all') {
+            document.getElementById('chkAllLabel').innerText = '✅ 전체 ' + ALL_IDX.length + '건 선택됨';
+        } else {
+            document.getElementById('chkAllLabel').innerText = '✅ 현재 페이지 ' + document.querySelectorAll('.complain_chk').length + '건 선택됨';
+        }
+    } else {
+        document.getElementById('chkAllLabel').innerText = '';
+    }
 }
 
 function complainExcelDownload() {
+    var scope = document.querySelector('input[name="selectScope"]:checked').value;
     var idxList = [];
 
-    if (isAllSelected) {
-        idxList = ALL_IDX;
+    if (scope === 'all') {
+        idxList = ALL_IDX; // 라디오가 "전체"면 체크 여부 무관하게 전체
     } else {
         document.querySelectorAll('.complain_chk:checked').forEach(function(cb){ idxList.push(cb.value); });
     }
@@ -331,7 +329,6 @@ function complainExcelDownload() {
     }
 
     var form = document.getElementById('fExcelDownload');
-    // 기존 idx_str 인풋 제거 후 콤마 구분 문자열 하나로 전송 (max_input_vars 우회)
     form.querySelectorAll('input[name="idx_str"]').forEach(function(el){ el.remove(); });
     var input = document.createElement('input');
     input.type = 'hidden';
