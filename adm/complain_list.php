@@ -235,7 +235,7 @@ $colspan = 16;
                     $startNumber = $total_count - (($page - 1) * $rows);
                 ?>
                 <tr class="<?php echo $row['complain_type'] == 'admin' ? '' : 'status_n'; ?>">
-                    <td><input type="checkbox" class="complain_chk" value="<?php echo $row['complain_idx']; ?>"></td>
+                    <td><input type="checkbox" class="complain_chk" value="<?php echo $row['complain_idx']; ?>" data-num="<?php echo $startNumber - $i; ?>"></td>
                     <td><?php echo $startNumber - $i; ?></td>
                     <td><?php echo $row['post_name']; ?></td>
                     <td><?php echo $row['building_name']; ?></td>
@@ -328,13 +328,25 @@ function complainExcelDownload() {
         return;
     }
 
+    // 번호 목록도 같이 수집
+    var numList = [];
+    if (scope === 'all') {
+        // 전체선택은 번호 없이 서버에서 순번 계산 (ALL_IDX 순서 = 내림차순)
+        numList = ALL_IDX.map(function(_, i){ return ALL_IDX.length - i; });
+    } else {
+        document.querySelectorAll('.complain_chk:checked').forEach(function(cb){ numList.push(cb.getAttribute('data-num')); });
+    }
+
     var form = document.getElementById('fExcelDownload');
-    form.querySelectorAll('input[name="idx_str"]').forEach(function(el){ el.remove(); });
-    var input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'idx_str';
-    input.value = idxList.join(',');
-    form.appendChild(input);
+    form.querySelectorAll('input[name="idx_str"], input[name="num_str"]').forEach(function(el){ el.remove(); });
+
+    var i1 = document.createElement('input');
+    i1.type = 'hidden'; i1.name = 'idx_str'; i1.value = idxList.join(',');
+    form.appendChild(i1);
+
+    var i2 = document.createElement('input');
+    i2.type = 'hidden'; i2.name = 'num_str'; i2.value = numList.join(',');
+    form.appendChild(i2);
 
     form.submit();
 }

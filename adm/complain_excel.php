@@ -13,9 +13,9 @@ if (empty($idx_str)) die('선택된 항목이 없습니다.');
 $idxList = array_filter(array_map('intval', explode(',', $idx_str)));
 if (empty($idxList)) die('유효한 항목이 없습니다.');
 
-// 전체 건수 조회 (웹 목록과 동일한 순번 계산)
-$tc = sql_fetch("SELECT COUNT(*) as cnt FROM a_online_complain");
-$total_count = (int)$tc['cnt'];
+// 웹에서 전달받은 번호 목록
+$num_str = isset($_POST['num_str']) ? $_POST['num_str'] : '';
+$numList = $num_str ? explode(',', $num_str) : [];
 
 $data_rows = [];
 foreach (array_chunk($idxList, 500) as $chunk) {
@@ -71,7 +71,7 @@ $rowsXml .= '</row>';
 foreach ($data_rows as $ri => $row) {
     $r = $ri + 2;
     $cells = [
-        ($total_count - $ri), $row['post_name'], $row['building_name'],
+        (isset($numList[$ri]) ? $numList[$ri] : ($ri+1)), $row['post_name'], $row['building_name'],
         $row['dong_name'] != '' ? $row['dong_name'].'동' : '',
         $row['ho_name'] != '' ? $row['ho_name'].'호' : '',
         $row['wdate'], $row['complain_name'], $row['complain_hp'], $row['wname'],
