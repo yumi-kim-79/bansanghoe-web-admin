@@ -4,7 +4,6 @@
  * 민원(이전자료) 선택 엑셀 다운로드
  */
 require_once './_common.php';
-auth_check_menu($auth, "500200", 'r');
 
 $idxList = isset($_POST['idx']) ? $_POST['idx'] : [];
 if (empty($idxList)) {
@@ -47,8 +46,9 @@ while ($row = sql_fetch_array($result)) {
     $rows[] = $row;
 }
 
+// 추가 내용 조회
 function get_bf_comments($seq) {
-    $sql = "SELECT content FROM question_answer_comment WHERE question_answer = '{$seq}' ORDER BY id asc";
+    $sql = "SELECT content FROM question_answer_comment WHERE question_answer = '" . intval($seq) . "' ORDER BY id asc";
     $res = sql_query($sql);
     $comments = [];
     while ($row = sql_fetch_array($res)) {
@@ -58,7 +58,7 @@ function get_bf_comments($seq) {
 }
 
 function bf_status_name($status) {
-    switch ($status) {
+    switch ((string)$status) {
         case "0": return "접수대기";
         case "1": return "완료";
         case "2": return "진행중";
@@ -70,105 +70,47 @@ function bf_register_type($type) {
     return $type == 'ADMIN' ? '관리자 접수 민원' : '앱 접수 민원';
 }
 
-$filename = '민원(이전자료)_' . date('Ymd_His');
+$filename = '민원(이전자료)_' . date('Ymd_His') . '.xls';
 $headers = ['번호','접수구분','지역','단지명','동','호수','접수날짜','민원인','연락처','작성자','민원 제목','민원 내용','민원 답변','추가 내용','담당자 직급','담당자','완료날짜','상태'];
 
-// PhpSpreadsheet 사용 가능 여부 확인
-$useSpreadsheet = false;
-$spreadsheetPaths = [
-    G5_PATH . '/vendor/autoload.php',
-    dirname(G5_PATH) . '/vendor/autoload.php',
-    $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php',
-];
-foreach ($spreadsheetPaths as $path) {
-    if (file_exists($path)) {
-        require_once $path;
-        if (class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet')) {
-            $useSpreadsheet = true;
-            break;
-        }
-    }
-}
+// 출력 버퍼 초기화 (헤더 전송 전 HTML 출력 방지)
+if (ob_get_length()) ob_end_clean();
 
-if ($useSpreadsheet) {
-    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('민원이전자료');
+header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
+header('Content-Disposition: attachment; filename="' . $filename . '"');
+header('Cache-Control: max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 
-    foreach ($headers as $col => $header) {
-        $sheet->getCellByColumnAndRow($col + 1, 1)->setValue($header);
-        $sheet->getStyleByColumnAndRow($col + 1, 1)->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '2F75B6']],
-            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
-        ]);
-        $sheet->getColumnDimensionByColumn($col + 1)->setAutoSize(true);
-    }
+// UTF-8 BOM
+echo "\xEF\xBB\xBF";
+echo implode("\t", $headers) . "\n";
 
-    foreach ($rows as $i => $row) {
-        $r = $i + 2;
-        $addr = explode(" ", $row['address']);
-        $region = isset($addr[0]) ? $addr[0] : '';
-        $comments = get_bf_comments($row['seq']);
+foreach ($rows as $row) {
+    $addr = explode(" ", $row['address']);
+    $region = isset($addr[0]) ? $addr[0] : '';
+    $comments = get_bf_comments($row['seq']);
 
-        $sheet->getCellByColumnAndRow(1,  $r)->setValue($row['seq']);
-        $sheet->getCellByColumnAndRow(2,  $r)->setValue(bf_register_type($row['register_type']));
-        $sheet->getCellByColumnAndRow(3,  $r)->setValue($region);
-        $sheet->getCellByColumnAndRow(4,  $r)->setValue($row['building_name']);
-        $sheet->getCellByColumnAndRow(5,  $r)->setValue($row['dong'] != '' ? $row['dong'].'동' : '');
-        $sheet->getCellByColumnAndRow(6,  $r)->setValue($row['ho'] != '' ? $row['ho'].'호' : '');
-        $sheet->getCellByColumnAndRow(7,  $r)->setValue($row['create_date'] != '' ? date('Y-m-d', strtotime($row['create_date'])) : '');
-        $sheet->getCellByColumnAndRow(8,  $r)->setValue($row['rname']);
-        $sheet->getCellByColumnAndRow(9,  $r)->setValue($row['rhp']);
-        $sheet->getCellByColumnAndRow(10, $r)->setValue($row['sbname']);
-        $sheet->getCellByColumnAndRow(11, $r)->setValue($row['complain_title']);
-        $sheet->getCellByColumnAndRow(12, $r)->setValue($row['question']);
-        $sheet->getCellByColumnAndRow(13, $r)->setValue($row['answer']);
-        $sheet->getCellByColumnAndRow(14, $r)->setValue($comments);
-        $sheet->getCellByColumnAndRow(15, $r)->setValue($row['duty']);
-        $sheet->getCellByColumnAndRow(16, $r)->setValue($row['complete_name']);
-        $sheet->getCellByColumnAndRow(17, $r)->setValue($row['answer_date'] != '' ? date('Y-m-d', strtotime($row['answer_date'])) : '');
-        $sheet->getCellByColumnAndRow(18, $r)->setValue(bf_status_name($row['status']));
-    }
-
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment; filename="' . urlencode($filename . '.xlsx') . '"');
-    header('Cache-Control: max-age=0');
-
-    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-    $writer->save('php://output');
-
-} else {
-    header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
-    header('Content-Disposition: attachment; filename="' . urlencode($filename . '.xls') . '"');
-    header('Cache-Control: max-age=0');
-    echo "\xEF\xBB\xBF";
-    echo implode("\t", $headers) . "\n";
-    foreach ($rows as $row) {
-        $addr = explode(" ", $row['address']);
-        $region = isset($addr[0]) ? $addr[0] : '';
-        $comments = get_bf_comments($row['seq']);
-        $line = [
-            $row['seq'],
-            bf_register_type($row['register_type']),
-            $region,
-            $row['building_name'],
-            $row['dong'] != '' ? $row['dong'].'동' : '',
-            $row['ho'] != '' ? $row['ho'].'호' : '',
-            $row['create_date'] != '' ? date('Y-m-d', strtotime($row['create_date'])) : '',
-            $row['rname'],
-            $row['rhp'],
-            $row['sbname'],
-            $row['complain_title'],
-            str_replace(["\r\n","\r","\n"], ' ', $row['question']),
-            str_replace(["\r\n","\r","\n"], ' ', $row['answer']),
-            str_replace(["\r\n","\r","\n"], ' ', $comments),
-            $row['duty'],
-            $row['complete_name'],
-            $row['answer_date'] != '' ? date('Y-m-d', strtotime($row['answer_date'])) : '',
-            bf_status_name($row['status']),
-        ];
-        echo implode("\t", $line) . "\n";
-    }
+    $line = [
+        $row['seq'],
+        bf_register_type($row['register_type']),
+        $region,
+        $row['building_name'],
+        $row['dong'] != '' ? $row['dong'].'동' : '',
+        $row['ho'] != '' ? $row['ho'].'호' : '',
+        $row['create_date'] != '' ? date('Y-m-d', strtotime($row['create_date'])) : '',
+        $row['rname'],
+        $row['rhp'],
+        $row['sbname'],
+        $row['complain_title'],
+        str_replace(["\r\n","\r","\n"], ' ', strip_tags($row['question'])),
+        str_replace(["\r\n","\r","\n"], ' ', strip_tags($row['answer'])),
+        str_replace(["\r\n","\r","\n"], ' ', strip_tags($comments)),
+        $row['duty'],
+        $row['complete_name'],
+        $row['answer_date'] != '' ? date('Y-m-d', strtotime($row['answer_date'])) : '',
+        bf_status_name($row['status']),
+    ];
+    echo implode("\t", $line) . "\n";
 }
 exit;
