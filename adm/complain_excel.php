@@ -4,8 +4,8 @@
  * 민원 선택 엑셀 다운로드
  */
 require_once './_common.php';
-auth_check_menu($auth, "500100", 'r');
 
+// POST 데이터 확인
 $idxList = isset($_POST['idx']) ? $_POST['idx'] : [];
 if (empty($idxList)) {
     die('선택된 항목이 없습니다.');
@@ -49,96 +49,42 @@ while ($row = sql_fetch_array($result)) {
     $rows[] = $row;
 }
 
-$filename = '민원_' . date('Ymd_His');
+$filename = '민원_' . date('Ymd_His') . '.xls';
 $headers = ['번호','지역','단지명','동','호수','접수날짜','민원인','연락처','작성자','민원 제목','민원 내용','민원 답변','추가 내용','담당자 부서','담당자','완료날짜','상태'];
 
-// PhpSpreadsheet 사용 가능 여부 확인
-$useSpreadsheet = false;
-$spreadsheetPaths = [
-    G5_PATH . '/vendor/autoload.php',
-    dirname(G5_PATH) . '/vendor/autoload.php',
-    $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php',
-];
-foreach ($spreadsheetPaths as $path) {
-    if (file_exists($path)) {
-        require_once $path;
-        if (class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet')) {
-            $useSpreadsheet = true;
-            break;
-        }
-    }
-}
+// 출력 버퍼 초기화 (헤더 전송 전 HTML 출력 방지)
+if (ob_get_length()) ob_end_clean();
 
-if ($useSpreadsheet) {
-    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('민원목록');
+header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
+header('Content-Disposition: attachment; filename="' . $filename . '"');
+header('Cache-Control: max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 
-    foreach ($headers as $col => $header) {
-        $sheet->getCellByColumnAndRow($col + 1, 1)->setValue($header);
-        $sheet->getStyleByColumnAndRow($col + 1, 1)->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '2F75B6']],
-            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
-        ]);
-        $sheet->getColumnDimensionByColumn($col + 1)->setAutoSize(true);
-    }
+// UTF-8 BOM
+echo "\xEF\xBB\xBF";
+echo implode("\t", $headers) . "\n";
 
-    foreach ($rows as $i => $row) {
-        $r = $i + 2;
-        $sheet->getCellByColumnAndRow(1,  $r)->setValue($row['complain_idx']);
-        $sheet->getCellByColumnAndRow(2,  $r)->setValue($row['post_name']);
-        $sheet->getCellByColumnAndRow(3,  $r)->setValue($row['building_name']);
-        $sheet->getCellByColumnAndRow(4,  $r)->setValue($row['dong_name'] != '' ? $row['dong_name'].'동' : '');
-        $sheet->getCellByColumnAndRow(5,  $r)->setValue($row['ho_name'] != '' ? $row['ho_name'].'호' : '');
-        $sheet->getCellByColumnAndRow(6,  $r)->setValue($row['wdate']);
-        $sheet->getCellByColumnAndRow(7,  $r)->setValue($row['complain_name']);
-        $sheet->getCellByColumnAndRow(8,  $r)->setValue($row['complain_hp']);
-        $sheet->getCellByColumnAndRow(9,  $r)->setValue($row['wname']);
-        $sheet->getCellByColumnAndRow(10, $r)->setValue($row['complain_title']);
-        $sheet->getCellByColumnAndRow(11, $r)->setValue($row['complain_content']);
-        $sheet->getCellByColumnAndRow(12, $r)->setValue($row['complain_answer']);
-        $sheet->getCellByColumnAndRow(13, $r)->setValue($row['complain_memo']);
-        $sheet->getCellByColumnAndRow(14, $r)->setValue($row['mng_department_name']);
-        $sheet->getCellByColumnAndRow(15, $r)->setValue($row['mng_name']);
-        $sheet->getCellByColumnAndRow(16, $r)->setValue($row['edate']);
-        $sheet->getCellByColumnAndRow(17, $r)->setValue($row['status_name']);
-    }
-
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment; filename="' . urlencode($filename . '.xlsx') . '"');
-    header('Cache-Control: max-age=0');
-
-    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-    $writer->save('php://output');
-
-} else {
-    header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
-    header('Content-Disposition: attachment; filename="' . urlencode($filename . '.xls') . '"');
-    header('Cache-Control: max-age=0');
-    echo "\xEF\xBB\xBF";
-    echo implode("\t", $headers) . "\n";
-    foreach ($rows as $row) {
-        $line = [
-            $row['complain_idx'],
-            $row['post_name'],
-            $row['building_name'],
-            $row['dong_name'] != '' ? $row['dong_name'].'동' : '',
-            $row['ho_name'] != '' ? $row['ho_name'].'호' : '',
-            $row['wdate'],
-            $row['complain_name'],
-            $row['complain_hp'],
-            $row['wname'],
-            $row['complain_title'],
-            str_replace(["\r\n","\r","\n"], ' ', $row['complain_content']),
-            str_replace(["\r\n","\r","\n"], ' ', $row['complain_answer']),
-            str_replace(["\r\n","\r","\n"], ' ', $row['complain_memo']),
-            $row['mng_department_name'],
-            $row['mng_name'],
-            $row['edate'],
-            $row['status_name'],
-        ];
-        echo implode("\t", $line) . "\n";
-    }
+foreach ($rows as $row) {
+    $line = [
+        $row['complain_idx'],
+        $row['post_name'],
+        $row['building_name'],
+        $row['dong_name'] != '' ? $row['dong_name'].'동' : '',
+        $row['ho_name'] != '' ? $row['ho_name'].'호' : '',
+        $row['wdate'],
+        $row['complain_name'],
+        $row['complain_hp'],
+        $row['wname'],
+        $row['complain_title'],
+        str_replace(["\r\n","\r","\n"], ' ', strip_tags($row['complain_content'])),
+        str_replace(["\r\n","\r","\n"], ' ', strip_tags($row['complain_answer'])),
+        str_replace(["\r\n","\r","\n"], ' ', strip_tags($row['complain_memo'])),
+        $row['mng_department_name'],
+        $row['mng_name'],
+        $row['edate'],
+        $row['status_name'],
+    ];
+    echo implode("\t", $line) . "\n";
 }
 exit;
