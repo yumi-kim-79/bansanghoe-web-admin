@@ -39,18 +39,18 @@ $sql = "SELECT
         WHERE qa.seq IN ({$inClause})
         ORDER BY qa.seq DESC";
 
-$result = sql_query($sql);
-$rows = [];
-while ($row = sql_fetch_array($result)) {
-    $rows[] = $row;
+$query_result = sql_query($sql);   // ← 변수명 $rows 사용 안 함 (common.php 충돌 방지)
+$data_rows = [];                   // ← $rows 대신 $data_rows 사용
+while ($row = sql_fetch_array($query_result)) {
+    $data_rows[] = $row;
 }
 
 function get_bf_comments($seq) {
-    $sql = "SELECT content FROM question_answer_comment WHERE question_answer = '" . intval($seq) . "' ORDER BY id asc";
-    $res = sql_query($sql);
-    $comments = [];
-    while ($r = sql_fetch_array($res)) { $comments[] = $r['content']; }
-    return implode(' / ', $comments);
+    $s = "SELECT content FROM question_answer_comment WHERE question_answer = '" . intval($seq) . "' ORDER BY id asc";
+    $r = sql_query($s);
+    $c = [];
+    while ($rr = sql_fetch_array($r)) { $c[] = $rr['content']; }
+    return implode(' / ', $c);
 }
 
 function bf_status_name($s) {
@@ -68,11 +68,7 @@ function bf_register_type($t) {
 
 function col_name($idx) {
     $letters = ''; $idx++;
-    while ($idx > 0) {
-        $idx--;
-        $letters = chr(65 + ($idx % 26)) . $letters;
-        $idx = intval($idx / 26);
-    }
+    while ($idx > 0) { $idx--; $letters = chr(65 + ($idx % 26)) . $letters; $idx = intval($idx / 26); }
     return $letters;
 }
 
@@ -80,18 +76,17 @@ function xe($v) {
     return htmlspecialchars((string)$v, ENT_XML1 | ENT_QUOTES, 'UTF-8');
 }
 
-$headers = ['번호','접수구분','지역','단지명','동','호수','접수날짜','민원인','연락처','작성자','민원 제목','민원 내용','민원 답변','추가 내용','담당자 직급','담당자','완료날짜','상태'];
+$excel_headers = ['번호','접수구분','지역','단지명','동','호수','접수날짜','민원인','연락처','작성자','민원 제목','민원 내용','민원 답변','추가 내용','담당자 직급','담당자','완료날짜','상태'];
 
 // 헤더행 XML
 $rowsXml = '<row r="1">';
-foreach ($headers as $ci => $h) {
-    $col = col_name($ci) . '1';
-    $rowsXml .= '<c r="'.$col.'" t="inlineStr"><is><t>' . xe($h) . '</t></is></c>';
+foreach ($excel_headers as $ci => $h) {
+    $rowsXml .= '<c r="'.col_name($ci).'1" t="inlineStr"><is><t>' . xe($h) . '</t></is></c>';
 }
 $rowsXml .= '</row>';
 
 // 데이터행 XML
-foreach ($rows as $ri => $row) {
+foreach ($data_rows as $ri => $row) {
     $r = $ri + 2;
     $addr = explode(" ", $row['address']);
     $region = isset($addr[0]) ? $addr[0] : '';
@@ -120,14 +115,13 @@ foreach ($rows as $ri => $row) {
 
     $rowsXml .= '<row r="'.$r.'">';
     foreach ($cells as $ci => $val) {
-        $col = col_name($ci) . $r;
-        $rowsXml .= '<c r="'.$col.'" t="inlineStr"><is><t>' . xe($val) . '</t></is></c>';
+        $rowsXml .= '<c r="'.col_name($ci).$r.'" t="inlineStr"><is><t>' . xe($val) . '</t></is></c>';
     }
     $rowsXml .= '</row>';
 }
 
 // xlsx zip 생성
-$filename = '민원(이전자료)_' . date('Ymd_His') . '.xlsx';
+$excel_filename = '민원(이전자료)_' . date('Ymd_His') . '.xlsx';
 $tmpFile = tempnam(sys_get_temp_dir(), 'complain_bf_xlsx_');
 
 $zip = new ZipArchive();
@@ -152,9 +146,7 @@ $zip->addFromString('xl/workbook.xml',
 '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
           xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-  <sheets>
-    <sheet name="민원이전자료" sheetId="1" r:id="rId1"/>
-  </sheets>
+  <sheets><sheet name="민원이전자료" sheetId="1" r:id="rId1"/></sheets>
 </workbook>');
 
 $zip->addFromString('xl/_rels/workbook.xml.rels',
@@ -173,7 +165,7 @@ $zip->close();
 
 $filesize = filesize($tmpFile);
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment; filename="' . $filename . '"');
+header('Content-Disposition: attachment; filename="' . $excel_filename . '"');
 header('Content-Length: ' . $filesize);
 header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
 header('Pragma: public');
