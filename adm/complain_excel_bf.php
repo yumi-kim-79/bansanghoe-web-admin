@@ -21,7 +21,7 @@ foreach (array_chunk($idxList, 500) as $chunk) {
     $inClause = implode(',', $chunk);
     $sql = "SELECT 
                 qa.seq,
-                (SELECT COUNT(*) FROM question_answer WHERE seq >= qa.seq) as row_num,
+                (SELECT COUNT(*) FROM question_answer WHERE seq > qa.seq) + 1 as row_num,
                 qa.title as complain_title,
                 qa.question,
                 qa.answer,
