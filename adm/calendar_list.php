@@ -160,17 +160,6 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     <input type="hidden" name="page" value="<?php echo $page ?>">
     <input type="hidden" name="token" value="">
 
-    <div class="cal_search_bar" style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
-        <input type="text" id="cal_building_search" placeholder="단지명 검색"
-            style="padding:6px 10px; border:2px solid #e53935; border-radius:4px; font-size:14px; width:220px;"
-            value="<?php echo htmlspecialchars($cal_building_stx ?? ''); ?>">
-        <button type="button" onclick="doCalSearch()"
-            style="padding:6px 16px; background:#e53935; color:#fff; border:2px solid #e53935; border-radius:4px; font-size:14px; cursor:pointer;">검색</button>
-        <button type="button" onclick="resetCalSearch()"
-            style="padding:6px 16px; background:#fff; color:#555; border:2px solid #ccc; border-radius:4px; font-size:14px; cursor:pointer;">초기화</button>
-        <span id="cal_search_label" style="color:#e53935; font-weight:bold; font-size:13px;"></span>
-    </div>
-
     <div class="calendar_wrapper">
         <div class="calendar_wrap">
             <div class="calendar_area"></div>
@@ -178,7 +167,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         <div class="cal_schedule_list_wrap">
             <div class="cal_schedule_label mgb10">일정 내역</div>
             <div class="cal_schedule_box_wrap">
-
+                
             </div>
         </div>
     </div>
@@ -217,12 +206,10 @@ function cal_month_change(){
 
 
 function moveCal(year, month, type, calcode){
-    let buildingStx = $("#cal_building_search").val() || "";
-
     $.ajax({
         type: "POST",
         url: "./get_calendar2.php",
-        data: {toYear:year, toMonth:month, type:type, calcode:calcode},
+        data: {toYear:year, toMonth:month, type:type, calcode:calcode}, 
         cache: false,
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
@@ -234,55 +221,13 @@ function moveCal(year, month, type, calcode){
     $.ajax({
         type: "POST",
         url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:'', building_stx:buildingStx},
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:'', building_stx:($("#cal_building_search").val()||"")}, 
         cache: false,
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
         success: function(data) {
-            $(".cal_schedule_box_wrap").empty().append(data);
-        }
-    });
-}
 
-function doCalSearch() {
-    let year  = $("#cal_year option:selected").val();
-    let month = $("#cal_month option:selected").val();
-    let calcode = "<?php echo $cal_code;?>";
-    let buildingStx = $("#cal_building_search").val().trim();
-
-    if (buildingStx) {
-        $("#cal_search_label").text(""" + buildingStx + "" 검색 중");
-    } else {
-        $("#cal_search_label").text("");
-    }
-
-    $.ajax({
-        type: "POST",
-        url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:'', building_stx:buildingStx},
-        cache: false,
-        async: true,
-        contentType : "application/x-www-form-urlencoded; charset=UTF-8",
-        success: function(data) {
-            $(".cal_schedule_box_wrap").empty().append(data);
-        }
-    });
-}
-
-function resetCalSearch() {
-    $("#cal_building_search").val("");
-    $("#cal_search_label").text("");
-    let year  = $("#cal_year option:selected").val();
-    let month = $("#cal_month option:selected").val();
-    let calcode = "<?php echo $cal_code;?>";
-    $.ajax({
-        type: "POST",
-        url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:'', building_stx:''},
-        cache: false,
-        async: true,
-        contentType : "application/x-www-form-urlencoded; charset=UTF-8",
-        success: function(data) {
+            console.log('data', data);
             $(".cal_schedule_box_wrap").empty().append(data);
         }
     });
@@ -317,18 +262,19 @@ $(document).on("click", ".cal_td_box", function(){
     // 다른 모든 선택 제거 후 현재 클릭한 것만 선택
     $(".cal_td_box").removeClass("select_dates");
     $(this).addClass("select_dates");
-
+    
     console.log('selectDate', selectDate);
 
-    let buildingStxClick = $("#cal_building_search").val() || "";
     $.ajax({
         type: "POST",
         url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectDate, building_stx:buildingStxClick},
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectDate, building_stx:($("#cal_building_search").val()||"")}, 
         cache: false,
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
         success: function(data) {
+
+            console.log('data', data);
             $(".cal_schedule_box_wrap").empty().append(data);
         }
     });
@@ -336,15 +282,18 @@ $(document).on("click", ".cal_td_box", function(){
 });
 
 function calendar_schedule_handler(year, month, calcode, selectDate) {
-    let buildingStx = $("#cal_building_search").val() || "";
+
+    console.log('handler', year, month, calcode, selectDate);
     $.ajax({
         type: "POST",
         url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectDate, building_stx:buildingStx},
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectDate, building_stx:($("#cal_building_search").val()||"")}, 
         cache: false,
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
         success: function(data) {
+
+            console.log('data', data);
             $(".cal_schedule_box_wrap").empty().append(data);
         }
     });
@@ -361,24 +310,61 @@ $(document).on('click', '.pg_page_noti', function() {
     let calcode = "<?php echo $cal_code;?>";
     // var selectDate = $(this).data('date');
 
-    let buildingStxPage = $("#cal_building_search").val() || "";
     $.ajax({
         type: "POST",
         url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectedDates, page:page, building_stx:buildingStxPage},
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectedDates, page:page, building_stx:($("#cal_building_search").val()||"")}, 
         cache: false,
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
         success: function(data) {
+
+            console.log('data', data);
             $(".cal_schedule_box_wrap").empty().append(data);
         }
     });
 });
 
 
+function doCalSearch() {
+    var year    = $("#cal_year option:selected").val();
+    var month   = $("#cal_month option:selected").val();
+    var calcode = "<?php echo $cal_code;?>";
+    var stx     = $("#cal_building_search").val().trim();
+    $("#cal_search_label").text(stx ? "\"" + stx + "\" 검색 중" : "");
+    $.ajax({
+        type: "POST",
+        url: "./calendar_schedule_list2.php",
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:"", building_stx:stx},
+        cache: false, async: true,
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        success: function(data) {
+            $(".cal_schedule_box_wrap").empty().append(data);
+        }
+    });
+}
+
+function resetCalSearch() {
+    $("#cal_building_search").val("");
+    $("#cal_search_label").text("");
+    var year    = $("#cal_year option:selected").val();
+    var month   = $("#cal_month option:selected").val();
+    var calcode = "<?php echo $cal_code;?>";
+    $.ajax({
+        type: "POST",
+        url: "./calendar_schedule_list2.php",
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:"", building_stx:""},
+        cache: false, async: true,
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        success: function(data) {
+            $(".cal_schedule_box_wrap").empty().append(data);
+        }
+    });
+}
+
 $(document).ready(function(){
-    $("#cal_building_search").on("keypress", function(e){
-        if(e.which == 13) doCalSearch();
+    $(document).on("keypress", "#cal_building_search", function(e){
+        if (e.which == 13) doCalSearch();
     });
 });
 
