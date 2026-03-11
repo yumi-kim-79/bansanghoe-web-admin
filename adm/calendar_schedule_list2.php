@@ -13,11 +13,10 @@ $now_month = $year.'-'.sprintf('%02d', $month);
 $sql_search1 = "";
 $sql_search2 = "";
 
-// 단지명 검색
+// 단지명 검색 필터
 $building_stx = isset($building_stx) ? trim($building_stx) : '';
 $building_id_filter = "";
 if ($building_stx != "") {
-    // 단지명으로 building_id 목록 조회
     $b_sql = "SELECT building_id FROM a_building WHERE building_name LIKE '%" . sql_real_escape_string($building_stx) . "%' AND is_del = 0";
     $b_result = sql_query($b_sql);
     $b_ids = [];
@@ -27,7 +26,7 @@ if ($building_stx != "") {
     if (!empty($b_ids)) {
         $building_id_filter = " AND building_id IN (" . implode(',', $b_ids) . ") ";
     } else {
-        $building_id_filter = " AND building_id = -1 "; // 결과 없음
+        $building_id_filter = " AND building_id = -1 ";
     }
 }
 
@@ -107,7 +106,7 @@ while($row_m = sql_fetch_array($result_m)){
 
     //일정에 마감날짜 있는 경우 날짜가 마감날짜보다 클경우 제외
     if($row_m['cal_edate'] != ''){
-
+       
         if($row_m['cal_date'] > $row_m['cal_edate']){
             continue;
         }
