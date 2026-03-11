@@ -13,6 +13,23 @@ $now_month = $year.'-'.sprintf('%02d', $month);
 $sql_search1 = "";
 $sql_search2 = "";
 
+// 단지명 검색 필터
+$building_stx = isset($building_stx) ? trim($building_stx) : '';
+$building_id_filter = "";
+if ($building_stx != "") {
+    $b_sql = "SELECT building_id FROM a_building WHERE building_name LIKE '%" . sql_real_escape_string($building_stx) . "%' AND is_del = 0";
+    $b_result = sql_query($b_sql);
+    $b_ids = [];
+    while ($b_row = sql_fetch_array($b_result)) {
+        $b_ids[] = (int)$b_row['building_id'];
+    }
+    if (!empty($b_ids)) {
+        $building_id_filter = " AND building_id IN (" . implode(',', $b_ids) . ") ";
+    } else {
+        $building_id_filter = " AND building_id = -1 ";
+    }
+}
+
 if($calcode == "schedule"){
     $sql_search = " and cal_date like '{$now_month}%' ";
 }else{
@@ -33,7 +50,7 @@ if($selectDate != ""){
 }
 
 //반복설정 없는 일정
-$sql_no = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'N' {$sql_search} {$sql_search2} ORDER BY cal_date asc, cal_idx desc";
+$sql_no = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'N' {$sql_search} {$sql_search2} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result2 = sql_query($sql_no);
 
 $total_array = array();
@@ -59,7 +76,7 @@ $def_date = date("Y-m", strtotime($now_month)); //기준날짜
 $end_date = date("Y-m-t", strtotime($now_month)); // 달의 마지막 날짜
 
 //반복설정 월간인 경우
-$sql_month = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'MONTH' {$sql_search1} ORDER BY cal_date asc, cal_idx desc";
+$sql_month = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'MONTH' {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result_m = sql_query($sql_month);
 
 while($row_m = sql_fetch_array($result_m)){
@@ -116,7 +133,7 @@ while($row_m = sql_fetch_array($result_m)){
 $def_year = date("Y", strtotime($now_month)); // 연간 기준날짜
 
 //반복설정 연간인 경우
-$sql_year = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'YEAR' {$sql_search1} ORDER BY cal_date asc, cal_idx desc";
+$sql_year = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'YEAR' {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result_y = sql_query($sql_year);
 
 
