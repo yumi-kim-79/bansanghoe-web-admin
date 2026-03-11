@@ -94,10 +94,10 @@ sort($res_date);
         </select>
     </div>
     <input type="text" id="cal_building_search" placeholder="검색창"
-        style="padding:5px 10px; border:2px solid #e53935; border-radius:4px; font-size:14px; width:180px; height:34px; box-sizing:border-box;">
+        style="padding:5px 10px; border:2px solid #1976d2; border-radius:4px; font-size:14px; width:180px; height:34px; box-sizing:border-box;">
     <button type="button" onclick="doCalSearch()"
-        style="padding:5px 18px; background:#e53935; color:#fff; border:2px solid #e53935; border-radius:4px; font-size:14px; cursor:pointer; height:34px;">검색</button>
-    <span id="cal_search_label" style="color:#e53935; font-size:13px; font-weight:bold;"></span>
+        style="padding:5px 18px; background:#1976d2; color:#fff; border:2px solid #1976d2; border-radius:4px; font-size:14px; cursor:pointer; height:34px;">검색</button>
+    <span id="cal_search_label" style="color:#1976d2; font-size:13px; font-weight:bold;"></span>
 </div>
 
 <section class="cal_tr cal_head">
