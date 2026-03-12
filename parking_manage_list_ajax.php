@@ -79,7 +79,7 @@ for($i=0;$row_car = sql_fetch_array($res_car);$i++){
     <div class="car_boxs">
         <div class="car_boxs_l"><?php echo $code != "in" ? "방문 " : ""; ?>동/호수</div>
         <div class="car_boxs_r car_boxs_r_unit">
-            <?php echo $row_car['dong_name']; ?>동 <?php echo $row_car['ho_name']; ?>호
+
             <?php if($code == "in"){ ?>
                 <span class="resident_badge">등록된 입주민 차량입니다.</span>
             <?php }else{ ?>
@@ -126,7 +126,7 @@ for($i=0;$row_car = sql_fetch_array($res_car);$i++){
         <button type="button"
             class="move_request_btn"
             onclick="moveRequestHandler(<?php echo $ho_id_val; ?>, '<?php echo addslashes($car_number_raw); ?>');">
-            🚗 이동 주차 요청
+            이동 주차 요청
         </button>
     </div>
     <?php } ?>
