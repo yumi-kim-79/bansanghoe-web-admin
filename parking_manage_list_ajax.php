@@ -43,37 +43,40 @@ if($code == "in"){
     $res_car = sql_query($sql_car);
 }
 
-// ── 차량번호 마스킹 함수: 4자리 숫자 앞 2자리를 ** 로 교체 → **62 ──────────
+/**
+ * 차량번호 마스킹
+ * 한국 차량번호 형태: 123가1234 또는 12가1234
+ * 뒤 4자리 숫자에서 앞 2자리를 ** 로 마스킹
+ * 결과: 123가**34 / 12가**34
+ */
 function maskCarNumber($carNumber) {
-    return preg_replace('/(\d{2})(\d{2})/', '**$2', $carNumber);
+    // 뒤에 오는 4자리 숫자 중 앞 2자리를 ** 로 교체
+    return preg_replace('/(\d{2})(\d{2})$/', '**$2', trim($carNumber));
 }
 
 for($i=0;$row_car = sql_fetch_array($res_car);$i++){
 
     $dates = date("Y-m-d");
 
-    // 입주민 탭: 차량번호 마스킹
     $car_name_masked = $code == "in" ? maskCarNumber($row_car['car_name']) : maskCarNumber($row_car['visit_car_number']);
     $car_type        = $code == "in" ? $row_car['car_type'] : $row_car['visit_car_name'];
     $car_number_raw  = $code == "in" ? $row_car['car_name'] : $row_car['visit_car_number'];
-    $ho_id_val       = $row_car['ho_id'];
+    $ho_id_val       = intval($row_car['ho_id']); // ★ 숫자형으로 안전하게 변환
 ?>
 <div class="car_boxs_wrap">
+
+    <!-- ★ 동/호수 숨기고 "등록된 입주민 차량입니다." 텍스트만 표시 -->
     <div class="car_boxs">
-        <div class="car_boxs_l"><?php echo $code != "in" ? "방문 " : ""; ?>동/호수</div>
         <div class="car_boxs_r car_boxs_r_unit">
-            <?php echo $row_car['dong_name']; ?>동 <?php echo $row_car['ho_name']; ?>호
-            <?php if($code == "in"){?>
-                <!-- ★ 입주민 뱃지 -->
-                <span class="resident_badge">등록된 입주민 차량입니다.</span>
-            <?php }?>
+            <span class="resident_badge">등록된 입주민 차량입니다.</span>
         </div>
     </div>
+
     <div class="car_boxs">
         <div class="car_boxs_l">차량정보</div>
-        <!-- ★ 차량번호 마스킹 적용 -->
         <div class="car_boxs_r">차종 : <?php echo $car_type; ?> / 번호 : <?php echo $car_name_masked; ?></div>
     </div>
+
     <?php if($code != "in"){
         $visit_days = $row_car['visit_day'] - 1;
         $endDay     = date('Y.m.d', strtotime($row_car['visit_date'].'+'.$visit_days.'day'));
@@ -101,16 +104,17 @@ for($i=0;$row_car = sql_fetch_array($res_car);$i++){
 
     <?php if($code == "in"){?>
     <!-- ★ 이동주차 요청 버튼 (내 호실 제외) -->
-    <?php if($row_car['ho_id'] != $user_building['ho_id']){?>
+    <?php if($ho_id_val != intval($user_building['ho_id'])){?>
     <div class="car_boxs">
         <button type="button"
             class="move_request_btn"
-            onclick="moveRequestHandler('<?php echo $ho_id_val; ?>', '<?php echo $car_number_raw; ?>');">
+            onclick="moveRequestHandler(<?php echo $ho_id_val; ?>, '<?php echo addslashes($car_number_raw); ?>');">
             🚗 이동 주차 요청
         </button>
     </div>
     <?php }?>
     <?php }?>
+
 </div>
 <?php }?>
 <?php if($i == 0){?>
@@ -120,7 +124,6 @@ for($i=0;$row_car = sql_fetch_array($res_car);$i++){
 <?php }?>
 
 <style>
-/* ── 입주민 뱃지 ── */
 .car_boxs_r_unit {
     display: flex;
     align-items: center;
@@ -137,8 +140,6 @@ for($i=0;$row_car = sql_fetch_array($res_car);$i++){
     font-weight: 600;
     padding: 2px 10px;
 }
-
-/* ── 이동주차 요청 버튼 ── */
 .move_request_btn {
     width: 100%;
     padding: 10px 0;
@@ -156,7 +157,6 @@ for($i=0;$row_car = sql_fetch_array($res_car);$i++){
 </style>
 
 <script>
-// ── 이동주차 요청 확인 팝업 → parking_move_request_ajax.php 호출 ──
 function moveRequestHandler(hoId, carNumber) {
     if (!confirm('이동 주차를 요청하시겠습니까?\n차량번호: ' + carNumber)) return;
 
@@ -164,9 +164,9 @@ function moveRequestHandler(hoId, carNumber) {
         type: 'POST',
         url: '/parking_move_request_ajax.php',
         data: {
-            target_ho_id:    hoId,
+            target_ho_id:    hoId,        // ★ 숫자형으로 전달
             car_number:      carNumber,
-            requester_ho_id: '<?php echo $user_building['ho_id']; ?>',
+            requester_ho_id: <?php echo intval($user_building['ho_id']); ?>,  // ★ 숫자형
         },
         dataType: 'json',
         success: function(data) {
