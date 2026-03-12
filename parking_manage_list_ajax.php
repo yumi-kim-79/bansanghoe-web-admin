@@ -104,7 +104,7 @@ for($i=0;$row_car = sql_fetch_array($res_car);$i++){
 
     <?php if($code == "in"){?>
     <!-- ★ 이동주차 요청 버튼 (내 호실 제외) -->
-    <?php if($ho_id_val != intval($user_building['ho_id'])){?>
+    <?php if($ho_id_val != intval($_SESSION['users']['ho_id'])){?>
     <div class="car_boxs">
         <button type="button"
             class="move_request_btn"
@@ -166,7 +166,7 @@ function moveRequestHandler(hoId, carNumber) {
         data: {
             target_ho_id:    hoId,        // ★ 숫자형으로 전달
             car_number:      carNumber,
-            requester_ho_id: <?php echo intval($user_building['ho_id']); ?>,  // ★ 숫자형
+            requester_ho_id: <?php echo intval($_SESSION['users']['ho_id']); ?>,  // ★ 숫자형
         },
         dataType: 'json',
         success: function(data) {
