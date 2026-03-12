@@ -1,12 +1,8 @@
 <?php
 require_once "./_common.php";
 
-// ★ 검색어 없으면 빈 결과 반환 (처음엔 목록 숨김)
-if($schText == "" && $code == "in"){
-    echo '<div class="faq_empty_box">차량정보를 검색해주세요.</div>';
-    exit;
-}
-if($schText == "" && $code != "in"){
+// ★ 검색어 없으면 빈 결과 반환 (내가 등록한 방문차량은 바로 표시)
+if($schText == "" && $code != "my_visit"){
     echo '<div class="faq_empty_box">차량정보를 검색해주세요.</div>';
     exit;
 }
@@ -68,7 +64,7 @@ for($i=0;$row_car = sql_fetch_array($res_car);$i++){
 
     $dates = date("Y-m-d");
 
-    $car_name_masked = $code == "in" ? maskCarNumber($row_car['car_name']) : maskCarNumber($row_car['visit_car_number']);
+    $car_name_masked = $code == "in" ? maskCarNumber($row_car['car_name']) : ($code == "my_visit" ? $row_car['visit_car_number'] : maskCarNumber($row_car['visit_car_number']));
     $car_type        = $code == "in" ? $row_car['car_type'] : $row_car['visit_car_name'];
     $car_number_raw  = $code == "in" ? $row_car['car_name'] : $row_car['visit_car_number'];
     $ho_id_val       = intval($row_car['ho_id']);
@@ -79,8 +75,10 @@ for($i=0;$row_car = sql_fetch_array($res_car);$i++){
     <div class="car_boxs">
         <div class="car_boxs_l"><?php echo $code != "in" ? "방문 " : ""; ?>동/호수</div>
         <div class="car_boxs_r car_boxs_r_unit">
-
-            <?php if($code == "in"){ ?>
+            <?php if($code == "my_visit"){ ?>
+                <?php echo $row_car['dong_name']; ?>동 <?php echo $row_car['ho_name']; ?>호
+                <span class="visitor_badge">내가 등록한 방문차량입니다.</span>
+            <?php }elseif($code == "in"){ ?>
                 <span class="resident_badge">등록된 입주민 차량입니다.</span>
             <?php }else{ ?>
                 <span class="visitor_badge">입주민이 등록한 방문차량입니다.</span>
@@ -120,8 +118,8 @@ for($i=0;$row_car = sql_fetch_array($res_car);$i++){
     <?php }?>
     <?php }?>
 
-    <!-- ★ 이동주차 요청 버튼 (내 호실 제외, 입주민+방문 둘 다) -->
-    <?php if($ho_id_val != $my_ho_id){ ?>
+    <!-- ★ 이동주차 요청 버튼 (내 호실 제외, my_visit 탭 제외) -->
+    <?php if($code != "my_visit" && $ho_id_val != $my_ho_id){ ?>
     <div class="car_boxs">
         <button type="button"
             class="move_request_btn"
