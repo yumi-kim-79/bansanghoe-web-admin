@@ -3,9 +3,17 @@
  * parking_move_request_ajax.php
  * 이동주차 요청 → FCM 푸시 직접 발송
  */
+
 include_once('./_common.php');
 
 header('Content-Type: application/json');
+
+// ★ 임시 디버그
+echo json_encode(['result' => false, 'msg' => 'POST: '.json_encode($_POST)]);
+exit;
+
+// 아래 기존 코드들...
+$target_ho_id = trim($_POST['target_ho_id']);
 
 $target_ho_id    = trim($_POST['target_ho_id']);
 $car_number      = trim($_POST['car_number']);
