@@ -68,6 +68,16 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                         </button>
                     </div>
                 </div>
+
+                <!-- ★ 주차 안내박스 -->
+                <div class="parking_guide_box" id="parking_guide_box">
+                    <ul>
+                        <li>차량을 조회해야 입주자 차량인지 방문차량인지 확인 가능합니다.</li>
+                        <li>원활한 주차를 위해 "이동주차호출" 기능을 통해 차주에게 알림을 발송할 수 있습니다.</li>
+                        <li>주민께서 이동주차 알림을 받으신 세대주님께서는 이동주차를 해주십시오.</li>
+                    </ul>
+                </div>
+
                 <input type="hidden" name="out_car_id" id="out_car_id" value="">
                 <div class="car_list_wrap mgt20">
                 </div>
@@ -184,7 +194,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                     </p>
                 </li>
             </ul>
-            
+
         </div>
         <div class="cm_pop_btn_box flex_ver">
             <button type="button" class="cm_pop_btn" onClick="popClose('visit_car_info');">취소</button>
@@ -238,6 +248,34 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
 	</div>
 </div>
 
+<style>
+/* ★ 주차 안내박스 */
+.parking_guide_box {
+    background-color: #EAF4FF;
+    border: 1px solid #1A87D0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 15px;
+}
+.parking_guide_box ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.parking_guide_box ul li {
+    font-size: 13px;
+    color: #1A87D0;
+    line-height: 1.7;
+    padding-left: 14px;
+    position: relative;
+}
+.parking_guide_box ul li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+}
+</style>
+
 <script>
 let tabIdx = "<?php echo $tabIdx ?? '1'; ?>";
 let tabCode = "<?php echo $tabCode ?? 'in'; ?>"; //검색을 위해 코드명 저장
@@ -256,21 +294,18 @@ function tab_handler(index, code){
     let ho_tenant_at_de = "<?php echo $user_building['ho_tenant_at']; ?>";
 
     $.ajax({
-
-    url : "/parking_manage_list_ajax.php", //ajax 통신할 파일
-    type : "POST", // 형식
-    data: { "mb_id":mb_id, "code":code, "building_id":building_id, "ho_tenant_at_de":ho_tenant_at_de}, //파라미터 값
-    success: function(msg){ //성공시 이벤트
-        //console.log(msg);
-        $(".car_list_wrap").html(msg);
-    }
-
+        url : "/parking_manage_list_ajax.php",
+        type : "POST",
+        data: { "mb_id":mb_id, "code":code, "building_id":building_id, "ho_tenant_at_de":ho_tenant_at_de},
+        success: function(msg){
+            $(".car_list_wrap").html(msg);
+            $("#parking_guide_box").show(); // ★ 탭 변경 시 안내박스 다시 표시
+        }
     });
 }
 
 //검색
 function schHandler(){
-    //alert(tabCode);
     let schText = $("#sch_text").val();
 
     let mb_id = "<?php echo $user_info['mb_id']; ?>";
@@ -278,15 +313,13 @@ function schHandler(){
     let ho_tenant_at_de = "<?php echo $user_building['ho_tenant_at']; ?>";
 
     $.ajax({
-
-    url : "/parking_manage_list_ajax.php", //ajax 통신할 파일
-    type : "POST", // 형식
-    data: { "schText":schText,  "mb_id":mb_id, "code":tabCode, "building_id":building_id, "ho_tenant_at_de":ho_tenant_at_de}, //파라미터 값
-    success: function(msg){ //성공시 이벤트
-        //console.log(msg);
-        $(".car_list_wrap").html(msg);
-    }
-
+        url : "/parking_manage_list_ajax.php",
+        type : "POST",
+        data: { "schText":schText, "mb_id":mb_id, "code":tabCode, "building_id":building_id, "ho_tenant_at_de":ho_tenant_at_de},
+        success: function(msg){
+            $(".car_list_wrap").html(msg);
+            $("#parking_guide_box").hide(); // ★ 검색하면 안내박스 숨김
+        }
     });
 }
 
@@ -306,7 +339,6 @@ function visit_car_handler(w){
         visit_car_number = $("#visit_car_number").val();
         visit_hp = $("#visit_hp").val();
     }else{
-        
         visit_car_name = $("#visit_car_name2").val();
         visit_car_number = $("#visit_car_number2").val();
         visit_hp = $("#visit_hp2").val();
@@ -318,7 +350,6 @@ function visit_car_handler(w){
     let agree2 = $('input[name=chk2]:checked').val() ?? "";
     let agree3 = $('input[name=chk3]:checked').val() ?? "";
 
-    //console.log(agree1);
     let sendData = {'w':w, 'car_id':car_id, 'building_id':building_id, 'dong_id':dong_id, 'ho_id':ho_id, 'mb_id':mb_id, 'visit_car_name': visit_car_name, "visit_car_number":visit_car_number, "visit_hp":visit_hp, "visit_date":visit_date, "visit_day":visit_day, "agree1":agree1, "agree2":agree2, "agree3":agree3};
 
     $.ajax({
@@ -331,50 +362,38 @@ function visit_car_handler(w){
         success: function(data) {
             console.log('data:::', data);
 
-            if(data.result == false) { 
+            if(data.result == false) {
                 showToast(data.msg);
-                //$(".btn_submit").attr('disabled', false);
                 if(data.data != ""){
                     $("#" + data.data).focus();
                 }
                 return false;
             }else{
                 showToast(data.msg);
-                
                 popClose('visit_car_info');
-
                 setTimeout(() => {
-                    //window.location.reload();
                     location.replace("/parking_manage.php?tabIdx=3&tabCode=my_visit");
                 }, 700);
             }
         },
     });
-
 }
 
 //방문차량 수정
 function visit_car_update_pop(idx){
-
-    //console.log(idx);
-
     $.ajax({
-
-    url : "/parking_manage_vs_car_info.php", //ajax 통신할 파일
-    type : "POST", // 형식
-    data: { "car_id":idx}, //파라미터 값
-    success: function(msg){ //성공시 이벤트
-        console.log(msg);
-        $(".regi_list_vs_car_info").html(msg); 
-        popOpen('visit_car_update');
-        
-    }
-
+        url : "/parking_manage_vs_car_info.php",
+        type : "POST",
+        data: { "car_id":idx},
+        success: function(msg){
+            console.log(msg);
+            $(".regi_list_vs_car_info").html(msg);
+            popOpen('visit_car_update');
+        }
     });
 }
 
 function visit_car_out_pop(idx){
-
     $("#out_car_id").val(idx);
     popOpen('out_car_pop');
 }
@@ -385,47 +404,33 @@ function visit_car_out_pop_cancel(){
 }
 
 function visit_car_out_handler(){
-
     let out_car_id = $("#out_car_id").val();
 
     $.ajax({
-
-    url : "/parking_manage_out_car.php", //ajax 통신할 파일
-    type : "POST", // 형식
-    data: { "car_id":out_car_id}, //파라미터 값
-    success: function(msg){ //성공시 이벤트
-        console.log(msg);
-        
-        showToast("출차 처리가 완료되었습니다.");
-
-        setTimeout(() => {
-            window.location.reload();
-        }, 700);
-    }
-
+        url : "/parking_manage_out_car.php",
+        type : "POST",
+        data: { "car_id":out_car_id},
+        success: function(msg){
+            console.log(msg);
+            showToast("출차 처리가 완료되었습니다.");
+            setTimeout(() => {
+                window.location.reload();
+            }, 700);
+        }
     });
 }
 
 //연락처 하이픈
 $(".phone").keyup(function () {
-  // 숫자 이외의 모든 문자 제거
   var value = this.value.replace(/[^0-9]/g, "");
-
-  // 길이에 따라 하이픈 삽입
   if (value.length <= 3) {
-    // 3자리까지는 아무것도 하지 않음
     this.value = value;
   } else if (value.length <= 7) {
-    // 4자리까지는 '010-XXXX' 형태
     this.value = value.replace(/(\d{3})(\d{0,4})/, "$1-$2");
   } else if (value.length <= 11) {
-    // 11자리까지는 '010-XXXX-YYYY' 형태
     this.value = value.replace(/(\d{3})(\d{4})(\d{0,4})/, "$1-$2-$3");
   } else {
-    // 11자리를 초과하는 경우는 잘라서 처리
-    this.value = value
-      .substring(0, 11)
-      .replace(/(\d{3})(\d{4})(\d{0,4})/, "$1-$2-$3");
+    this.value = value.substring(0, 11).replace(/(\d{3})(\d{4})(\d{0,4})/, "$1-$2-$3");
   }
 });
 
@@ -435,7 +440,6 @@ $(function(){
 
 //전체 선택
 $("#chk_all").click(function () {
-  console.log($("#chk_all").is(":checked"));
   if ($("#chk_all").is(":checked")) {
     $(".chk_box").prop("checked", true);
   } else {
@@ -446,13 +450,11 @@ $("#chk_all").click(function () {
 $(".chk_box").click(function () {
   var total = $(".chk_box").length;
   var checked = $(".chk_box:checked").length;
-
   if (total != checked) $("#chk_all").prop("checked", false);
   else $("#chk_all").prop("checked", true);
 });
 
 function visit_car_submit(){
-
 }
 </script>
 <?php
