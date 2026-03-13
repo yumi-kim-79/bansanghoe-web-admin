@@ -29,13 +29,6 @@ $target_ho = sql_fetch("SELECT ho.ho_tenant_id, mem.mb_token
                         LEFT JOIN a_member as mem ON ho.ho_tenant_id = mem.mb_id
                         WHERE ho.ho_id = '{$target_ho_id}'");
 
-// ★ 임시 디버그 - 확인 후 삭제
-echo json_encode([
-    'result' => false,
-    'msg' => 'ho_tenant_id: '.$target_ho['ho_tenant_id'].', mb_token: '.$target_ho['mb_token'].', requester: '.$requester_name
-]);
-exit;
-
 if (!$target_ho['ho_tenant_id']) {
     echo json_encode(['result' => false, 'msg' => '해당 호실 입주민을 찾을 수 없습니다.']);
     exit;
