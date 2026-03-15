@@ -11,7 +11,6 @@ while($push_send_row = sql_fetch_array($push_send_res)){
         $user_infos = get_member($push_send_row['recv_id']);
         $push_token = $user_infos['mb_token'];
     }
-
     if($push_token != ''){
         $app_move_link = "";
         switch($push_send_row['push_type']){
@@ -22,17 +21,15 @@ while($push_send_row = sql_fetch_array($push_send_res)){
                 $app_move_link = "/sm_car_manage.php?building_id=";
                 break;
             case "sign_off":
-                $app_move_link = "/approval_document.php?chk_app=Y&dummy=";
+                $app_move_link = "/approval_document.php?";
                 break;
         }
         fcm_send($push_token, $push_send_row['push_title'], $push_send_row['push_content'], $push_send_row['push_type'], "{$push_send_row['push_idx']}", $app_move_link);
     }
-
     $push_update = "UPDATE a_push SET
                     is_send = 1
                     WHERE push_id = '{$push_send_row['push_id']}'";
     sql_query($push_update);
-
     // 크론 처리 로그 남기기
     $insert_log = "INSERT INTO a_cron_log SET
                     cr_type = '{$push_send_row['push_type']}',
