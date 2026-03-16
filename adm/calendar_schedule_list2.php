@@ -14,7 +14,7 @@ $sql_search1 = "";
 $sql_search2 = "";
 
 // 단지명 검색 필터
-$building_stx = isset($building_stx) ? trim($building_stx) : '';
+$building_stx = isset($_POST['building_stx']) ? trim($_POST['building_stx']) : '';
 $building_id_filter = "";
 if ($building_stx != "") {
     $b_sql = "SELECT building_id FROM a_building WHERE building_name LIKE '%" . sql_real_escape_string($building_stx) . "%' AND is_del = 0";
