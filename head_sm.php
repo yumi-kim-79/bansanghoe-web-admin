@@ -24,20 +24,16 @@ include_once(G5_LIB_PATH.'/connect.lib.php');
 include_once(G5_LIB_PATH.'/popular.lib.php');
 
 $mobile_agent = "/(iPod|iPhone|Android|BlackBerry|SymbianOS|SCH-M\d+|Opera Mini|Windows CE|Nokia|SonyEricsson|webOS|PalmOS)/";
-if(preg_match($mobile_agent, $_SERVER['HTTP_USER_AGENT'])){
+$is_webview = ($chk_app == 'Y') || 
+              (strpos($_SERVER['HTTP_USER_AGENT'], 'wv') !== false);
+if(preg_match($mobile_agent, $_SERVER['HTTP_USER_AGENT']) || $is_webview){
 	//echo "Mobile";
     
 }else{
 
     if($_SERVER['REMOTE_ADDR'] != "59.16.155.80" && $_SERVER['REMOTE_ADDR'] != "221.154.172.192"){
-
-        // if($basename != "class_test_view_adm.php"){
-        //     goto_url("/adm");
-        // }
         goto_url("/adm");
     }
-
-    //echo "231123132";
 }
 
 //매니저 계정 로그인이 아닐 때
