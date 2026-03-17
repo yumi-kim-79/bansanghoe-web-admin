@@ -21,7 +21,7 @@ while($push_send_row = sql_fetch_array($push_send_res)){
                 break;
             case "car":
                 // 완전한 URL로 webScreen에 담아서 전송 (idx는 빈값으로)
-                $app_move_link = "/sm_car_manage.php?building_id=" . $push_send_row['push_idx'] . "&chk_app=Y&app_token=";
+                $app_move_link = "/sm_car_manage.php?building_id=" . $push_send_row['push_idx'];
                 $push_idx = "";
                 break;
             case "sign_off":
