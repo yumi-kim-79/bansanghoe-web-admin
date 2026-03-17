@@ -13,18 +13,22 @@ while($push_send_row = sql_fetch_array($push_send_res)){
     }
     if($push_token != ''){
         $app_move_link = "";
+        $push_idx = $push_send_row['push_idx'];
+
         switch($push_send_row['push_type']){
             case "bbs":
                 $app_move_link = "/board_info.php?tabCode=all&tabIdx=0&bbs_idx=";
                 break;
             case "car":
-                $app_move_link = "/sm_car_manage.php?building_id=";
+                // 완전한 URL로 webScreen에 담아서 전송 (idx는 빈값으로)
+                $app_move_link = "/sm_car_manage.php?building_id=" . $push_send_row['push_idx'] . "&chk_app=Y&app_token=";
+                $push_idx = "";
                 break;
             case "sign_off":
                 $app_move_link = "/approval_document.php?";
                 break;
         }
-        fcm_send($push_token, $push_send_row['push_title'], $push_send_row['push_content'], $push_send_row['push_type'], "{$push_send_row['push_idx']}", $app_move_link);
+        fcm_send($push_token, $push_send_row['push_title'], $push_send_row['push_content'], $push_send_row['push_type'], "{$push_idx}", $app_move_link);
     }
     $push_update = "UPDATE a_push SET
                     is_send = 1
