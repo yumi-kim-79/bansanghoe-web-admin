@@ -102,12 +102,25 @@ $from_record = ($page - 1) * $rows; // 시작 열을 구함
 $g5['title'] = "세대관리";
 require_once './admin.head.php';
 include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
+?>
+<style>
+.list_car_item, .list_hh_item {
+    font-size: 12px;
+    padding: 2px 0;
+    white-space: nowrap;
+}
+.list_car_item + .list_car_item,
+.list_hh_item + .list_hh_item {
+    border-top: 1px dotted #ddd;
+}
+</style>
+<?php
 
 
 $sql = " select ho.*, building.building_name, building.is_use, dong.dong_name, post.post_name {$sql_common} {$sql_search} {$sql_search2} {$sql_order} limit {$from_record}, {$rows} ";
 $result = sql_query($sql);
 
-$colspan = 15;
+$colspan = 16;
 
 $post_sql = "SELECT * FROM a_post_addr ORDER BY is_prior asc, post_idx asc";
 $post_res = sql_query($post_sql);
@@ -306,13 +319,14 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                     <th>단지명</th>
                     <th>동</th>
                     <th>호수</th>
+                    <th>면적(㎡)</th>
                     <th>소유자</th>
                     <th>소유자 연락처</th>
                     <th>입주자</th>
                     <th>입주자 연락처</th>
                     <th>입주일</th>
-                    <th>등록차량 수</th>
-                    <th>세대구성원 수</th>
+                    <th>등록차량</th>
+                    <th>세대구성원</th>
                     <th>상태</th>
                     <th scope="col" id="mb_list_mng">관리</th>
                 </tr>
@@ -321,11 +335,15 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                 <?php
                 for ($i = 0; $row = sql_fetch_array($result); $i++) {
                     
-                    //차량 수
-                    $car_cnt = sql_fetch("SELECT COUNT(*) as cnt FROM a_building_car WHERE ho_id = '{$row['ho_id']}' and is_del = 0 and car_name != '' and car_type != ''");
+                    //차량 목록
+                    $car_list_res = sql_query("SELECT car_type, car_name FROM a_building_car WHERE ho_id = '{$row['ho_id']}' and is_del = 0 and car_name != '' ORDER BY car_id asc");
+                    $car_list = [];
+                    while($car_item = sql_fetch_array($car_list_res)) $car_list[] = $car_item;
 
-                    //세대구성원 수
-                    $hh_cnt = sql_fetch("SELECT COUNT(*) as cnt FROM a_building_household WHERE ho_id = '{$row['ho_id']}' and is_del = 0 and hh_relationship != '' and hh_name != ''");
+                    //세대구성원 목록
+                    $hh_list_res = sql_query("SELECT hh_relationship, hh_name FROM a_building_household WHERE ho_id = '{$row['ho_id']}' and is_del = 0 and hh_name != '' ORDER BY hh_id asc");
+                    $hh_list = [];
+                    while($hh_item = sql_fetch_array($hh_list_res)) $hh_list[] = $hh_item;
                 ?>
 
                     <tr class="<?php echo $row['ho_status'] == 'N' ? 'status_n' : ''; ?>">
@@ -344,13 +362,26 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                         <td><?php echo $row['building_name']; ?></td>
                         <td><?php echo $row['dong_name'].'동'; ?></td>
                         <td><?php echo $row['ho_name'].'호'; ?></td>
+                        <td><?php echo $row['ho_size'] ? number_format($row['ho_size'], 4) : '-'; ?></td>
                         <td><?php echo $row['ho_owner']; ?></td>
                         <td><?php echo $row['ho_owner_hp']; ?></td>
                         <td><?php echo $row['ho_status'] == 'N' ? '-' : $row['ho_tenant']; ?></td>
                         <td><?php echo $row['ho_status'] == 'N' ? '-' : $row['ho_tenant_hp']; ?></td>
                         <td><?php echo $row['ho_status'] == 'N' ? '-' : $row['ho_tenant_at']; ?></td>
-                        <td><?php echo $row['ho_status'] == 'N' ? 0 : $car_cnt['cnt']; ?></td>
-                        <td><?php echo $row['ho_status'] == 'N' ? 0 : $hh_cnt['cnt']; ?></td>
+                        <td>
+                            <?php if($row['ho_status'] == 'N'){ echo '-'; }else{ ?>
+                            <?php if(count($car_list) > 0){ foreach($car_list as $car_item){ ?>
+                                <div class="list_car_item"><?php echo $car_item['car_type'] ? $car_item['car_type'].' ' : ''; echo $car_item['car_name']; ?></div>
+                            <?php } }else{ echo '-'; } ?>
+                            <?php } ?>
+                        </td>
+                        <td>
+                            <?php if($row['ho_status'] == 'N'){ echo '-'; }else{ ?>
+                            <?php if(count($hh_list) > 0){ foreach($hh_list as $hh_item){ ?>
+                                <div class="list_hh_item"><?php echo $hh_item['hh_relationship'] ? '['.$hh_item['hh_relationship'].'] ' : ''; echo $hh_item['hh_name']; ?></div>
+                            <?php } }else{ echo '-'; } ?>
+                            <?php } ?>
+                        </td>
                         <td><?php echo $row['ho_status'] == 'Y' ? '입주' : '퇴실'; ?></td>
                         <td headers="mb_list_mng" class="td_mng td_mng_s">
                             <a href="./house_hold_form.php?<?=$qstr;?>&amp;w=<?php echo $row['ho_status'] == 'Y' ? 'u' : 'a';?>&amp;ho_id=<? echo $row['ho_id']; ?>" class="btn btn_03">관리</a>
