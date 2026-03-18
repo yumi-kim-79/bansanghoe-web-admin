@@ -44,9 +44,9 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                     }
 
                     if($row['push_type'] == 'car'){
-                        // 차량 푸시: push_idx = building_id로 저장됨
+                        // 차량 푸시: push_idx = ho_id로 저장됨
                         $push_idxs = $row['push_idx'];
-                        $screen = '/sm_car_manage.php?building_id=';
+                        $screen = '/household_mng_info.php?ho_id=';
                     }else if($row['push_type'] == 'calendar' || $row['push_type'] == 'schedule'){
 
                         $cal_info = sql_fetch("SELECT * FROM a_calendar WHERE cal_idx = '{$row['push_idx']}' ");
