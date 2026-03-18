@@ -71,9 +71,9 @@ for($i=0;$sign_row = sql_fetch_array($sign_res);$i++){
 
         $mng_id_val = $sign_row[$mng_id_key];
         if($mng_id_val != ''){
-            $mng_info = sql_fetch("SELECT mng_grades, mng_name FROM a_mng WHERE mng_id = '{$mng_id_val}'");
+            $mng_info = sql_fetch("SELECT mg.mg_name FROM a_mng as m LEFT JOIN a_mng_grade as mg ON m.mng_grades = mg.mg_idx WHERE m.mng_id = '{$mng_id_val}'");
             $sign_steps[] = [
-                'grades' => $mng_info['mng_grades'] ? $mng_info['mng_grades'] : $s.'차',
+                'grades' => $mng_info['mg_name'] ? $mng_info['mg_name'] : $s.'차',
                 'status' => $sign_row[$status_key],
             ];
         }
