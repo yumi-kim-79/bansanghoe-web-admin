@@ -73,7 +73,7 @@ for($i=0;$sign_row = sql_fetch_array($sign_res);$i++){
         if($mng_id_val != ''){
             $mng_info = sql_fetch("SELECT mng_grades, mng_name FROM a_mng WHERE mng_id = '{$mng_id_val}'");
             $sign_steps[] = [
-                'grades' => $mng_info['mng_name'] ? $mng_info['mng_name'] : $s.'차',
+                'grades' => $mng_info['mng_grades'] ? $mng_info['mng_grades'] : $s.'차',
                 'status' => $sign_row[$status_key],
             ];
         }
