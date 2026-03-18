@@ -71,16 +71,16 @@ for($i=0;$sign_row = sql_fetch_array($sign_res);$i++){
 
         $mng_id_val = $sign_row[$mng_id_key];
         if($mng_id_val != ''){
-            $mng_info = sql_fetch("SELECT mng_grades FROM a_mng WHERE mng_id = '{$mng_id_val}'");
+            $mng_info = sql_fetch("SELECT mng_grades, mng_name FROM a_mng WHERE mng_id = '{$mng_id_val}'");
             $sign_steps[] = [
-                'grades' => $mng_info['mng_grades'] ? $mng_info['mng_grades'] : $s.'차',
+                'grades' => $mng_info['mng_name'] ? $mng_info['mng_name'] : $s.'차',
                 'status' => $sign_row[$status_key],
             ];
         }
     }
 ?>
-<a href="/holiday_reqeust_info.php?types=<?php echo $sign_row['sign_off_category']; ?>&sign_id=<?php echo $sign_row['sign_id']; ?>&mng=<?php echo $mng_chk; ?>" class="content_box ver3 ver_np">
-    <div class="content_box_ct ver2">
+<a href="/holiday_reqeust_info.php?types=<?php echo $sign_row['sign_off_category']; ?>&sign_id=<?php echo $sign_row['sign_id']; ?>&mng=<?php echo $mng_chk; ?>" class="content_box ver3 ver_np sign_list_item">
+    <div class="sign_list_left">
         <div class="content_box_ct1">
             <span><?php echo $status; ?></span> <?php echo date("Y.m.d", strtotime($sign_row['created_at']));?>
         </div>
@@ -91,28 +91,38 @@ for($i=0;$sign_row = sql_fetch_array($sign_res);$i++){
             <div class="sign_writer_box"><?php echo $sign_mng['mng_name'];?></div>
             <div class="sign_writer_box"><?php echo $sign_mng['md_name'];?></div>
         </div>
-        <?php if(count($sign_steps) > 0){ ?>
-        <div class="sign_steps_wrap">
-            <?php foreach($sign_steps as $step){ ?>
-            <div class="sign_step_item <?php echo $step['status'] == 1 ? 'signed' : 'unsigned'; ?>">
-                <span class="sign_step_grade"><?php echo $step['grades']; ?></span>
-                <span class="sign_step_icon"><?php echo $step['status'] == 1 ? '✓' : '–'; ?></span>
-            </div>
-            <?php } ?>
+    </div>
+    <?php if(count($sign_steps) > 0){ ?>
+    <div class="sign_steps_wrap">
+        <?php foreach($sign_steps as $step){ ?>
+        <div class="sign_step_item <?php echo $step['status'] == 1 ? 'signed' : 'unsigned'; ?>">
+            <span class="sign_step_name"><?php echo $step['grades']; ?></span>
+            <span class="sign_step_icon"><?php echo $step['status'] == 1 ? '✓' : '–'; ?></span>
         </div>
         <?php } ?>
     </div>
+    <?php } ?>
 </a>
 <?php }?>
 <?php if($i==0){?>
 <div class="content_box_empty"><?php echo $empty_msg; ?></div>
 <?php }?>
 <style>
+.sign_list_item {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.sign_list_left {
+    flex: 1;
+    min-width: 0;
+}
 .sign_steps_wrap {
     display: flex;
-    gap: 8px;
-    margin-top: 8px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 5px;
+    flex-shrink: 0;
 }
 .sign_step_item {
     display: flex;
@@ -120,9 +130,10 @@ for($i=0;$sign_row = sql_fetch_array($sign_res);$i++){
     gap: 4px;
     padding: 3px 8px;
     border-radius: 12px;
-    font-size: 12px;
+    font-size: 11px;
     border: 1px solid #ddd;
     background: #f5f5f5;
+    white-space: nowrap;
 }
 .sign_step_item.signed {
     background: #e8f5e9;
@@ -136,6 +147,6 @@ for($i=0;$sign_row = sql_fetch_array($sign_res);$i++){
 }
 .sign_step_icon {
     font-weight: bold;
-    font-size: 13px;
+    font-size: 12px;
 }
 </style>
