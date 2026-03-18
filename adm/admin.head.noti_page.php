@@ -35,8 +35,8 @@ if($push_row['push_type'] == 'schedule' || $push_row['push_type'] == 'calendar')
     $screen = '/adm/calendar_form2.php?w=u&cal_idx='.$push_row['push_idx'].'&cal_code='.$cal_info['cal_code'].'&cal_date_def='.$date_parts2;
 
 }else if($push_row['push_type'] == 'car'){
-    // 차량 푸시: push_idx = building_id로 저장됨
-    $screen = '/adm/car_list.php?building_id=';
+    // 차량 푸시: push_idx = ho_id로 저장됨
+    $screen = '/adm/car_form.php?w=u&ho_id=';
 
 }else{
     $screen = $push_row['screen_adm'];
