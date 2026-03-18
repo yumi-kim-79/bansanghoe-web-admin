@@ -20,7 +20,7 @@ while($push_send_row = sql_fetch_array($push_send_res)){
                 $app_move_link = "/board_info.php?tabCode=all&tabIdx=0&bbs_idx=";
                 break;
             case "car":
-                $app_move_link = "/sm_car_manage.php?building_id=";
+                $app_move_link = "/household_mng_info.php?ho_id=";
                 break;
             case "sign_off":
                 $app_move_link = "/approval_document.php?";
