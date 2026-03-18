@@ -78,7 +78,7 @@ if($types == "sm"){
                                 push_content = '{$push_content}',
                                 wid = '{$mb_id}',
                                 push_type = 'car',
-                                push_idx = '{$building_id}',
+                                push_idx = '{$ho_id}',
                                 is_send = 0,
                                 created_at = '{$today}'";
                         sql_query($insert_push);
@@ -133,7 +133,7 @@ if($types == "sm"){
                                 push_content = '{$push_content}',
                                 wid = '{$mb_id}',
                                 push_type = 'car',
-                                push_idx = '{$building_id}',
+                                push_idx = '{$ho_id}',
                                 is_send = 0,
                                 created_at = '{$today}'";
                         sql_query($insert_push);
