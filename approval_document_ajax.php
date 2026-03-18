@@ -1,7 +1,6 @@
 <?php
 require_once "./_common.php";
 
-//print_r($_POST);
 $sql_sch = "";
 
 if($approval_sdate != "" && $approval_edate != ""){
@@ -19,30 +18,20 @@ if($sch_text != ""){
 $sql_where = "";
 if($code == "reject"){
     $sql_where = "and sign_off.sign_status = 'R'";
-
     $empty_msg = "결재 반려된 서류가 없습니다.";
 }else if($code == "success"){
     $sql_where = "and sign_off.sign_status = 'E'";
-
     $empty_msg = "결재 승인된 서류가 없습니다.";
 }else{
     $sql_where = "and sign_off.sign_status IN ('N', 'P')";
-
     $empty_msg = "결재 서류가 없습니다.";
 }
 
 if($mng_certi != 'D'){
-
-    // $sql_sign = " and ( ( sign_off.sign_off_mng_id1 = '{$mb_id}' or sign_off.sign_off_mng_id2 = '{$mb_id}' or sign_off.sign_off_mng_id3 = '{$mb_id}' )  or sign_off.mng_id = '{$mb_id}'  ) ";
     $sql_sign = "";
-
 }else{
-    // $sql_search = " WHERE sign_off.is_del = 0 and sign_off.mng_id = '{$mb_ids}' ";
-
     $sql_sign = " and sign_off.mng_id = '{$mb_id}' ";
 }
-
-
 
 $sign_sql = "SELECT sign_off.*, cate.sign_cate_name, mng.mng_name FROM a_sign_off as sign_off
             LEFT JOIN a_sign_off_category AS cate ON sign_off.sign_off_category = cate.sign_cate_code
@@ -55,7 +44,6 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     echo $sign_sql.'<br>';
 }
 
-//echo $sign_sql;
 for($i=0;$sign_row = sql_fetch_array($sign_res);$i++){
     switch($sign_row['sign_status']){
         case "N":
@@ -71,10 +59,25 @@ for($i=0;$sign_row = sql_fetch_array($sign_res);$i++){
             $status = "반려";
             break;
     }
-    //echo $status; 
 
     $sign_mng = get_manger($sign_row['mng_id']);
-   
+
+    // 1~3차 결재자 정보 조회
+    $sign_steps = [];
+    for($s=1;$s<=3;$s++){
+        $mng_id_key = "sign_off_mng_id{$s}";
+        $status_key = "sign_off_status{$s}";
+        if($s == 1) $status_key = "sign_off_status";
+
+        $mng_id_val = $sign_row[$mng_id_key];
+        if($mng_id_val != ''){
+            $mng_info = sql_fetch("SELECT mng_grades FROM a_mng WHERE mng_id = '{$mng_id_val}'");
+            $sign_steps[] = [
+                'grades' => $mng_info['mng_grades'] ? $mng_info['mng_grades'] : $s.'차',
+                'status' => $sign_row[$status_key],
+            ];
+        }
+    }
 ?>
 <a href="/holiday_reqeust_info.php?types=<?php echo $sign_row['sign_off_category']; ?>&sign_id=<?php echo $sign_row['sign_id']; ?>&mng=<?php echo $mng_chk; ?>" class="content_box ver3 ver_np">
     <div class="content_box_ct ver2">
@@ -88,9 +91,51 @@ for($i=0;$sign_row = sql_fetch_array($sign_res);$i++){
             <div class="sign_writer_box"><?php echo $sign_mng['mng_name'];?></div>
             <div class="sign_writer_box"><?php echo $sign_mng['md_name'];?></div>
         </div>
+        <?php if(count($sign_steps) > 0){ ?>
+        <div class="sign_steps_wrap">
+            <?php foreach($sign_steps as $step){ ?>
+            <div class="sign_step_item <?php echo $step['status'] == 1 ? 'signed' : 'unsigned'; ?>">
+                <span class="sign_step_grade"><?php echo $step['grades']; ?></span>
+                <span class="sign_step_icon"><?php echo $step['status'] == 1 ? '✓' : '–'; ?></span>
+            </div>
+            <?php } ?>
+        </div>
+        <?php } ?>
     </div>
 </a>
 <?php }?>
 <?php if($i==0){?>
 <div class="content_box_empty"><?php echo $empty_msg; ?></div>
 <?php }?>
+<style>
+.sign_steps_wrap {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+.sign_step_item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    border: 1px solid #ddd;
+    background: #f5f5f5;
+}
+.sign_step_item.signed {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+.sign_step_item.unsigned {
+    background: #f5f5f5;
+    border-color: #ddd;
+    color: #999;
+}
+.sign_step_icon {
+    font-weight: bold;
+    font-size: 13px;
+}
+</style>
