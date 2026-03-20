@@ -392,7 +392,7 @@ function singCheck(){
 
                // ✅ 수정: 현재 페이지(approval_info.php)로 reload
                setTimeout(() => {
-                    location.replace("/adm/approval_info.php?w=u&sign_id=" + sign_id);
+                    location.replace("/holiday_request_sample.php?sign_id=" + sign_id + "&mem_type=sign_user");
                 }, 150);
             }
         }
