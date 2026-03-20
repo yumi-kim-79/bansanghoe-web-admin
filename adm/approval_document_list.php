@@ -55,7 +55,14 @@ if($sign_off_category){
     $qstr .= '&sign_off_category='.$sign_off_category;
 }
 
-if($sign_off_status){
+if($sign_off_status == 'MY'){
+    $sql_search .= " and (
+        (sign_off.sign_off_mng_id1 = '{$mb_ids}' and sign_off.sign_off_status = 0) or
+        (sign_off.sign_off_mng_id2 = '{$mb_ids}' and sign_off.sign_off_status2 = 0 and sign_off.sign_off_status = 1) or
+        (sign_off.sign_off_mng_id3 = '{$mb_ids}' and sign_off.sign_off_status3 = 0 and sign_off.sign_off_status2 = 1)
+    ) and sign_off.sign_status IN ('N', 'P') ";
+    $qstr .= '&sign_off_status='.$sign_off_status;
+}else if($sign_off_status){
     $sql_search .= " and sign_off.sign_status = '{$sign_off_status}' ";
     $qstr .= '&sign_off_status='.$sign_off_status;
 }
@@ -166,6 +173,10 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             <div class="sch_radios">
                 <input type="radio" name="sign_off_status" id="status5" value="R" <?php echo $sign_off_status == "R" ? "checked" : ""; ?>>
                 <label for="status5">반려</label>
+            </div>
+            <div class="sch_radios">
+                <input type="radio" name="sign_off_status" id="status6" value="MY" <?php echo $sign_off_status == "MY" ? "checked" : ""; ?>>
+                <label for="status6" style="color:#1976d2;font-weight:bold;">내 결재</label>
             </div>
         </div>
     </div>
@@ -308,7 +319,6 @@ function fstudentlist_submit(f) {
 }
 </script>
 
-?>
 <style>
 .adm_sign_steps{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;justify-content:center;}
 td .adm_sign_steps{text-align:center;}
