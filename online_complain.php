@@ -120,7 +120,7 @@ $(".tab_btn_wrap .tab_btn").on("click", function(){
 
 $(document).on("click", ".faq_info_question", function(){
     $(this).next(".faq_info_answer").toggle();
-    $(this).children(".faq_question").toggleClass("up");
+    $(this).toggleClass("open");
 });
 </script>
 <?php

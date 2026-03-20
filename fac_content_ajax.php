@@ -11,8 +11,11 @@ for($i=0;$faq_row = sql_fetch_array($faq_res);$i++){
 ?>
 <div class="faq_info_box">
     <div class="faq_info_question">
-        <div class="faq_span"><?php echo $faq_row['fc_name'];?></div>
-        <div class="faq_question"><?php echo $faq_row['faq_title'];?></div>
+        <div class="faq_left">
+            <div class="faq_span"><?php echo $faq_row['fc_name'];?></div>
+            <div class="faq_question"><?php echo $faq_row['faq_title'];?></div>
+        </div>
+        <div class="faq_arr"></div>
     </div>
     <div class="faq_info_answer mgt10">
     <?php echo $faq_row['faq_content']; ?>
