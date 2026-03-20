@@ -506,8 +506,8 @@ function approval_submit(){
                 alert(data.msg);
 
                 setTimeout(() => {
-                    // ✅ 수정: 저장 후 approval_info.php로 이동 (holiday_request_sample.php 제거)
-                    location.replace("/adm/approval_info.php?w=u&sign_id=" + data.data);
+                    // ✅ holiday_request_sample.php에서 문서 캡처 후 approval_info.php로 이동
+                    location.replace("/holiday_request_sample.php?sign_id=" + data.data + '&mem_type=admin');
                 }, 1000);
             }
         },
