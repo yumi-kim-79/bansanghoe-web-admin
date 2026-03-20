@@ -138,31 +138,28 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
 
                                     let sign_status = "<?php echo $row['sign_status']; ?>";
                                     let mng_id = "<?php echo $w == 'u' ? $row['mng_id'] :  $member['mb_id']; ?>";
-                                    //console.log('selectValue', selectValue);
                                     $.ajax({
 
-                                    url : page, //ajax 통신할 파일
-                                    type : "POST", // 형식
-                                    data: {"selectValue":selectValue, "w":w, "sign_id":"<?php echo $sign_id; ?>", "mng_id":mng_id}, //파라미터 값
-                                    success: function(msg){ //성공시 이벤트
+                                    url : page,
+                                    type : "POST",
+                                    data: {"selectValue":selectValue, "w":w, "sign_id":"<?php echo $sign_id; ?>", "mng_id":mng_id},
+                                    success: function(msg){
 
                                         console.log('msg::',msg);
                                         $(".approval_request_form_box").html(msg);
-                                        //$(".class_td").html(msg); //.select_box2에 html로 나타내라..
                                     }
 
                                     });
 
                                     $.ajax({
 
-                                    url : "./approval_form_button.php", //ajax 통신할 파일
-                                    type : "POST", // 형식
-                                    data: {"selectValue":selectValue, "mng_id":mng_id, "w":w, "sign_id":"<?php echo $sign_id; ?>", "sign_status":sign_status, "mb_id":"<?php echo $member['mb_id']; ?>", "mng_certi":"<?php echo $mng_infos['mng_certi']; ?>"}, //파라미터 값
-                                    success: function(msg){ //성공시 이벤트
+                                    url : "./approval_form_button.php",
+                                    type : "POST",
+                                    data: {"selectValue":selectValue, "mng_id":mng_id, "w":w, "sign_id":"<?php echo $sign_id; ?>", "sign_status":sign_status, "mb_id":"<?php echo $member['mb_id']; ?>", "mng_certi":"<?php echo $mng_infos['mng_certi']; ?>"},
+                                    success: function(msg){
 
                                         console.log('msg::',msg);
                                         $(".btn_fixed_top").html(msg);
-                                        //$(".class_td").html(msg); //.select_box2에 html로 나타내라..
                                     }
 
                                     });
@@ -252,10 +249,7 @@ function signHandler(a, datas = ''){
     resizeCanvas();
 }
 
-// Get canvas and buttons
 const canvas = document.getElementById('signatureCanvas');
-
-// Initialize SignaturePad
 const signaturePad = new SignaturePad(canvas);
 
 function clearSign(){
@@ -299,13 +293,11 @@ function resizeCanvas() {
     canvas.width = canvas.offsetWidth * ratio;
     canvas.height = canvas.offsetHeight * ratio;
     canvas.getContext("2d").scale(ratio, ratio);
-    //signaturePad.clear(); // otherwise isEmpty() might return incorrect value
 }
 
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-//연차 신청자 추가
 $(document).on("click", ".paid_holiday_request_add", function(){
 
     let html = `<div class="paid_holiday_request_wrapper">
@@ -359,7 +351,6 @@ $(document).on("click", ".paid_holiday_request_add", function(){
     $(document).find(".ipt_date").removeClass('hasDatepicker').datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd", showButtonPanel: true, yearRange: "c-99:c+99", maxDate: "+365d", minDate:"0d" });
 });
 
-//연차 신청자 삭제
 function paid_holiday_remove(ele){
     ele.closest(".paid_holiday_request_wrapper").remove();
 }
@@ -375,7 +366,6 @@ function signOffDel(){
 }
 
 function isValidTime(value) {
-  // HH:MM 형식 확인
   const regex = /^([01]\d|2[0-3]):([0-5]\d)$/;
   return regex.test(value);
 }
@@ -411,7 +401,6 @@ function fapproval_submit(f) {
         
     }
     
-    //approval_signature.w == ''
     if(f.approval_signature.value == "" && f.w.value == ''){
         alert("서명을 입력해주세요.");
         return false;
@@ -446,7 +435,7 @@ function approval_submit(){
     let sign_off_memo = $("#sign_off_memo").val();
     let mng_id = "<?php echo $member['mb_id']; ?>";
     let mng_name = "<?php echo $member['mb_name']; ?>";
-    let approval_signature = $("#approval_signature").val();;
+    let approval_signature = $("#approval_signature").val();
    
 
     if(sign_off_mng_id1 == ""){
@@ -488,20 +477,16 @@ function approval_submit(){
     formData.append('approval_signature', approval_signature);
 
     for (var i = 0; i < filesArr.length; i++) {
-        // 삭제되지 않은 파일만 폼데이터에 담기
         formData.append("approval_file[]", filesArr[i]);
     }
 
-    // 파일삭제 체크된 삭제 항목 추가
     $("input[name^=file_del]").each(function() {
         if($(this).is(":checked") == true){
-            formData.append("file_del[]", '1'); // 체크된 파일의 번호 추가
+            formData.append("file_del[]", '1');
         }else{
-              formData.append("file_del[]", '0'); // 체크된 파일의 번호 추가
+              formData.append("file_del[]", '0');
         }
     });
-
-    //console.log(formData);
 
     $.ajax({
         type: "POST",
@@ -516,20 +501,13 @@ function approval_submit(){
             console.log('data:::', data);
             if(data.result == false) { 
                 alert(data.msg);
-                //$(".btn_submit").attr('disabled', false);
                 return false;
             }else{
                 alert(data.msg);
 
                 setTimeout(() => {
-                    if(w_status == 'u'){
-                        location.replace("/holiday_request_sample.php?sign_id=" + data.data + '&mem_type=admin');
-                    }else{
-
-                        location.replace("/holiday_request_sample.php?sign_id=" + data.data + '&mem_type=admin');
-                        //window.location.href = './approval_form.php?w=u&sign_id=' + data.data;
-                    }
-                    
+                    // ✅ 수정: 저장 후 approval_info.php로 이동 (holiday_request_sample.php 제거)
+                    location.replace("/adm/approval_info.php?w=u&sign_id=" + data.data);
                 }, 1000);
             }
         },
@@ -545,4 +523,3 @@ function approval_submit(){
 run_event('admin_member_form_after', $mb, $w);
 
 require_once './admin.tail.php';
-
