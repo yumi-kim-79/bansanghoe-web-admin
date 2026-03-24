@@ -162,9 +162,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
-- [x] **FAQ 답변 폰트 크기 수정** (2026-03-25)
+- [x] **FAQ 답변 폰트 크기/굵기 수정** (2026-03-25)
   - 파일: `css/default.css`
-  - 변경: `.faq_info_answer { font-size: 13px → 16px }`
+  - 변경: `.faq_info_answer { font-size: 13px → 18px, font-weight: 400 추가 }`
 
 ---
 
