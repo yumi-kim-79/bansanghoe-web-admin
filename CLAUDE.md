@@ -159,11 +159,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [x] Android 자동 빌드 GitHub Actions 설정 (반상회, SM매니저)
 
 ### 진행 중 / 예정 작업
-- [ ] **FAQ 답변 폰트 크기 수정**
-  - 저장소: `bansanghoe-web-admin`
-  - 파일: `style.css` (정확한 경로는 GitHub에서 확인)
+- (없음)
+
+### 최근 완료
+- [x] **FAQ 답변 폰트 크기 수정** (2026-03-25)
+  - 파일: `css/default.css`
   - 변경: `.faq_info_answer { font-size: 13px → 16px }`
-  - 참고: 네이버 관련질문 섹션처럼 질문(18px)과 답변 크기 균형
 
 ---
 
