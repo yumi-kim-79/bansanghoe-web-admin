@@ -124,7 +124,9 @@ include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
 #fsearch .serach_box .sch_label {
     width: 70px;
     min-width: 70px;
+    max-width: 70px;
     flex-shrink: 0;
+    box-sizing: border-box;
 }
 /* 1차/2차 검색 같은 행 배치 */
 .sch_row_flex {
@@ -135,6 +137,13 @@ include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
 .sch_row_flex > .serach_box {
     flex: 1;
     min-width: 0;
+}
+/* 검색 입력창이 버튼을 밀어내지 않도록 */
+.sch_row_flex .sch_ipt_boxs {
+    flex: 0 1 auto;
+}
+.sch_row_flex .sch_ipt_boxs input {
+    width: 160px;
 }
 .sch_2nd_hint {
     color: #999;
