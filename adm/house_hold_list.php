@@ -120,40 +120,15 @@ require_once './admin.head.php';
 include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
 ?>
 <style>
-/* 세대관리 검색 영역 컴팩트 스타일 */
-#fsearch.local_sch01 {
-    margin: 5px 0;
-}
-#fsearch .serach_box {
-    gap: 10px;
-    margin: 2px 0;
-    padding: 2px 0;
-}
-#fsearch .serach_box .sch_label {
-    min-width: 45px;
-    width: auto;
-    font-size: 12px;
-}
-#fsearch .sch_selects.gap15 {
-    gap: 0 10px;
-}
-#fsearch .bansang_sel,
-#fsearch .bansang_ipt {
-    padding: 3px 5px;
-    height: auto;
-}
 /* 1차/2차 검색 같은 행 배치 */
 .sch_row_flex {
     display: flex;
     gap: 15px;
-    align-items: flex-start;
+    align-items: center;
 }
 .sch_row_flex > .serach_box {
     flex: 1;
     min-width: 0;
-}
-.sch_row_flex .sch_label {
-    min-width: 60px !important;
 }
 .sch_2nd_hint {
     color: #999;
