@@ -165,7 +165,7 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [x] **세대관리 검색 영역 레이아웃 개선** (2026-03-30)
   - 파일: `adm/house_hold_list.php`
   - 1차/2차 검색을 하나의 `serach_box` 안에 나란히 배치 (구분선으로 분리)
-  - 각 입력창 바로 옆에 검색 버튼, 2차 입력창 240px로 placeholder 잘림 방지
+  - 각 입력창 바로 옆에 검색 버튼, 2차 입력창 300px로 placeholder 잘림 방지
   - 라벨 너비 70px 고정(min/max)으로 상태/입주일/지역/검색 세로 정렬 통일
 - [x] **세대관리 엑셀 다운로드 양식 개선** (2026-03-30)
   - 파일: `adm/house_hold_list_excel.php`
