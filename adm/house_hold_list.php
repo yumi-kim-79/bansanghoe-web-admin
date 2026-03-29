@@ -133,7 +133,7 @@ include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
     width: 1px;
     height: 20px;
     background: #ccc;
-    margin: 0 10px;
+    margin: 0 5px;
     flex-shrink: 0;
 }
 .sch_2nd_hint {
@@ -142,7 +142,7 @@ include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
     white-space: nowrap;
 }
 #stx2 {
-    width: 240px;
+    width: 300px;
 }
 /* 세대관리 테이블 컴팩트 스타일 */
 .tbl_head01 thead th {
