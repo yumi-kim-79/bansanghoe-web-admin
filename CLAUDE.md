@@ -162,6 +162,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **세대관리 테이블 컴팩트 스타일 적용** (2026-03-30)
+  - 파일: `adm/house_hold_list.php` (페이지 내 style 오버라이드)
+  - thead th padding 8px→5px, tbody td padding 5px→3px, line-height 1.3em, 차량/구성원 padding 축소
 - [x] **세대관리 엑셀 다운로드 양식 개선** (2026-03-30)
   - 파일: `adm/house_hold_list_excel.php`
   - 컬럼 순서를 화면과 동일하게 (번호/지역/단지명/동/호수/면적/소유자/소유자연락처/입주자/입주자연락처/입주일/등록차량/세대구성원/상태)

@@ -120,14 +120,28 @@ require_once './admin.head.php';
 include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
 ?>
 <style>
+/* 세대관리 테이블 컴팩트 스타일 */
+.tbl_head01 thead th {
+    padding: 5px 4px;
+}
+.tbl_head01 tbody td {
+    padding: 3px 4px;
+    line-height: 1.3em;
+}
+.tbl_head01 tbody tr {
+    height: auto;
+}
 .list_car_item, .list_hh_item {
     font-size: 12px;
-    padding: 2px 0;
+    padding: 1px 0;
     white-space: nowrap;
 }
 .list_car_item + .list_car_item,
 .list_hh_item + .list_hh_item {
     border-top: 1px dotted #ddd;
+}
+.td_mng_s .btn {
+    padding: 3px 8px;
 }
 </style>
 <?php
