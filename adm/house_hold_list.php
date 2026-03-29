@@ -128,27 +128,21 @@ include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
     flex-shrink: 0;
     box-sizing: border-box;
 }
-/* 1차/2차 검색 같은 행 배치 */
-.sch_row_flex {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-}
-.sch_row_flex > .serach_box {
-    flex: 1;
-    min-width: 0;
-}
-/* 검색 입력창이 버튼을 밀어내지 않도록 */
-.sch_row_flex .sch_ipt_boxs {
-    flex: 0 1 auto;
-}
-.sch_row_flex .sch_ipt_boxs input {
-    width: 160px;
+/* 2차 검색 구분선 */
+.sch_divider {
+    width: 1px;
+    height: 20px;
+    background: #ccc;
+    margin: 0 10px;
+    flex-shrink: 0;
 }
 .sch_2nd_hint {
     color: #999;
     font-size: 11px;
     white-space: nowrap;
+}
+#stx2 {
+    width: 240px;
 }
 /* 세대관리 테이블 컴팩트 스타일 */
 .tbl_head01 thead th {
@@ -295,34 +289,26 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     // 2차 검색 활성화 조건: 1차 검색어가 있거나 단지가 선택된 경우
     $is_2nd_search_active = ($stx || $building_id) ? true : false;
     ?>
-    <div class="sch_row_flex">
-        <div class="serach_box">
-            <div class="sch_label">1차 검색</div>
-            <div class="sch_selects ver_flex">
-                <select name="sfl" id="sfl" class="bansang_sel">
-                    <option value="all" <?php echo get_selected($sfl, "all"); ?>>전체</option>
-                    <option value="building_name" <?php echo get_selected($sfl, "building_name"); ?>>단지명</option>
-                </select>
-                <div class="sch_ipt_boxs">
-                    <div class="sch_result_box sch_result_box1"></div>
-                    <label for="stx" class="sound_only">1차 검색어</label>
-                    <input type="text" name="stx" value="<?php echo $stx ?>" id="stx" class="bansang_ipt ver2 building_name_sch" size="30" placeholder="단지명 검색">
-                </div>
-                <button type="submit" class="bansang_btns ver1">검색</button>
+    <div class="serach_box">
+        <div class="sch_label">검색어</div>
+        <div class="sch_selects ver_flex">
+            <select name="sfl" id="sfl" class="bansang_sel">
+                <option value="all" <?php echo get_selected($sfl, "all"); ?>>전체</option>
+                <option value="building_name" <?php echo get_selected($sfl, "building_name"); ?>>단지명</option>
+            </select>
+            <div class="sch_ipt_boxs">
+                <div class="sch_result_box sch_result_box1"></div>
+                <label for="stx" class="sound_only">1차 검색어</label>
+                <input type="text" name="stx" value="<?php echo $stx ?>" id="stx" class="bansang_ipt ver2 building_name_sch" placeholder="단지명 검색">
             </div>
-        </div>
-        <div class="serach_box">
-            <div class="sch_label">2차 검색</div>
-            <div class="sch_selects ver_flex">
-                <div class="sch_ipt_boxs">
-                    <label for="stx2" class="sound_only">2차 검색어</label>
-                    <input type="text" name="stx2" value="<?php echo $stx2 ?>" id="stx2" class="bansang_ipt ver2" size="30" placeholder="소유자/입주자/연락처/호수/차량번호" <?php echo $is_2nd_search_active ? '' : 'disabled'; ?>>
-                </div>
-                <button type="submit" class="bansang_btns ver1" <?php echo $is_2nd_search_active ? '' : 'disabled'; ?>>검색</button>
-                <?php if(!$is_2nd_search_active){ ?>
-                <span class="sch_2nd_hint">* 1차 검색 또는 단지 선택 후</span>
-                <?php } ?>
-            </div>
+            <button type="submit" class="bansang_btns ver1">검색</button>
+            <div class="sch_divider"></div>
+            <label for="stx2" class="sound_only">2차 검색어</label>
+            <input type="text" name="stx2" value="<?php echo $stx2 ?>" id="stx2" class="bansang_ipt ver2" placeholder="소유자/입주자/연락처/호수/차량번호" <?php echo $is_2nd_search_active ? '' : 'disabled'; ?>>
+            <button type="submit" class="bansang_btns ver1" id="btn_stx2" <?php echo $is_2nd_search_active ? '' : 'disabled'; ?>>검색</button>
+            <?php if(!$is_2nd_search_active){ ?>
+            <span class="sch_2nd_hint">* 1차 검색 또는 단지 선택 후</span>
+            <?php } ?>
         </div>
     </div>
 
@@ -367,7 +353,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         var buildingSelected = $("#building_id").val() != "";
         var enable = hasStx || buildingSelected;
         $("#stx2").prop("disabled", !enable);
-        $("#stx2").closest(".sch_selects").find("button").prop("disabled", !enable);
+        $("#btn_stx2").prop("disabled", !enable);
         $(".sch_2nd_hint").toggle(!enable);
     }
 
