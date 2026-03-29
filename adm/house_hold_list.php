@@ -120,6 +120,12 @@ require_once './admin.head.php';
 include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
 ?>
 <style>
+/* 라벨 너비 통일 (상태/입주일/지역/검색 세로 정렬) */
+#fsearch .serach_box .sch_label {
+    width: 70px;
+    min-width: 70px;
+    flex-shrink: 0;
+}
 /* 1차/2차 검색 같은 행 배치 */
 .sch_row_flex {
     display: flex;
@@ -293,6 +299,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                     <label for="stx" class="sound_only">1차 검색어</label>
                     <input type="text" name="stx" value="<?php echo $stx ?>" id="stx" class="bansang_ipt ver2 building_name_sch" size="30" placeholder="단지명 검색">
                 </div>
+                <button type="submit" class="bansang_btns ver1">검색</button>
             </div>
         </div>
         <div class="serach_box">
@@ -302,12 +309,12 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                     <label for="stx2" class="sound_only">2차 검색어</label>
                     <input type="text" name="stx2" value="<?php echo $stx2 ?>" id="stx2" class="bansang_ipt ver2" size="30" placeholder="소유자/입주자/연락처/호수/차량번호" <?php echo $is_2nd_search_active ? '' : 'disabled'; ?>>
                 </div>
+                <button type="submit" class="bansang_btns ver1" <?php echo $is_2nd_search_active ? '' : 'disabled'; ?>>검색</button>
                 <?php if(!$is_2nd_search_active){ ?>
                 <span class="sch_2nd_hint">* 1차 검색 또는 단지 선택 후</span>
                 <?php } ?>
             </div>
         </div>
-        <button type="submit" class="bansang_btns ver1">검색</button>
     </div>
 
 </form>
@@ -351,6 +358,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         var buildingSelected = $("#building_id").val() != "";
         var enable = hasStx || buildingSelected;
         $("#stx2").prop("disabled", !enable);
+        $("#stx2").closest(".sch_selects").find("button").prop("disabled", !enable);
         $(".sch_2nd_hint").toggle(!enable);
     }
 
