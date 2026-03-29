@@ -15,6 +15,19 @@ $sql_search = " where (1) and ho.is_del = '0' and building.is_use = 1 ";
 if ($stx) {
     $sql_search .= " and ( ";
     switch ($sfl) {
+        case 'all':
+            $sql_search .= " (building.building_name like '%{$stx}%'
+                OR ho.ho_owner like '%{$stx}%'
+                OR ho.ho_owner_hp like '%{$stx}%'
+                OR ho.ho_tenant like '%{$stx}%'
+                OR ho.ho_tenant_hp like '%{$stx}%'
+                OR ho.ho_name like '%{$stx}%'
+                OR EXISTS (SELECT 1 FROM a_building_car as car WHERE car.ho_id = ho.ho_id AND car.is_del = 0 AND car.car_name like '%{$stx}%')
+            ) ";
+            break;
+        case 'car_name':
+            $sql_search .= " EXISTS (SELECT 1 FROM a_building_car as car WHERE car.ho_id = ho.ho_id AND car.is_del = 0 AND car.car_name like '%{$stx}%') ";
+            break;
         case 'mb_point':
             $sql_search .= " ({$sfl} >= '{$stx}') ";
             break;
@@ -235,12 +248,14 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         <div class="sch_label">검색어</div>
         <div class="sch_selects ver_flex">
             <select name="sfl" id="sfl" class="bansang_sel">
+                <option value="all" <?php echo get_selected($sfl, "all"); ?>>전체</option>
                 <option value="building_name" <?php echo get_selected($sfl, "building_name"); ?>>단지명</option>
                 <option value="ho_owner" <?php echo get_selected($sfl, "ho_owner"); ?>>소유자명</option>
                 <option value="ho_owner_hp" <?php echo get_selected($sfl, "ho_owner_hp"); ?>>소유자 연락처</option>
                 <option value="ho_tenant" <?php echo get_selected($sfl, "ho_tenant"); ?>>입주자명</option>
                 <option value="ho_tenant_hp" <?php echo get_selected($sfl, "ho_tenant_hp"); ?>>입주자 연락처</option>
                 <option value="ho_name" <?php echo get_selected($sfl, "ho_name"); ?>>호수</option>
+                <option value="car_name" <?php echo get_selected($sfl, "car_name"); ?>>차량번호</option>
             </select>
             <div class="sch_ipt_boxs">
                 <div class="sch_result_box sch_result_box1">
