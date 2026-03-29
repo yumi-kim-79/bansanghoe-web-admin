@@ -162,6 +162,15 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **검침 입력 localStorage 임시저장 기능** (2026-03-30)
+  - 파일: `meter_reading_info.php`
+  - 키: `meter_draft_{building_id}_{year}_{month}_{type}`, 입력 시 실시간 저장
+  - 페이지 로드 시 임시데이터 있으면 확인 팝업 후 자동 복원
+  - 정상 저장 완료 시(`meter_save` 성공) localStorage 삭제
+- [x] **검침(전기/수도) PHP 파일 구조 파악** (2026-03-30)
+  - 관리자 10개 + 사용자 5개 = 총 15개 PHP 파일
+  - DB: `a_meter_building`(단지별 월별 메타), `a_meter_reading`(세대별 검침값, mr_type: electro/water)
+  - 엑셀 업로드/다운로드 PhpSpreadsheet, 이전월값 자동 조회 로직
 - [x] **세대관리 검색 영역 레이아웃 개선** (2026-03-30)
   - 파일: `adm/house_hold_list.php`
   - 1차/2차 검색을 하나의 `serach_box` 안에 나란히 배치 (구분선으로 분리)
