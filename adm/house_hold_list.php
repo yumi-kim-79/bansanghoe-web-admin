@@ -319,14 +319,19 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
 
 </form>
 <script>
-    // 1차 검색: 단지명 자동완성 + 드롭다운 초기화
+    // 폼 제출 시: stx 있으면 드롭다운 초기화 후 제출 (PHP가 재세팅)
+    $("#fsearch").on("submit", function(){
+        var stxVal = $("#stx").val().trim();
+        if(stxVal != ""){
+            $("#post_id").val("");
+            $("#building_id").val("");
+            $("#dong_id").val("");
+        }
+    });
+
+    // 1차 검색: 단지명 자동완성
     $(document).on("keyup", ".building_name_sch", function(){
         let sch_text = this.value;
-
-        // 입력 변경 시 지역/단지/동 드롭다운 초기화
-        $("#post_id").val("");
-        $("#building_id").html('<option value="">단지 선택</option>');
-        $("#dong_id").html('<option value="">동 선택</option>');
 
         if(sch_text != ""){
             $.ajax({
