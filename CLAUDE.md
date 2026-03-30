@@ -164,10 +164,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 ### 최근 완료
 - [x] **캘린더 반복일정 예외 레코드 처리 전면 수정** (2026-03-30)
   - 근본 원인: 예외 레코드가 `noti_repeat=MONTH/YEAR`로 생성되어 독립 반복일정으로 중복 표시
-  - `calendar_schedule_list2.php`: 반복 쿼리에서 예외 레코드 제외, 예외 날짜 스킵 로직 추가
-  - `calendar_del_update2.php`/`schedule_add_del2.php`: 예외 레코드 `noti_repeat='N'`, cal_edate 계산 `-1 day`로 수정
-  - `calendar_process2.php`: 예외 레코드 `noti_repeat='N'`
-  - `calendar_form_update2.php`: 예외 레코드 `noti_repeat='N'`, cal_edate 미설정(예외만으로 처리)
+  - `calendar_schedule_list2.php`: exception_idx 필터에 정수 0 조건 추가 (DB 기본값 호환)
+  - `calendar_del_update2.php`: 모든 쿼리 cal_idx WHERE 조건 확인 완료 (안전)
+  - 예외 레코드 `noti_repeat='N'`, cal_edate `-1 day` 계산으로 통일
 - [x] **캘린더 반복일정 삭제 3가지 옵션 (어드민+사용자 양쪽)** (2026-03-30)
   - 어드민: `adm/calendar_form2.php` + `adm/calendar_del_update2.php`
   - 사용자: `schedule_add2.php` + `schedule_add_del2.php` + `head_sm.php`
