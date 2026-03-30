@@ -47,8 +47,9 @@ if($selectDate != ""){
     $sql_search2 = " and cal_date = '{$selectDate}' ";
 }
 
-//반복설정 없는 일정 + 예외 레코드 (특정 날짜만 변경/생성된 레코드)
-$sql_no = "SELECT * FROM a_calendar WHERE is_del = 0 and (noti_repeat = 'N' OR (exception_idx IS NOT NULL AND exception_idx != '' AND exception_idx != '0' AND exception_idx != 0)) {$sql_search} {$sql_search2} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
+//반복설정 없는 일정 + noti_repeat='N'인 예외 레코드
+//noti_repeat='MONTH'/'YEAR'인 예외 레코드는 반복 쿼리에서 처리되므로 여기서 제외
+$sql_no = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'N' {$sql_search} {$sql_search2} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result2 = sql_query($sql_no);
 
 $total_array = array();
@@ -81,8 +82,8 @@ while($exc_row = sql_fetch_array($exc_res)){
     $exception_dates[$exc_row['exception_idx'] . '_' . $exc_row['cal_date']] = true;
 }
 
-//반복설정 월간인 경우 (원본만, 예외 레코드 제외)
-$sql_month = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'MONTH' and (exception_idx IS NULL OR exception_idx = '' OR exception_idx = '0' OR exception_idx = 0) {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
+//반복설정 월간인 경우 (noti_repeat='MONTH'인 레코드 모두 포함 - 기존 예외 레코드도 반복 표시)
+$sql_month = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'MONTH' {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result_m = sql_query($sql_month);
 
 while($row_m = sql_fetch_array($result_m)){
@@ -140,8 +141,8 @@ while($row_m = sql_fetch_array($result_m)){
 
 $def_year = date("Y", strtotime($now_month)); // 연간 기준날짜
 
-//반복설정 연간인 경우 (원본만, 예외 레코드 제외)
-$sql_year = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'YEAR' and (exception_idx IS NULL OR exception_idx = '' OR exception_idx = '0' OR exception_idx = 0) {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
+//반복설정 연간인 경우 (noti_repeat='YEAR'인 레코드 모두 포함)
+$sql_year = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'YEAR' {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result_y = sql_query($sql_year);
 
 
@@ -199,6 +200,18 @@ while($row_y = sql_fetch_array($result_y)){
 
     array_push($total_array, $row_y);
 }
+
+// 중복 제거: 같은 날짜+단지+캘린더종류에 여러 건이 있으면 최신(cal_idx 큰) 것만 유지
+// (원본+예외가 동시에 반복 쿼리에 포함되는 경우 방지)
+$dedup_map = [];
+$deduped_array = [];
+foreach($total_array as $item){
+    $dedup_key = $item['cal_date'] . '_' . $item['building_id'] . '_' . $item['cal_code'] . '_' . $item['cal_title'];
+    if(!isset($dedup_map[$dedup_key]) || $item['cal_idx'] > $dedup_map[$dedup_key]['cal_idx']){
+        $dedup_map[$dedup_key] = $item;
+    }
+}
+$total_array = array_values($dedup_map);
 
 //날짜순서, 인덱스에 맞게 다시 정렬
 usort($total_array, function($a, $b) {
