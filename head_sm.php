@@ -185,7 +185,8 @@ if($pages != "login_sm.php" && $pages != "find_info.php" && $pages != "find_id.p
                 $cal_row = sql_fetch($cal_sql);
 
                 //$cal_row['wid'] == $member['mb_id'] &&
-                if(!$cal_row['is_process']){
+                // 처리완료 아닌 경우 또는 관리자(mb_level >= 10)인 경우 삭제/수정 가능
+                if(!$cal_row['is_process'] || $member['mb_level'] >= 10){
                     // 반복일정은 schedule_add2.php로, 일반일정은 schedule_add.php로 수정 이동
                     $edit_page = $basename == "schedule_add2.php" ? "schedule_add2.php" : "schedule_add.php";
                 ?>
