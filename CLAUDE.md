@@ -162,6 +162,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **캘린더 반복일정 표시 로직 검증 및 중복 제거** (2026-03-30)
+  - `calendar_schedule_list2.php`: 중복 제거 로직 추가 (같은 날짜+단지+종류+제목 → 최신 cal_idx 유지)
+  - 코드 로직 자체는 cal_edate=NULL인 반복일정이 모든 미래 월에 정상 표시됨을 확인
+  - 3월 이후 미표시 원인: DB에 is_del=1 또는 cal_edate가 설정된 데이터 문제 가능성 → DB 확인 필요
 - [x] **캘린더 반복일정 this_only 삭제 시 전체 삭제 버그 수정** (2026-03-30)
   - 근본 원인: `cal_idx`가 PK이므로 `WHERE cal_idx=X AND cal_date=Y`는 항상 매칭 → 원본 soft delete → 모든 월 사라짐
   - 수정: 반복일정 this_only는 원본 건드리지 않고 항상 예외 레코드(is_del=1) INSERT
