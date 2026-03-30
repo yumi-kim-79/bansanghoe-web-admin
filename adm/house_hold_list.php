@@ -97,6 +97,23 @@ if(!$building_id && count($stx_building_ids) > 0){
     $res_dong_stx = sql_query($sql_dong_stx);
 }
 
+// 1차 검색 매칭 단지 JSON (JS 드롭다운 세팅용)
+$stx_match_json = [];
+if($stx && count($stx_buildings) > 0){
+    foreach($stx_buildings as $sb){
+        $dongs = [];
+        $dong_res_tmp = sql_query("SELECT dong_id, dong_name FROM a_building_dong WHERE building_id = '{$sb['building_id']}' and is_del = 0 ORDER BY dong_name + 0 asc");
+        while($d = sql_fetch_array($dong_res_tmp)) $dongs[] = ['dong_id' => $d['dong_id'], 'dong_name' => $d['dong_name']];
+        $stx_match_json[] = [
+            'post_id' => $sb['stx_post_id'],
+            'building_id' => $sb['building_id'],
+            'building_name' => $sb['building_name'],
+            'is_use' => $sb['is_use'],
+            'dongs' => $dongs
+        ];
+    }
+}
+
 if($sst == 'deleted_at'){
     $sql_search2 .= " and std.is_del = 1 ";
 }
@@ -230,30 +247,21 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     <div class="serach_box">
         <div class="sch_label">지역</div>
         <div class="sch_selects ver_flex">
-            <?php
-            // 1차 검색 결과가 1개 단지면 지역 자동 선택
-            $auto_post_id = $post_id;
-            if(!$post_id && count($stx_buildings) == 1) $auto_post_id = $stx_buildings[0]['stx_post_id'];
-            ?>
             <select name="post_id" id="post_id" class="bansang_sel" onchange="post_change();">
                 <option value="">지역 선택</option>
                 <?php for($i=0;$post_row = sql_fetch_array($post_res);$i++){?>
-                    <option value="<?php echo $post_row['post_idx']; ?>" <?php echo get_selected($auto_post_id, $post_row['post_idx']); ?>><?php echo $post_row['post_name']; ?></option>
+                    <option value="<?php echo $post_row['post_idx']; ?>" <?php echo get_selected($post_id, $post_row['post_idx']); ?>><?php echo $post_row['post_name']; ?></option>
                 <?php }?>
             </select>
             <select name="building_id" id="building_id" class="bansang_sel" onchange="building_change();">
                 <option value="">단지 선택</option>
                 <?php if($res_building){ while($row_building = sql_fetch_array($res_building)){ ?>
                 <option value="<?php echo $row_building['building_id']?>" <?php echo get_selected($building_id, $row_building['building_id']); ?>><?php echo $row_building['building_name'];?></option>
-                <?php }} else if(!$building_id && count($stx_buildings) > 0){ foreach($stx_buildings as $stx_brow){ ?>
-                <option value="<?php echo $stx_brow['building_id']?>" <?php echo count($stx_buildings) == 1 ? 'selected' : ''; ?>><?php echo $stx_brow['building_name']; echo $stx_brow['is_use'] == 0 ? ' (해지)' : ''; ?></option>
                 <?php }} ?>
             </select>
             <select name="dong_id" id="dong_id" class="bansang_sel">
                 <option value="">동 선택</option>
                 <?php if($res_dong){ while($row_dong = sql_fetch_array($res_dong)){ ?>
-                <option value="<?php echo $row_dong['dong_id']?>" <?php echo get_selected($dong_id, $row_dong['dong_id']); ?>><?php echo $row_dong['dong_name'];?>동</option>
-                <?php }} else if($res_dong_stx){ while($row_dong = sql_fetch_array($res_dong_stx)){ ?>
                 <option value="<?php echo $row_dong['dong_id']?>" <?php echo get_selected($dong_id, $row_dong['dong_id']); ?>><?php echo $row_dong['dong_name'];?>동</option>
                 <?php }} ?>
             </select>
@@ -319,7 +327,50 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
 
 </form>
 <script>
-    // 폼 제출 시: stx 있으면 드롭다운 초기화 후 제출 (PHP가 재세팅)
+    // 1차 검색 매칭 단지 데이터 (PHP에서 전달)
+    var stxMatchData = <?php echo json_encode($stx_match_json); ?>;
+
+    // 페이지 로드 시: 매칭 데이터로 드롭다운 세팅
+    $(function(){
+        if(stxMatchData && stxMatchData.length > 0){
+            // 단지 드롭다운 채우기
+            var buildingHtml = '<option value="">단지 선택</option>';
+            stxMatchData.forEach(function(b){
+                var label = b.building_name + (b.is_use == 0 ? ' (해지)' : '');
+                var sel = stxMatchData.length == 1 ? ' selected' : '';
+                buildingHtml += '<option value="' + b.building_id + '"' + sel + '>' + label + '</option>';
+            });
+            $("#building_id").html(buildingHtml);
+
+            // 단일 매칭: 지역 자동 선택 + 동 목록 채우기
+            if(stxMatchData.length == 1){
+                var match = stxMatchData[0];
+                $("#post_id").val(match.post_id);
+
+                var dongHtml = '<option value="">동 선택</option>';
+                match.dongs.forEach(function(d){
+                    dongHtml += '<option value="' + d.dong_id + '">' + d.dong_name + '동</option>';
+                });
+                $("#dong_id").html(dongHtml);
+            }
+            // 여러 매칭: 모든 동 합산
+            else {
+                var dongMap = {};
+                stxMatchData.forEach(function(b){
+                    b.dongs.forEach(function(d){
+                        dongMap[d.dong_id] = d.dong_name;
+                    });
+                });
+                var dongHtml = '<option value="">동 선택</option>';
+                Object.keys(dongMap).sort(function(a,b){ return parseInt(dongMap[a]) - parseInt(dongMap[b]); }).forEach(function(did){
+                    dongHtml += '<option value="' + did + '">' + dongMap[did] + '동</option>';
+                });
+                $("#dong_id").html(dongHtml);
+            }
+        }
+    });
+
+    // 폼 제출 시: stx 있으면 드롭다운 초기화 (PHP+JS가 재세팅)
     $("#fsearch").on("submit", function(){
         var stxVal = $("#stx").val().trim();
         if(stxVal != ""){
