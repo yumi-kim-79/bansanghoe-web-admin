@@ -185,11 +185,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - DB: `a_meter_building`(단지별 월별 메타), `a_meter_reading`(세대별 검침값, mr_type: electro/water)
   - 엑셀 업로드/다운로드 PhpSpreadsheet, 이전월값 자동 조회 로직
 - [x] **세대관리 검색 로직 개선** (2026-03-30)
-  - 파일: `adm/house_hold_list.php`
-  - 2차 검색 항상 활성화 (disabled 제거)
-  - 1차만=단지명 검색, 2차만=전체 단지에서 상세 검색, 1차+2차=단지 안에서 필터링
-  - 1차 입력 시 단지 목록 자동완성 드롭다운 항상 표시 (sfl 드롭다운 제거)
-  - 외부 클릭 시 자동완성 닫기
+  - 파일: `adm/house_hold_list.php`, `adm/house_hold_list_sch_text.php`
+  - 2차 검색 항상 활성화, 1차=단지명, 2차=상세, 1차+2차=필터링
+  - 1차 자동완성 선택 시 동 드롭다운 자동 업데이트 (`building_dong_ajax.php` 활용)
+  - 1차 검색 결과 단지의 동 목록을 서버에서 미리 채움 (building_id 미선택 시)
 - [x] **세대관리 엑셀 다운로드 양식 개선** (2026-03-30)
   - 파일: `adm/house_hold_list_excel.php`
   - 컬럼 순서를 화면과 동일하게 (번호/지역/단지명/동/호수/면적/소유자/소유자연락처/입주자/입주자연락처/입주일/등록차량/세대구성원/상태)
