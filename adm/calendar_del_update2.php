@@ -30,7 +30,7 @@ switch($del_mode){
                 mng_id = '{$cal_info['mng_id']}',
                 exception_idx = '{$cal_idx}',
                 cal_date = '{$cal_date}',
-                noti_repeat = '{$cal_info['noti_repeat']}',
+                noti_repeat = 'N',
                 cal_title = '{$cal_info['cal_title']}',
                 cal_content = '{$cal_info['cal_content']}',
                 wid = '{$cal_info['wid']}',
@@ -43,7 +43,8 @@ switch($del_mode){
 
     // 이 날짜 이후 반복 일정 전체 삭제
     case 'after_this':
-        $cal_edate = date('Y-m-t', strtotime($cal_date . "-1 month"));
+        // 이 날짜 하루 전을 마감일로 설정 (날짜 계산 오류 방지)
+        $cal_edate = date('Y-m-d', strtotime($cal_date . " -1 day"));
 
         sql_query("UPDATE a_calendar SET cal_edate = '{$cal_edate}' WHERE cal_idx = '{$cal_idx}'");
 

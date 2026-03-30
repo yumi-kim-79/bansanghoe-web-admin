@@ -6,8 +6,6 @@ $sql_common = " from a_calendar ";
 $year            = ( $toYear )? $toYear : date( "Y" );
 $month            = ( $toMonth )? $toMonth : date( "m" );
 
-//echo sprintf('%02d', $month);
-
 $now_month = $year.'-'.sprintf('%02d', $month);
 
 $sql_search1 = "";
@@ -49,8 +47,8 @@ if($selectDate != ""){
     $sql_search2 = " and cal_date = '{$selectDate}' ";
 }
 
-//반복설정 없는 일정
-$sql_no = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'N' {$sql_search} {$sql_search2} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
+//반복설정 없는 일정 + 예외 레코드 (특정 날짜만 변경/생성된 레코드)
+$sql_no = "SELECT * FROM a_calendar WHERE is_del = 0 and (noti_repeat = 'N' OR (exception_idx != '' AND exception_idx != '0')) {$sql_search} {$sql_search2} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result2 = sql_query($sql_no);
 
 $total_array = array();
@@ -58,7 +56,6 @@ $total_array = array();
 while($row_n = sql_fetch_array($result2)){
 
     $process_sql = sql_fetch("SELECT *, COUNT(*) as cnt FROM a_calendar_process WHERE cal_idx = {$row_n['cal_idx']} and process_date = '{$row_n['cal_date']}'");
-    //print_r2($process_sql).'<br>';
 
     if($process_sql['cnt'] > 0){
         $row_n['is_process'] = 1;
@@ -75,8 +72,17 @@ while($row_n = sql_fetch_array($result2)){
 $def_date = date("Y-m", strtotime($now_month)); //기준날짜
 $end_date = date("Y-m-t", strtotime($now_month)); // 달의 마지막 날짜
 
-//반복설정 월간인 경우
-$sql_month = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'MONTH' {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
+// 삭제된 예외 레코드 날짜 목록 (반복일정에서 특정 날짜 제외용)
+// key: "parent_cal_idx_날짜" → 해당 날짜에 예외 처리가 있으면 원본 반복 스킵
+$exception_dates = [];
+$exc_sql = "SELECT exception_idx, cal_date FROM a_calendar WHERE exception_idx != '' AND exception_idx != '0' {$sql_search1} {$building_id_filter}";
+$exc_res = sql_query($exc_sql);
+while($exc_row = sql_fetch_array($exc_res)){
+    $exception_dates[$exc_row['exception_idx'] . '_' . $exc_row['cal_date']] = true;
+}
+
+//반복설정 월간인 경우 (원본만, 예외 레코드 제외)
+$sql_month = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'MONTH' and (exception_idx = '' OR exception_idx = '0' OR exception_idx IS NULL) {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result_m = sql_query($sql_month);
 
 while($row_m = sql_fetch_array($result_m)){
@@ -87,6 +93,11 @@ while($row_m = sql_fetch_array($result_m)){
     }
 
     $date_month = $def_date.'-'.date("d", strtotime($row_m['cal_date'])); //월간 반복이므로 일자만 고정
+
+    // 해당 날짜에 예외 레코드가 있으면 원본 스킵 (예외 레코드가 대신 표시됨)
+    if(isset($exception_dates[$row_m['cal_idx'] . '_' . $date_month])){
+        continue;
+    }
 
     $row_m['cal_date'] = $date_month; // 날짜 변경
 
@@ -106,7 +117,7 @@ while($row_m = sql_fetch_array($result_m)){
 
     //일정에 마감날짜 있는 경우 날짜가 마감날짜보다 클경우 제외
     if($row_m['cal_edate'] != ''){
-       
+
         if($row_m['cal_date'] > $row_m['cal_edate']){
             continue;
         }
@@ -115,7 +126,6 @@ while($row_m = sql_fetch_array($result_m)){
 
     // 일정 처리 확인 -- 해당 일정에 해당 날짜로 처리되었는지 확인
     $process_sql = sql_fetch("SELECT *, COUNT(*) as cnt FROM a_calendar_process WHERE cal_idx = {$row_m['cal_idx']} and process_date = '{$row_m['cal_date']}'");
-    //print_r2($process_sql).'<br>';
 
     if($process_sql['cnt'] > 0){
         $row_m['is_process'] = 1;
@@ -128,24 +138,25 @@ while($row_m = sql_fetch_array($result_m)){
     array_push($total_array, $row_m);
 }
 
-// print_r2($total_array);
-
 $def_year = date("Y", strtotime($now_month)); // 연간 기준날짜
 
-//반복설정 연간인 경우
-$sql_year = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'YEAR' {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
+//반복설정 연간인 경우 (원본만, 예외 레코드 제외)
+$sql_year = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'YEAR' and (exception_idx = '' OR exception_idx = '0' OR exception_idx IS NULL) {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result_y = sql_query($sql_year);
 
 
 
 $start_date = date("Y-m-01", strtotime($now_month)); // 연간 기준날짜
 
-// echo $start_date.'<br>';
-
 while($row_y = sql_fetch_array($result_y)){
 
-    
+
     $date_year = $def_year.'-'.date("m-d", strtotime($row_y['cal_date'])); //연간 반복이므로 월일자만 고정
+
+    // 해당 날짜에 예외 레코드가 있으면 원본 스킵
+    if(isset($exception_dates[$row_y['cal_idx'] . '_' . $date_year])){
+        continue;
+    }
 
     $row_y['cal_date'] = $date_year;
 
@@ -158,7 +169,6 @@ while($row_y = sql_fetch_array($result_y)){
         }
     }
 
-    // echo $date_year.'<br>';
     //일정이 시작날짜보다 작을경우 제외
     if($date_year < $start_date){
         continue;
@@ -167,6 +177,24 @@ while($row_y = sql_fetch_array($result_y)){
     //일정이 종료날짜보다 클경우 제외
     if($date_year > $end_date){
         continue;
+    }
+
+    //일정에 마감날짜 있는 경우 날짜가 마감날짜보다 클경우 제외
+    if($row_y['cal_edate'] != ''){
+        if($row_y['cal_date'] > $row_y['cal_edate']){
+            continue;
+        }
+    }
+
+    // 일정 처리 확인
+    $process_sql = sql_fetch("SELECT *, COUNT(*) as cnt FROM a_calendar_process WHERE cal_idx = {$row_y['cal_idx']} and process_date = '{$row_y['cal_date']}'");
+
+    if($process_sql['cnt'] > 0){
+        $row_y['is_process'] = 1;
+        $row_y['process_id'] = $process_sql['process_id'];
+    }else{
+        $row_y['is_process'] = 0;
+        $row_y['process_id'] = '';
     }
 
     array_push($total_array, $row_y);
@@ -199,15 +227,14 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     // echo $sql_no.'<br>';
     // echo $sql_month.'<br>';
     // echo $sql_year.'<br>';
-} 
+}
 
-// if($_SERVER['REMOTE_ADDR'] == ADMIN_IP) echo $sql;
 ?>
 <?php foreach ($pageData as $row) {
-    
+
     $building_info = get_builiding_info($row['building_id']);
 
-    $building_name = $building_info['building_name'];    
+    $building_name = $building_info['building_name'];
 ?>
 <div class="cal_schedule_box">
     <a href="./calendar_form2.php?w=u&cal_code=<?php echo $calcode;?>&cal_idx=<?php echo $row['cal_idx']; ?>&cal_date_def=<?php echo $row['cal_date']; ?>">

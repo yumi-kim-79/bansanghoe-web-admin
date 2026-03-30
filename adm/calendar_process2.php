@@ -31,7 +31,7 @@ if($mng_id != ""){
             if($exception_check['cnt'] > 0){
                 sql_query("UPDATE a_calendar SET mng_id = '{$mng_id}', updated_at = '{$today}' WHERE cal_idx = '{$exception_check['cal_idx']}'");
             } else {
-                // 예외 레코드 생성 (담당자만 변경)
+                // 예외 레코드 생성 (담당자만 변경, noti_repeat='N'으로 중복 방지)
                 sql_query("INSERT INTO a_calendar SET
                     cal_code = '{$cal_info['cal_code']}',
                     post_id = '{$cal_info['post_id']}',
@@ -40,7 +40,7 @@ if($mng_id != ""){
                     mng_id = '{$mng_id}',
                     exception_idx = '{$cal_idx}',
                     cal_date = '{$cal_date}',
-                    noti_repeat = '{$cal_info['noti_repeat']}',
+                    noti_repeat = 'N',
                     cal_title = '{$cal_info['cal_title']}',
                     cal_content = '{$cal_info['cal_content']}',
                     wid = '{$cal_info['wid']}',

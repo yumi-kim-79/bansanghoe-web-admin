@@ -162,10 +162,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
-- [x] **캘린더 처리완료 중복생성/담당자 복원 버그 수정** (2026-03-30)
-  - `adm/calendar_form_update2.php`: 반복일정 수정 시 기존 예외 레코드 확인 후 UPDATE (중복 INSERT 방지)
-  - `adm/calendar_process2.php`: 처리완료 시 담당자 변경도 함께 저장 (예외 레코드 UPDATE/INSERT)
-  - `adm/calendar_form2.php`: 처리완료 AJAX에 현재 폼의 mng_id 전송 추가
+- [x] **캘린더 반복일정 예외 레코드 처리 전면 수정** (2026-03-30)
+  - 근본 원인: 예외 레코드가 `noti_repeat=MONTH/YEAR`로 생성되어 독립 반복일정으로 중복 표시
+  - `calendar_schedule_list2.php`: 반복 쿼리에서 예외 레코드 제외, 예외 날짜 스킵 로직 추가
+  - `calendar_del_update2.php`/`schedule_add_del2.php`: 예외 레코드 `noti_repeat='N'`, cal_edate 계산 `-1 day`로 수정
+  - `calendar_process2.php`: 예외 레코드 `noti_repeat='N'`
+  - `calendar_form_update2.php`: 예외 레코드 `noti_repeat='N'`, cal_edate 미설정(예외만으로 처리)
 - [x] **캘린더 반복일정 삭제 3가지 옵션 (어드민+사용자 양쪽)** (2026-03-30)
   - 어드민: `adm/calendar_form2.php` + `adm/calendar_del_update2.php`
   - 사용자: `schedule_add2.php` + `schedule_add_del2.php` + `head_sm.php`
