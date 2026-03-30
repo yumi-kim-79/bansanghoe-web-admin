@@ -10,7 +10,7 @@ $sql_common = " from a_building_ho as ho
                 left join a_building as building on ho.building_id = building.building_id 
                 left join a_post_addr as post on ho.post_id = post.post_idx ";
 
-$sql_search = " where (1) and ho.is_del = '0' and building.is_use = 1 ";
+$sql_search = " where (1) and ho.is_del = '0' ";
 
 // 1차 검색: 단지명
 $stx_building_ids = [];
@@ -18,7 +18,7 @@ if ($stx) {
     $sql_search .= " and (building.building_name like '%{$stx}%') ";
 
     // 매칭된 단지 목록 (동 드롭다운용)
-    $stx_building_sql = "SELECT DISTINCT building.building_id FROM a_building as building WHERE building.building_name like '%{$stx}%' and building.is_del = 0 and building.is_use = 1";
+    $stx_building_sql = "SELECT DISTINCT building.building_id FROM a_building as building WHERE building.building_name like '%{$stx}%' and building.is_del = 0";
     $stx_building_res = sql_query($stx_building_sql);
     while($stx_b = sql_fetch_array($stx_building_res)) $stx_building_ids[] = $stx_b['building_id'];
 }
@@ -411,7 +411,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                             ?>
                         </td>
                         <td><?php echo $row['post_name']; ?></td>
-                        <td><?php echo $row['building_name']; ?></td>
+                        <td><?php echo $row['building_name']; echo $row['is_use'] == 0 ? '<span style="color:#e74c3c;"> (해지)</span>' : ''; ?></td>
                         <td><?php echo $row['dong_name'].'동'; ?></td>
                         <td><?php echo $row['ho_name'].'호'; ?></td>
                         <td><?php echo $row['ho_size'] ? number_format($row['ho_size'], 4) : '-'; ?></td>
