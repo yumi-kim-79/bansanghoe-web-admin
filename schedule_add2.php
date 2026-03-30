@@ -620,16 +620,6 @@ function scheduleDelHandler(del_mode){
     let cal_date = "<?php echo $cal_date_def; ?>";
     let mb_id = "<?php echo $member['mb_id']; ?>";
 
-    var modeLabels = {
-        'this_only': '이 날짜 일정만 삭제',
-        'after_this': '이 날짜 이후 반복 일정 전체 삭제',
-        'all': '반복 일정 전체 삭제'
-    };
-
-    if (!confirm(modeLabels[del_mode] + " 하시겠습니까?")) {
-        return false;
-    }
-
     popClose('schedule_del_pop');
 
     let sendData = {cal_idx:cal_idx, cal_date:cal_date, mb_id:mb_id, del_mode:del_mode};
