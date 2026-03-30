@@ -162,10 +162,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
-- [x] **캘린더 반복일정 삭제 3가지 옵션 + 관리자 처리완료 삭제** (2026-03-30)
-  - 파일: `schedule_add2.php`, `schedule_add_del2.php`, `head_sm.php`
-  - 커스텀 팝업 3가지 옵션 (브라우저 confirm 제거): "이 날짜만" / "이 날짜 이후 전체" / "반복 전체"
-  - `schedule_add_del2.php`: `del_mode` 분기, 권한 체크, soft delete(is_del=1)
+- [x] **캘린더 반복일정 삭제 3가지 옵션 (어드민+사용자 양쪽)** (2026-03-30)
+  - 어드민: `adm/calendar_form2.php` + `adm/calendar_del_update2.php`
+  - 사용자: `schedule_add2.php` + `schedule_add_del2.php` + `head_sm.php`
+  - 커스텀 팝업 3가지 옵션: "이 날짜만" / "이 날짜 이후 전체" / "반복 전체" (비반복은 기존 confirm)
+  - 삭제 PHP: `del_mode` 분기, 권한 체크, soft delete(is_del=1)
   - 관리자(`mb_level >= 10`) 처리완료 건도 삭제 가능
 - [x] **반상회 vs XpERP 항목 비교표 엑셀 생성** (2026-03-30)
   - 파일: `반상회_XpERP_항목비교표.xlsx`
