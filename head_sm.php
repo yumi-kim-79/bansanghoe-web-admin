@@ -124,7 +124,7 @@ if($pages != "login_sm.php" && $pages != "find_info.php" && $pages != "find_id.p
             $onClick = "historyBack();";
             $onClick2 = "toolTipShow();";
 
-            if($basename == "schedule_add.php"){
+            if($basename == "schedule_add.php" || $basename == "schedule_add2.php"){
                 $onClick = "location.replace('/sm_index.php?tabIdx=1&tabCode=schedule');";
             }
 
@@ -178,19 +178,21 @@ if($pages != "login_sm.php" && $pages != "find_info.php" && $pages != "find_id.p
                     </ul>
                 <?php }?>
             <?php }?>
-            <?php if($basename == "schedule_add.php" && $w == 'i'){
+            <?php if(($basename == "schedule_add.php" || $basename == "schedule_add2.php") && $w == 'i'){
                 $cal_sql = "SELECT cal.*, building.building_name FROM a_calendar as cal
                 LEFT JOIN a_building as building ON cal.building_id = building.building_id
                 WHERE cal.cal_idx = '{$cal_idx}'";
                 $cal_row = sql_fetch($cal_sql);
-                
+
                 //$cal_row['wid'] == $member['mb_id'] &&
                 if(!$cal_row['is_process']){
+                    // 반복일정은 schedule_add2.php로, 일반일정은 schedule_add.php로 수정 이동
+                    $edit_page = $basename == "schedule_add2.php" ? "schedule_add2.php" : "schedule_add.php";
                 ?>
                 <button type="button" class="hd_btn home_btn"><img src="/images/head_option_icons.svg" alt=""></button>
                 <div class="tooltip_box">
-                    <a href="/schedule_add.php?w=u&cal_idx=<?php echo $cal_idx;?>&cal_code=<?php echo $cal_code; ?>" class="tooltip_btn">수정하기</a>
-                    <button type="button" onclick="popOpen('schedule_del_pop')"  class="tooltip_btn">삭제하기</button>
+                    <a href="/<?php echo $edit_page; ?>?w=u&cal_idx=<?php echo $cal_idx;?>&cal_code=<?php echo $cal_code; ?><?php echo $basename == 'schedule_add2.php' && $cal_date ? '&cal_date='.$cal_date : ''; ?>" class="tooltip_btn">수정하기</a>
+                    <button type="button" onclick="popOpen('schedule_del_pop')" class="tooltip_btn">삭제하기</button>
                 </div>
             <?php }?>
             <?php }?>
