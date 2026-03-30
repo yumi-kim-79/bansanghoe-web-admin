@@ -184,6 +184,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 관리자 10개 + 사용자 5개 = 총 15개 PHP 파일
   - DB: `a_meter_building`(단지별 월별 메타), `a_meter_reading`(세대별 검침값, mr_type: electro/water)
   - 엑셀 업로드/다운로드 PhpSpreadsheet, 이전월값 자동 조회 로직
+- [x] **해지 단지 "(해지)" 표시 추가** (2026-03-30)
+  - 파일: `adm/house_hold_list.php`, `adm/house_hold_list_sch_text.php`
+  - 목록 테이블 단지명 컬럼에 `is_use=0`이면 빨간색 "(해지)" 표시
+  - 1차 검색 자동완성 드롭다운에도 "(해지)" 표시, 운영 단지 우선 정렬
+  - WHERE절 `is_use=1` 필터 제거하여 해지 단지도 목록에 표시
 - [x] **세대관리 검색 로직 개선** (2026-03-30)
   - 파일: `adm/house_hold_list.php`, `adm/house_hold_list_sch_text.php`
   - 2차 검색 항상 활성화, 1차=단지명, 2차=상세, 1차+2차=필터링
