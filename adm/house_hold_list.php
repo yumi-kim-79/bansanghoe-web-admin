@@ -13,8 +13,14 @@ $sql_common = " from a_building_ho as ho
 $sql_search = " where (1) and ho.is_del = '0' and building.is_use = 1 ";
 
 // 1차 검색: 단지명
+$stx_building_ids = [];
 if ($stx) {
     $sql_search .= " and (building.building_name like '%{$stx}%') ";
+
+    // 매칭된 단지 목록 (동 드롭다운용)
+    $stx_building_sql = "SELECT DISTINCT building.building_id FROM a_building as building WHERE building.building_name like '%{$stx}%' and building.is_del = 0 and building.is_use = 1";
+    $stx_building_res = sql_query($stx_building_sql);
+    while($stx_b = sql_fetch_array($stx_building_res)) $stx_building_ids[] = $stx_b['building_id'];
 }
 
 // 2차 검색: 소유자명/연락처/입주자명/연락처/호수/차량번호 통합
@@ -65,6 +71,13 @@ if($dong_id){
     $sql_search .= " and ho.dong_id = '{$dong_id}' ";
 
     $qstr .= '&dong_id='.$dong_id;
+}
+
+// 1차 검색 결과 단지의 동 목록 (building_id 미선택 시)
+if(!$building_id && count($stx_building_ids) > 0){
+    $stx_bids = implode(',', array_map('intval', $stx_building_ids));
+    $sql_dong_stx = "SELECT DISTINCT dong.dong_id, dong.dong_name FROM a_building_dong as dong WHERE dong.building_id IN ({$stx_bids}) and dong.is_del = 0 ORDER BY dong.dong_name + 0 asc";
+    $res_dong_stx = sql_query($sql_dong_stx);
 }
 
 if($sst == 'deleted_at'){
@@ -214,9 +227,11 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             </select>
             <select name="dong_id" id="dong_id" class="bansang_sel">
                 <option value="">동 선택</option>
-                <?php while($row_dong = sql_fetch_array($res_dong)){ ?>
+                <?php if($res_dong){ while($row_dong = sql_fetch_array($res_dong)){ ?>
                 <option value="<?php echo $row_dong['dong_id']?>" <?php echo get_selected($dong_id, $row_dong['dong_id']); ?>><?php echo $row_dong['dong_name'];?>동</option>
-                <?php }?>
+                <?php }} else if($res_dong_stx){ while($row_dong = sql_fetch_array($res_dong_stx)){ ?>
+                <option value="<?php echo $row_dong['dong_id']?>" <?php echo get_selected($dong_id, $row_dong['dong_id']); ?>><?php echo $row_dong['dong_name'];?>동</option>
+                <?php }} ?>
             </select>
         </div>
         <script>
@@ -298,10 +313,22 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         }
     });
 
-    // 자동완성 항목 선택 시 단지명 확정
-    function sch_handler(text){
+    // 자동완성 항목 선택 시 단지명 확정 + 동 목록 업데이트
+    function sch_handler(text, bid){
         $(".sch_result_box1").html("");
         $(".building_name_sch").val(text);
+
+        // 동 드롭다운 업데이트
+        if(bid){
+            $.ajax({
+                url : "./building_dong_ajax.php",
+                type : "POST",
+                data: { "building_id": bid },
+                success: function(msg){
+                    $("#dong_id").html(msg);
+                }
+            });
+        }
     }
 
     // 검색창 외부 클릭 시 자동완성 닫기
