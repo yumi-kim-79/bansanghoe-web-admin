@@ -683,6 +683,10 @@ function calendar_process(){
     formData.append('cal_date', cal_date);
     formData.append('mb_id', mb_id);
 
+    // 현재 폼의 담당자 값 전송 (변경 시 저장되도록)
+    var currentMngId = $("#mng_id").val();
+    if(currentMngId) formData.append('mng_id', currentMngId);
+
     $.ajax({
         type: "POST",
         url: "./calendar_process2.php",
