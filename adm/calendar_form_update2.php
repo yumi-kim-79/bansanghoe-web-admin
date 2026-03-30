@@ -83,16 +83,7 @@ if($w == "u"){
                 $cal_idx = $exception_check['cal_idx'];
 
             }else{
-                // 예외 레코드 없으면 새로 INSERT
-                $cal_edate = date('Y-m-t',strtotime($cal_date2."-1 month")); // -1달
-
-                //반복일정 마감일 설정
-                $update_query = "UPDATE a_calendar SET
-                                    cal_edate = '{$cal_edate}'
-                                    WHERE cal_idx = '{$cal_idx}'";
-                sql_query($update_query);
-
-                //일정추가
+                // 예외 레코드 없으면 새로 INSERT (cal_edate 설정 없이, 예외 레코드로만 처리)
                 $insert_query = "INSERT a_calendar SET
                                     cal_code = '{$cal_code}',
                                     post_id = '{$post_id}',
@@ -101,7 +92,7 @@ if($w == "u"){
                                     mng_id = '{$mng_id}',
                                     exception_idx = '{$cal_idx}',
                                     cal_date = '{$cal_date2}',
-                                    noti_repeat = '{$noti_repeat}',
+                                    noti_repeat = 'N',
                                     cal_title = '{$cal_title}',
                                     cal_content = '{$cal_content}',
                                     wid = '{$wid}',

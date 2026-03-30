@@ -34,7 +34,7 @@ switch($del_mode){
                 mng_id = '{$cal_info['mng_id']}',
                 exception_idx = '{$cal_idx}',
                 cal_date = '{$cal_date}',
-                noti_repeat = '{$cal_info['noti_repeat']}',
+                noti_repeat = 'N',
                 cal_title = '{$cal_info['cal_title']}',
                 cal_content = '{$cal_info['cal_content']}',
                 wid = '{$cal_info['wid']}',
@@ -47,7 +47,7 @@ switch($del_mode){
 
     // 이 날짜 이후 반복 일정 전체 삭제
     case 'after_this':
-        $cal_edate = date('Y-m-t', strtotime($cal_date . "-1 month"));
+        $cal_edate = date('Y-m-d', strtotime($cal_date . " -1 day"));
 
         // 반복일정 마감일 설정 (해당 날짜 전월 말로)
         sql_query("UPDATE a_calendar SET cal_edate = '{$cal_edate}' WHERE cal_idx = '{$cal_idx}'");
