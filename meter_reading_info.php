@@ -195,6 +195,11 @@ function tab_handler(index, code){
 }
 
 function meter_save(){
+    if(!navigator.onLine){
+        alert('통신이 잡히지 않습니다. 통신이 가능한 지역에서 저장을 눌러주세요');
+        return false;
+    }
+
     var formData = $("#meter_frm").serialize();
 
     var selectYear = $("#mr_year option:selected").val();
