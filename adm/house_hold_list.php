@@ -319,9 +319,14 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
 
 </form>
 <script>
-    // 1차 검색: 단지명 자동완성
+    // 1차 검색: 단지명 자동완성 + 드롭다운 초기화
     $(document).on("keyup", ".building_name_sch", function(){
         let sch_text = this.value;
+
+        // 입력 변경 시 지역/단지/동 드롭다운 초기화
+        $("#post_id").val("");
+        $("#building_id").html('<option value="">단지 선택</option>');
+        $("#dong_id").html('<option value="">동 선택</option>');
 
         if(sch_text != ""){
             $.ajax({
