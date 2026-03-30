@@ -14,16 +14,29 @@ $sql_search = " where (1) and ho.is_del = '0' ";
 
 // 1차 검색: 단지명
 $stx_building_ids = [];
+$stx_buildings = [];
 if ($stx) {
-    $sql_search .= " and (building.building_name like '%{$stx}%') ";
-
-    // 매칭된 단지 목록 (단지/동 드롭다운용)
+    // 매칭된 단지 목록 조회
     $stx_building_sql = "SELECT building.*, post.post_idx as stx_post_id FROM a_building as building LEFT JOIN a_post_addr as post ON building.post_id = post.post_idx WHERE building.building_name like '%{$stx}%' and building.is_del = 0 ORDER BY building.building_name asc";
     $stx_building_res = sql_query($stx_building_sql);
-    $stx_buildings = [];
     while($stx_b = sql_fetch_array($stx_building_res)){
         $stx_building_ids[] = $stx_b['building_id'];
         $stx_buildings[] = $stx_b;
+    }
+
+    // 단일 매칭: post_id/building_id 자동 적용 (수동 선택 없을 때)
+    if(count($stx_buildings) == 1 && !$post_id && !$building_id){
+        $post_id = $stx_buildings[0]['stx_post_id'];
+        $building_id = $stx_buildings[0]['building_id'];
+    }
+
+    // 여러 매칭: building_id IN 조건으로 필터
+    if(count($stx_buildings) > 1 && !$building_id){
+        $stx_bids_filter = implode(',', array_map('intval', $stx_building_ids));
+        $sql_search .= " and ho.building_id IN ({$stx_bids_filter}) ";
+    } else if(count($stx_buildings) == 0){
+        // 매칭 없음: building_name LIKE로 폴백
+        $sql_search .= " and (building.building_name like '%{$stx}%') ";
     }
 }
 
