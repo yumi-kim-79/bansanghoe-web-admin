@@ -12,28 +12,9 @@ $sql_common = " from a_building_ho as ho
 
 $sql_search = " where (1) and ho.is_del = '0' and building.is_use = 1 ";
 
-// 1차 검색: 전체/단지명
+// 1차 검색: 단지명
 if ($stx) {
-    $sql_search .= " and ( ";
-    switch ($sfl) {
-        case 'all':
-            $sql_search .= " (building.building_name like '%{$stx}%'
-                OR ho.ho_owner like '%{$stx}%'
-                OR ho.ho_owner_hp like '%{$stx}%'
-                OR ho.ho_tenant like '%{$stx}%'
-                OR ho.ho_tenant_hp like '%{$stx}%'
-                OR ho.ho_name like '%{$stx}%'
-                OR EXISTS (SELECT 1 FROM a_building_car as car WHERE car.ho_id = ho.ho_id AND car.is_del = 0 AND car.car_name like '%{$stx}%')
-            ) ";
-            break;
-        case 'building_name':
-            $sql_search .= " (building.building_name like '%{$stx}%') ";
-            break;
-        default:
-            $sql_search .= " (building.building_name like '%{$stx}%') ";
-            break;
-    }
-    $sql_search .= " ) ";
+    $sql_search .= " and (building.building_name like '%{$stx}%') ";
 }
 
 // 2차 검색: 소유자명/연락처/입주자명/연락처/호수/차량번호 통합
@@ -135,11 +116,6 @@ include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
     background: #ccc;
     margin: 0 5px;
     flex-shrink: 0;
-}
-.sch_2nd_hint {
-    color: #999;
-    font-size: 11px;
-    white-space: nowrap;
 }
 #stx2 {
     width: 300px;
@@ -285,85 +261,55 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         }
     </script>
     </div>
-    <?php
-    // 2차 검색 활성화 조건: 1차 검색어가 있거나 단지가 선택된 경우
-    $is_2nd_search_active = ($stx || $building_id) ? true : false;
-    ?>
+    <input type="hidden" name="sfl" value="building_name">
     <div class="serach_box">
         <div class="sch_label">검색어</div>
         <div class="sch_selects ver_flex">
-            <select name="sfl" id="sfl" class="bansang_sel">
-                <option value="all" <?php echo get_selected($sfl, "all"); ?>>전체</option>
-                <option value="building_name" <?php echo get_selected($sfl, "building_name"); ?>>단지명</option>
-            </select>
             <div class="sch_ipt_boxs">
                 <div class="sch_result_box sch_result_box1"></div>
-                <label for="stx" class="sound_only">1차 검색어</label>
-                <input type="text" name="stx" value="<?php echo $stx ?>" id="stx" class="bansang_ipt ver2 building_name_sch" placeholder="단지명 검색">
+                <label for="stx" class="sound_only">단지명 검색</label>
+                <input type="text" name="stx" value="<?php echo $stx ?>" id="stx" class="bansang_ipt ver2 building_name_sch" placeholder="단지명 검색" autocomplete="off">
             </div>
             <button type="submit" class="bansang_btns ver1">검색</button>
             <div class="sch_divider"></div>
-            <label for="stx2" class="sound_only">2차 검색어</label>
-            <input type="text" name="stx2" value="<?php echo $stx2 ?>" id="stx2" class="bansang_ipt ver2" placeholder="소유자/입주자/연락처/호수/차량번호" <?php echo $is_2nd_search_active ? '' : 'disabled'; ?>>
-            <button type="submit" class="bansang_btns ver1" id="btn_stx2" <?php echo $is_2nd_search_active ? '' : 'disabled'; ?>>검색</button>
-            <?php if(!$is_2nd_search_active){ ?>
-            <span class="sch_2nd_hint">* 1차 검색 또는 단지 선택 후</span>
-            <?php } ?>
+            <label for="stx2" class="sound_only">상세 검색</label>
+            <input type="text" name="stx2" value="<?php echo $stx2 ?>" id="stx2" class="bansang_ipt ver2" placeholder="소유자/입주자/연락처/호수/차량번호">
+            <button type="submit" class="bansang_btns ver1">검색</button>
         </div>
     </div>
 
 </form>
 <script>
-     $(document).on("keyup", ".building_name_sch", function(){
+    // 1차 검색: 단지명 자동완성
+    $(document).on("keyup", ".building_name_sch", function(){
         let sch_text = this.value;
-        let sch_category = $("#sfl option:selected").val();
-        console.log('keyup',sch_text);
 
-        if(sch_text != "" && sch_category == 'building_name'){
-           
-            let type = "<?php echo $type; ?>";
-
-            console.log('building_name', sch_category);
+        if(sch_text != ""){
             $.ajax({
-
-            url : "./house_hold_list_sch_text.php", //ajax 통신할 파일
-            type : "POST", // 형식
-            data: { "sch_category":sch_category, "sch_text":sch_text, "type":"Y"}, //파라미터 값
-            success: function(msg){ //성공시 이벤트
-
-             
-                console.log(msg);
-                $(".sch_result_box1").html(msg); //.select_box2에 html로 나타내라..
-            }
-            })
+                url : "./house_hold_list_sch_text.php",
+                type : "POST",
+                data: { "sch_category":"building_name", "sch_text":sch_text, "type":"Y"},
+                success: function(msg){
+                    $(".sch_result_box1").html(msg);
+                }
+            });
         }else{
             $(".sch_result_box1").html("");
         }
-      
     });
 
+    // 자동완성 항목 선택 시 단지명 확정
     function sch_handler(text){
         $(".sch_result_box1").html("");
         $(".building_name_sch").val(text);
     }
 
-    // 2차 검색 활성화 제어
-    function toggle2ndSearch(){
-        var hasStx = $("#stx").val().length > 0;
-        var buildingSelected = $("#building_id").val() != "";
-        var enable = hasStx || buildingSelected;
-        $("#stx2").prop("disabled", !enable);
-        $("#btn_stx2").prop("disabled", !enable);
-        $(".sch_2nd_hint").toggle(!enable);
-    }
-
-    $(document).on("input", "#stx", toggle2ndSearch);
-
-    var origBuildingChange = building_change;
-    building_change = function(){
-        origBuildingChange();
-        setTimeout(toggle2ndSearch, 100);
-    };
+    // 검색창 외부 클릭 시 자동완성 닫기
+    $(document).on("click", function(e){
+        if(!$(e.target).closest(".sch_ipt_boxs").length){
+            $(".sch_result_box1").html("");
+        }
+    });
 </script>
 
 <!-- <div class="local_desc01 local_desc">
