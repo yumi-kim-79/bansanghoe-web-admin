@@ -17,7 +17,7 @@ $stx_building_ids = [];
 $stx_buildings = [];
 if ($stx) {
     // 매칭된 단지 목록 조회
-    $stx_building_sql = "SELECT building.*, post.post_idx as stx_post_id FROM a_building as building LEFT JOIN a_post_addr as post ON building.post_id = post.post_idx WHERE building.building_name like '%{$stx}%' and building.is_del = 0 ORDER BY building.building_name asc";
+    $stx_building_sql = "SELECT building.*, post.post_idx as stx_post_id, post.post_name as stx_post_name FROM a_building as building LEFT JOIN a_post_addr as post ON building.post_id = post.post_idx WHERE building.building_name like '%{$stx}%' and building.is_del = 0 ORDER BY building.building_name asc";
     $stx_building_res = sql_query($stx_building_sql);
     while($stx_b = sql_fetch_array($stx_building_res)){
         $stx_building_ids[] = $stx_b['building_id'];
@@ -106,6 +106,7 @@ if($stx && count($stx_buildings) > 0){
         while($d = sql_fetch_array($dong_res_tmp)) $dongs[] = ['dong_id' => $d['dong_id'], 'dong_name' => $d['dong_name']];
         $stx_match_json[] = [
             'post_id' => $sb['stx_post_id'],
+            'post_name' => $sb['stx_post_name'],
             'building_id' => $sb['building_id'],
             'building_name' => $sb['building_name'],
             'is_use' => $sb['is_use'],
@@ -333,7 +334,22 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     // 페이지 로드 시: 매칭 데이터로 드롭다운 세팅
     $(function(){
         if(stxMatchData && stxMatchData.length > 0){
-            // 단지 드롭다운 채우기
+
+            // 매칭 단지의 지역(post_id) 고유값 추출
+            var postMap = {};
+            stxMatchData.forEach(function(b){
+                if(b.post_id && !postMap[b.post_id]) postMap[b.post_id] = b.post_name;
+            });
+            var uniquePostIds = Object.keys(postMap);
+
+            // 지역 드롭다운: 1개 지역이면 자동 선택, 여러 지역이면 "전체"
+            if(uniquePostIds.length == 1){
+                $("#post_id").val(uniquePostIds[0]);
+            } else {
+                $("#post_id").val("");
+            }
+
+            // 단지 드롭다운: 매칭 단지 목록
             var buildingHtml = '<option value="">단지 선택</option>';
             stxMatchData.forEach(function(b){
                 var label = b.building_name + (b.is_use == 0 ? ' (해지)' : '');
@@ -342,19 +358,16 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             });
             $("#building_id").html(buildingHtml);
 
-            // 단일 매칭: 지역 자동 선택 + 동 목록 채우기
+            // 동 드롭다운
             if(stxMatchData.length == 1){
-                var match = stxMatchData[0];
-                $("#post_id").val(match.post_id);
-
+                // 단일 매칭: 해당 단지 동만
                 var dongHtml = '<option value="">동 선택</option>';
-                match.dongs.forEach(function(d){
+                stxMatchData[0].dongs.forEach(function(d){
                     dongHtml += '<option value="' + d.dong_id + '">' + d.dong_name + '동</option>';
                 });
                 $("#dong_id").html(dongHtml);
-            }
-            // 여러 매칭: 모든 동 합산
-            else {
+            } else {
+                // 여러 매칭: 모든 동 합산 (중복 제거)
                 var dongMap = {};
                 stxMatchData.forEach(function(b){
                     b.dongs.forEach(function(d){

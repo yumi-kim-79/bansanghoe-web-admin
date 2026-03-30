@@ -186,9 +186,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 엑셀 업로드/다운로드 PhpSpreadsheet, 이전월값 자동 조회 로직
 - [x] **1차 검색 시 PHP→JSON→JS 드롭다운 자동 재세팅** (2026-03-30)
   - 파일: `adm/house_hold_list.php`
-  - PHP에서 매칭 단지 정보(post_id, building_id, building_name, dongs)를 JSON으로 JS에 전달
-  - JS 페이지 로드 시 JSON 데이터로 지역/단지/동 드롭다운 자동 채움+선택
-  - 1개 매칭: 지역/단지 자동 선택, 동 목록 채움 / 여러 매칭: 단지 목록+동 합산 표시
+  - JSON에 post_id/post_name/building_id/building_name/is_use/dongs 포함
+  - 1개 지역+1개 단지: 지역/단지 자동 선택, 동 채움
+  - 1개 지역+여러 단지: 지역 자동 선택, 단지 드롭다운에 매칭 목록, 동 합산
+  - 여러 지역: 지역 "전체", 단지 드롭다운에 매칭 목록, 동 합산
 - [x] **1차 검색 시 지역/단지 드롭다운 자동 선택 및 SQL 필터 반영** (2026-03-30)
   - 1개 단지 매칭: post_id/building_id PHP 변수 자동 설정 → SQL 필터 + 드롭다운 + qstr 모두 반영
   - 여러 단지 매칭: `building_id IN()` 조건으로 필터, 단지 드롭다운에 매칭 단지만 표시
