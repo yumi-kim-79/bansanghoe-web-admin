@@ -48,7 +48,7 @@ if($selectDate != ""){
 }
 
 //반복설정 없는 일정 + 예외 레코드 (특정 날짜만 변경/생성된 레코드)
-$sql_no = "SELECT * FROM a_calendar WHERE is_del = 0 and (noti_repeat = 'N' OR (exception_idx != '' AND exception_idx != '0')) {$sql_search} {$sql_search2} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
+$sql_no = "SELECT * FROM a_calendar WHERE is_del = 0 and (noti_repeat = 'N' OR (exception_idx IS NOT NULL AND exception_idx != '' AND exception_idx != '0' AND exception_idx != 0)) {$sql_search} {$sql_search2} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result2 = sql_query($sql_no);
 
 $total_array = array();
@@ -75,14 +75,14 @@ $end_date = date("Y-m-t", strtotime($now_month)); // 달의 마지막 날짜
 // 삭제된 예외 레코드 날짜 목록 (반복일정에서 특정 날짜 제외용)
 // key: "parent_cal_idx_날짜" → 해당 날짜에 예외 처리가 있으면 원본 반복 스킵
 $exception_dates = [];
-$exc_sql = "SELECT exception_idx, cal_date FROM a_calendar WHERE exception_idx != '' AND exception_idx != '0' {$sql_search1} {$building_id_filter}";
+$exc_sql = "SELECT exception_idx, cal_date FROM a_calendar WHERE exception_idx IS NOT NULL AND exception_idx != '' AND exception_idx != '0' AND exception_idx != 0 {$sql_search1} {$building_id_filter}";
 $exc_res = sql_query($exc_sql);
 while($exc_row = sql_fetch_array($exc_res)){
     $exception_dates[$exc_row['exception_idx'] . '_' . $exc_row['cal_date']] = true;
 }
 
 //반복설정 월간인 경우 (원본만, 예외 레코드 제외)
-$sql_month = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'MONTH' and (exception_idx = '' OR exception_idx = '0' OR exception_idx IS NULL) {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
+$sql_month = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'MONTH' and (exception_idx IS NULL OR exception_idx = '' OR exception_idx = '0' OR exception_idx = 0) {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result_m = sql_query($sql_month);
 
 while($row_m = sql_fetch_array($result_m)){
@@ -141,7 +141,7 @@ while($row_m = sql_fetch_array($result_m)){
 $def_year = date("Y", strtotime($now_month)); // 연간 기준날짜
 
 //반복설정 연간인 경우 (원본만, 예외 레코드 제외)
-$sql_year = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'YEAR' and (exception_idx = '' OR exception_idx = '0' OR exception_idx IS NULL) {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
+$sql_year = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'YEAR' and (exception_idx IS NULL OR exception_idx = '' OR exception_idx = '0' OR exception_idx = 0) {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result_y = sql_query($sql_year);
 
 
