@@ -184,10 +184,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 관리자 10개 + 사용자 5개 = 총 15개 PHP 파일
   - DB: `a_meter_building`(단지별 월별 메타), `a_meter_reading`(세대별 검침값, mr_type: electro/water)
   - 엑셀 업로드/다운로드 PhpSpreadsheet, 이전월값 자동 조회 로직
-- [x] **1차 검색 입력 변경 시 지역/단지/동 드롭다운 초기화** (2026-03-30)
+- [x] **검색 버튼 클릭 시 드롭다운 초기화 후 PHP 재세팅** (2026-03-30)
   - 파일: `adm/house_hold_list.php`
-  - keyup 시 post_id/building_id/dong_id 드롭다운 초기값으로 리셋
-  - 이전 검색 결과 지역/단지 값이 남아있지 않도록 방지
+  - 폼 submit 시 stx 있으면 post_id/building_id/dong_id 값 비워서 제출
+  - PHP가 검색 결과에 맞게 자동으로 지역/단지/동 재세팅
+  - keyup 시 초기화 제거 (타이핑 중 UX 안정화)
 - [x] **1차 검색 시 지역/단지 드롭다운 자동 선택 및 SQL 필터 반영** (2026-03-30)
   - 1개 단지 매칭: post_id/building_id PHP 변수 자동 설정 → SQL 필터 + 드롭다운 + qstr 모두 반영
   - 여러 단지 매칭: `building_id IN()` 조건으로 필터, 단지 드롭다운에 매칭 단지만 표시
