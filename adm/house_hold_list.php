@@ -17,10 +17,14 @@ $stx_building_ids = [];
 if ($stx) {
     $sql_search .= " and (building.building_name like '%{$stx}%') ";
 
-    // 매칭된 단지 목록 (동 드롭다운용)
-    $stx_building_sql = "SELECT DISTINCT building.building_id FROM a_building as building WHERE building.building_name like '%{$stx}%' and building.is_del = 0";
+    // 매칭된 단지 목록 (단지/동 드롭다운용)
+    $stx_building_sql = "SELECT building.*, post.post_idx as stx_post_id FROM a_building as building LEFT JOIN a_post_addr as post ON building.post_id = post.post_idx WHERE building.building_name like '%{$stx}%' and building.is_del = 0 ORDER BY building.building_name asc";
     $stx_building_res = sql_query($stx_building_sql);
-    while($stx_b = sql_fetch_array($stx_building_res)) $stx_building_ids[] = $stx_b['building_id'];
+    $stx_buildings = [];
+    while($stx_b = sql_fetch_array($stx_building_res)){
+        $stx_building_ids[] = $stx_b['building_id'];
+        $stx_buildings[] = $stx_b;
+    }
 }
 
 // 2차 검색: 소유자명/연락처/입주자명/연락처/호수/차량번호 통합
@@ -213,17 +217,24 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     <div class="serach_box">
         <div class="sch_label">지역</div>
         <div class="sch_selects ver_flex">
+            <?php
+            // 1차 검색 결과가 1개 단지면 지역 자동 선택
+            $auto_post_id = $post_id;
+            if(!$post_id && count($stx_buildings) == 1) $auto_post_id = $stx_buildings[0]['stx_post_id'];
+            ?>
             <select name="post_id" id="post_id" class="bansang_sel" onchange="post_change();">
                 <option value="">지역 선택</option>
                 <?php for($i=0;$post_row = sql_fetch_array($post_res);$i++){?>
-                    <option value="<?php echo $post_row['post_idx']; ?>" <?php echo get_selected($post_id, $post_row['post_idx']); ?>><?php echo $post_row['post_name']; ?></option>
+                    <option value="<?php echo $post_row['post_idx']; ?>" <?php echo get_selected($auto_post_id, $post_row['post_idx']); ?>><?php echo $post_row['post_name']; ?></option>
                 <?php }?>
             </select>
             <select name="building_id" id="building_id" class="bansang_sel" onchange="building_change();">
                 <option value="">단지 선택</option>
-                <?php while($row_building = sql_fetch_array($res_building)){ ?>
+                <?php if($res_building){ while($row_building = sql_fetch_array($res_building)){ ?>
                 <option value="<?php echo $row_building['building_id']?>" <?php echo get_selected($building_id, $row_building['building_id']); ?>><?php echo $row_building['building_name'];?></option>
-                <?php }?>
+                <?php }} else if(!$building_id && count($stx_buildings) > 0){ foreach($stx_buildings as $stx_brow){ ?>
+                <option value="<?php echo $stx_brow['building_id']?>" <?php echo count($stx_buildings) == 1 ? 'selected' : ''; ?>><?php echo $stx_brow['building_name']; echo $stx_brow['is_use'] == 0 ? ' (해지)' : ''; ?></option>
+                <?php }} ?>
             </select>
             <select name="dong_id" id="dong_id" class="bansang_sel">
                 <option value="">동 선택</option>
@@ -412,8 +423,8 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                         </td>
                         <td><?php echo $row['post_name']; ?></td>
                         <td><?php echo $row['building_name']; echo $row['is_use'] == 0 ? '<span style="color:#e74c3c;"> (해지)</span>' : ''; ?></td>
-                        <td><?php echo $row['dong_name'].'동'; ?></td>
-                        <td><?php echo $row['ho_name'].'호'; ?></td>
+                        <td><?php echo $row['dong_name']; ?></td>
+                        <td><?php echo $row['ho_name']; ?></td>
                         <td><?php echo $row['ho_size'] ? number_format($row['ho_size'], 4) : '-'; ?></td>
                         <td><?php echo $row['ho_owner']; ?></td>
                         <td><?php echo $row['ho_owner_hp']; ?></td>
