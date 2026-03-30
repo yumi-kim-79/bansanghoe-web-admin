@@ -162,6 +162,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **캘린더 빨간 dot(●) 미표시 수정** (2026-03-30)
+  - 파일: `adm/get_calendar2.php`
+  - 원인: 월간반복 dot 조건 `$r['cal_date'] <= $startDate` → 같은 달 생성 일정 차단
+  - 수정: `$r['cal_date'] <= $endDate`로 변경 (월 마지막일까지 허용)
+  - cal_edate 체크에 `!== null` 추가 (PHP DB NULL 안전 처리)
 - [x] **캘린더 반복일정 표시 로직 검증 및 중복 제거** (2026-03-30)
   - `calendar_schedule_list2.php`: 중복 제거 로직 추가 (같은 날짜+단지+종류+제목 → 최신 cal_idx 유지)
   - 코드 로직 자체는 cal_edate=NULL인 반복일정이 모든 미래 월에 정상 표시됨을 확인
