@@ -162,6 +162,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **검침 페이지 경고 문구 변경** (2026-03-30)
+  - 파일: `meter_reading.php`
+  - 임시저장 기능 안내 문구로 변경
 - [x] **검침 입력 localStorage 임시저장 기능** (2026-03-30)
   - 파일: `meter_reading_info.php`
   - 키: `meter_draft_{building_id}_{year}_{month}_{type}`, 입력 시 실시간 저장
