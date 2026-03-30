@@ -49,8 +49,15 @@ while($row = sql_fetch_array($res)){
 
 $yearD = date("Y") + 10;
 
-$sql2 = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat != 'N' {$sql_where1} ";
+// 반복일정 (원본만, 예외 레코드 제외)
+$sql2 = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat != 'N' and (exception_idx IS NULL OR exception_idx = '' OR exception_idx = '0' OR exception_idx = 0) {$sql_where1} ";
 $res2 = sql_query($sql2);
+
+// 예외 날짜 맵 (삭제된 예외 포함)
+$exc_dates_dot = [];
+$exc_dot_sql = "SELECT exception_idx, cal_date FROM a_calendar WHERE exception_idx IS NOT NULL AND exception_idx != '' AND exception_idx != '0' AND exception_idx != 0 AND is_del = 1 {$sql_where1}";
+$exc_dot_res = sql_query($exc_dot_sql);
+while($exc_dot = sql_fetch_array($exc_dot_res)) $exc_dates_dot[$exc_dot['exception_idx'] . '_' . $exc_dot['cal_date']] = true;
 
 $def_year = date("Y", strtotime($now_month));
 $def_date = date("Y-m", strtotime($now_month));
@@ -58,12 +65,23 @@ $def_date = date("Y-m", strtotime($now_month));
 foreach ($res2 as $r) {
     if($r['noti_repeat'] == "MONTH"){
         $date_month = $def_date.'-'.date("d", strtotime($r['cal_date']));
+
+        // 해당 날짜에 삭제된 예외가 있으면 dot 표시 안 함
+        if(isset($exc_dates_dot[$r['cal_idx'] . '_' . $date_month])) continue;
+
+        // cal_edate 체크
+        if($r['cal_edate'] != '' && $date_month > $r['cal_edate']) continue;
+
         if($date_month <= $endDate && $r['cal_date'] <= $startDate){
             array_push($date_arr, $date_month);
         }
     }
     if($r['noti_repeat'] == "YEAR"){
         $date_year = $def_year.'-'.date("m-d", strtotime($r['cal_date']));
+
+        if(isset($exc_dates_dot[$r['cal_idx'] . '_' . $date_year])) continue;
+        if($r['cal_edate'] != '' && $date_year > $r['cal_edate']) continue;
+
         if($date_year <= $endDate){
             array_push($date_arr, $date_year);
         }
