@@ -165,7 +165,8 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [x] **온라인 투표 템플릿 선택 기능 추가** (2026-04-01)
   - `adm/online_vote_form.php`: "투표 템플릿 선택" 버튼 + 팝업 (의무관리/비의무관리 탭)
   - `adm/online_vote_template_data.php`: 의무 104건, 비의무 105건 (label/title/content 구조)
-  - 팝업 목록에 `label`(안건명) 표시, 선택 시 `title`(투표주제) + `content`(HTML) 에디터 자동 입력
+  - 팝업 목록에 `label`(안건명)만 간결하게 표시, 목록 영역 스크롤 지원
+  - 선택 시 `title`(투표주제) + `content`(HTML) 에디터 자동 입력
   - JSON으로 데이터 전달 (HTML 특수문자/따옴표 안전 처리), smarteditor/ckeditor/summernote 호환
 - [x] **매니저앱/어드민 검침일 캘린더 삭제 기능 확인 및 권한 정리** (2026-04-01)
   - `head_sm.php`: 삭제 버튼 본인 등록/담당자/관리자만 표시 (기존 주석 처리된 권한 체크 활성화)
