@@ -556,11 +556,10 @@ function calendar_submit(){
     let building_id = $("#building_id").val();
     let cal_date = "<?php echo $cal_date_def; ?>";
     // let cal_date = $("#cal_date").val();
-    let noti_repeat; 
-    if(w_status == "u"){
-        noti_repeat = $("#noti_repeat").val();
-    }else{
-        noti_repeat = $("input[name='noti_repeat']:checked").val(); 
+    // 라디오 버튼이 있으면 선택값, 없으면 hidden input 값
+    let noti_repeat = $("input[name='noti_repeat']:checked").val();
+    if(!noti_repeat){
+        noti_repeat = $("input[name='noti_repeat']").val();
     }
     
     let cal_title = $("#cal_title").val();
