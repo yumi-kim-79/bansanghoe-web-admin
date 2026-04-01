@@ -488,6 +488,7 @@ $building_res = sql_query($building_sql);
 <div class="cm_pop" id="schedule_del_pop">
 	<div class="cm_pop_back"></div>
 	<div class="cm_pop_cont">
+		<?php if($cal_row['noti_repeat'] != 'N'){ ?>
 		<p class="cm_pop_desc2">삭제 방식을 선택해주세요.</p>
 		<div class="cm_pop_btn_box" style="display:flex;flex-direction:column;gap:8px;">
 			<button type="button" class="cm_pop_btn ver2" onClick="scheduleDelHandler('this_only');">이 날짜 일정만 삭제</button>
@@ -495,6 +496,13 @@ $building_res = sql_query($building_sql);
 			<button type="button" class="cm_pop_btn ver2" onClick="scheduleDelHandler('all');">반복 일정 전체 삭제</button>
 			<button type="button" class="cm_pop_btn" onClick="popClose('schedule_del_pop');">취소</button>
 		</div>
+		<?php }else{ ?>
+		<p class="cm_pop_desc2">해당 일정을 삭제하시겠습니까?</p>
+		<div class="cm_pop_btn_box flex_ver">
+			<button type="button" class="cm_pop_btn" onClick="popClose('schedule_del_pop');">취소</button>
+			<button type="button" class="cm_pop_btn ver2" onClick="scheduleDelHandler('all');">삭제</button>
+		</div>
+		<?php } ?>
 	</div>
 </div>
 
