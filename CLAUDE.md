@@ -174,6 +174,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 팝업 목록에 `label`(안건명)만 간결하게 표시, 목록 영역 스크롤 지원
   - 선택 시 `title`(투표주제) + `content`(HTML) 에디터 자동 입력
   - JSON으로 데이터 전달 (HTML 특수문자/따옴표 안전 처리), smarteditor/ckeditor/summernote 호환
+- [x] **툴팁 수정하기 제거 + 수정 저장 오류 수정** (2026-04-01)
+  - `head_sm.php`: 툴팁에서 "수정하기" 항목 제거 (삭제하기만 유지)
+  - `schedule_add_update2.php`: `$cal_info`(문자열)를 `$cal_info_row`(배열)로 참조 수정
+    → 기존: 문자열에 배열 접근 → 항상 true → 매번 FCM 발송 → 예외로 JSON 깨짐
+  - FCM 전송에 try-catch 추가, 담당자 변경 비교 조건에 빈값 체크 추가
 - [x] **매니저앱 점세개 버튼 토글 + 수정 저장 멈춤 수정** (2026-04-01)
   - `head_sm.php`: `.hd_btn.home_btn` 클릭 시 `.tooltip_box` toggle JS 추가, 외부 클릭 시 닫기
   - `schedule_add2.php`: AJAX error 핸들러 추가 (로딩 화면 멈춤 방지)

@@ -193,7 +193,6 @@ if($pages != "login_sm.php" && $pages != "find_info.php" && $pages != "find_id.p
                 ?>
                 <button type="button" class="hd_btn home_btn"><img src="/images/head_option_icons.svg" alt=""></button>
                 <div class="tooltip_box">
-                    <a href="/<?php echo $edit_page; ?>?w=u&cal_idx=<?php echo $cal_idx;?>&cal_code=<?php echo $cal_code; ?><?php echo $basename == 'schedule_add2.php' && $cal_date ? '&cal_date='.$cal_date : ''; ?>" class="tooltip_btn">수정하기</a>
                     <button type="button" onclick="popOpen('schedule_del_pop')" class="tooltip_btn">삭제하기</button>
                 </div>
             <?php }?>
