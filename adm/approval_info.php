@@ -57,16 +57,17 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
     //print_r2($row);
 }
 ?>
+<?php if($sample_row['sample_img']){ ?>
 <div class="approval_img_wrap">
     <img src="/data/file/signOffSample/<?php echo $sample_row['sample_img']; ?>" alt="" onclick="bigSize('/data/file/signOffSample/<?php echo $sample_row['sample_img']; ?>')">
 </div>
+<?php } ?>
 <div class="btn_fixed_top">
     <a href="./approval_document_list.php?<?php echo $qstr ?>" class="btn btn_02">목록</a>
 </div>
 <div class="approval_request_sign_box">
     <?php
     //내 사인 있는지 확인
-    //$signature_check = "SELECT *, COUNT(*) as cnt FROM a_signature WHERE mb_id = '{$member['mb_id']}'";
     $signature_check = "SELECT s.*, t.cnt
                 FROM (
                     SELECT *
@@ -81,7 +82,6 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
                     WHERE mb_id = '{$member['mb_id']}'
                 ) t ON 1";
     $signature_check_row = sql_fetch($signature_check);
-    // print_r2($signature_check_row);
     ?>
     <div class="tbl_frm01 tbl_wrap">
     <div class="h2_frm_wraps">
@@ -303,7 +303,6 @@ function signLoad(id, ele, approval_cont){
 
                 $("#approval_cont").val(approval_cont);
 
-                // ✅ 가능한 경우 서버가 준 signature_data를 사용, 없으면 마지막 서명(temp) 사용
                 const sigData = (data && data.data && data.data.signature_data) ? data.data.signature_data : approval_signature_temp;
                 $("#approval_signature").val(sigData);
 
@@ -321,14 +320,12 @@ function singReject(){
         return false;
     }
 
-    //로딩 팝업
     $("#building_info_pop").show();
 
     let sign_id = "<?php echo $sign_id; ?>";
     let mb_id = "<?php echo $member['mb_id']; ?>";
 
     let sendData = {'sign_id': sign_id, 'mb_id':mb_id};
-
 
     setTimeout(() => {
         $.ajax({
@@ -393,9 +390,9 @@ function singCheck(){
 
                alert(data.msg);
 
+               // ✅ 수정: 현재 페이지(approval_info.php)로 reload
                setTimeout(() => {
-                    // 서명 후 holiday_request_sample.php 거쳐서 상단 결재란 이미지 갱신
-                    location.replace("/holiday_request_sample.php?mem_type=admin&sign_id=" + sign_id);
+                    location.replace("/holiday_request_sample.php?sign_id=" + sign_id + "&mem_type=sign_user");
                 }, 150);
             }
         }
@@ -414,10 +411,7 @@ function signHandler(a, datas = ''){
     resizeCanvas();
 }
 
-// Get canvas and buttons
 const canvas = document.getElementById('signatureCanvas');
-
-// Initialize SignaturePad
 const signaturePad = new SignaturePad(canvas);
 
 function clearSign(){
@@ -461,13 +455,11 @@ function resizeCanvas() {
     canvas.width = canvas.offsetWidth * ratio;
     canvas.height = canvas.offsetHeight * ratio;
     canvas.getContext("2d").scale(ratio, ratio);
-    //signaturePad.clear(); // otherwise isEmpty() might return incorrect value
 }
 
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-//연차 신청자 추가
 $(document).on("click", ".paid_holiday_request_add", function(){
 
     let html = `<div class="paid_holiday_request_wrapper">

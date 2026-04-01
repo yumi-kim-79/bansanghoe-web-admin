@@ -25,19 +25,16 @@ include_once(G5_LIB_PATH.'/popular.lib.php');
 
 $mobile_agent = "/(iPod|iPhone|Android|BlackBerry|SymbianOS|SCH-M\d+|Opera Mini|Windows CE|Nokia|SonyEricsson|webOS|PalmOS)/";
 if(preg_match($mobile_agent, $_SERVER['HTTP_USER_AGENT'])){
-	//echo "Mobile";
-    
+    //echo "Mobile";
+
+}else if($chk_app == 'Y'){
+    // 앱에서 푸시로 진입한 경우 → 모바일로 인정, 통과
+
 }else{
 
     if($_SERVER['REMOTE_ADDR'] != "59.16.155.80" && $_SERVER['REMOTE_ADDR'] != "221.154.172.192"){
-
-        // if($basename != "class_test_view_adm.php"){
-        //     goto_url("/adm");
-        // }
         goto_url("/adm");
     }
-
-    //echo "231123132";
 }
 
 //회원아닐 때 로그인 풀렸으면 로그인 세션 유지

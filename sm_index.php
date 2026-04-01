@@ -2,6 +2,14 @@
 include_once('./_common.php');
 include_once(G5_PATH.'/head_sm.php');
 
+// 전체 알림 꺼짐 여부 체크
+$noti_all_off = false;
+if($is_member){
+    if(!$member['noti1'] && !$member['noti2'] && !$member['noti3'] && !$member['noti4'] && !$member['noti5'] && !$member['noti6']){
+        $noti_all_off = true;
+    }
+}
+
 /********** 사용자 설정값 **********/
 $startYear        = date( "Y" );
 $endYear        = date( "Y" ) + 4;
@@ -10,34 +18,27 @@ $endYear        = date( "Y" ) + 4;
 $year            = ( $_GET['toYear'] )? $_GET['toYear'] : date( "Y" );
 $month            = ( $_GET['toMonth'] )? $_GET['toMonth'] : date( "m" );
 $doms            = array( "일", "월", "화", "수", "목", "금", "토" );
-//$doms            = array( "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT" );
 
 /********** 계산값 **********/
-$mktime            = mktime( 0, 0, 0, $month, 1, $year );      // 입력된 값으로 년-월-01을 만든다
-$days            = date( "t", $mktime );                        // 현재의 year와 month로 현재 달의 일수 구해오기
-$startDays        = date( "w", $mktime );                        // 시작요일 알아내기
+$mktime            = mktime( 0, 0, 0, $month, 1, $year );
+$days            = date( "t", $mktime );
+$startDays        = date( "w", $mktime );
 
-// 지난달 일수 구하기
 $prevDayCount    = date( "t", mktime( 0, 0, 0, $month, 0, $year ) ) - $startDays + 1;
 
-$nowDayCount    = 1;                                            // 이번달 일자 카운팅
-$nextDayCount    = 1;                                          // 다음달 일자 카운팅
+$nowDayCount    = 1;
+$nextDayCount    = 1;
 
-// 이전, 다음 만들기
 $prevYear        = ( $month == 1 )? ( $year - 1 ) : $year;
 $prevMonth        = ( $month == 1 )? 12 : ( $month - 1 );
 $nextYear        = ( $month == 12 )? ( $year + 1 ) : $year;
 $nextMonth        = ( $month == 12 )? 1 : ( $month + 1 );
 
-// 출력행 계산
 $setRows	= ceil( ( $startDays + $days ) / 7 );
 
 $complain_status = "SELECT * FROM a_complain_status WHERE is_del = 0 ORDER BY is_prior asc, cs_idx asc";
 $cs_res = sql_query($complain_status);
 
-//$mng_building_t = "'".implode("','", $mng_building)."'";
-//print_r2($mng_building);
-//echo $mng_building_t;
 $calendar_sql = "SELECT * FROM a_calendar_setting WHERE is_view = 1 ORDER BY is_prior asc, cal_id asc";
 $calendar_res = sql_query($calendar_sql);
 ?>
@@ -105,6 +106,24 @@ $calendar_res = sql_query($calendar_sql);
         </div>
     </div>
 </div>
+
+<!-- 알림 전체 꺼짐 팝업 -->
+<?php if($noti_all_off){ ?>
+<div class="cm_pop" id="noti_off_pop" style="display:block;">
+    <div class="cm_pop_back"></div>
+    <div class="cm_pop_cont">
+        <p class="cm_pop_desc2">
+            알림받기 설정이 꺼져있습니다.<br>
+            <span>알림설정</span>을 확인해주세요.
+        </p>
+        <div class="cm_pop_btn_box flex_ver">
+            <button type="button" class="cm_pop_btn" onClick="popClose('noti_off_pop');">확인</button>
+            <button type="button" class="cm_pop_btn ver2" onClick="location.href='/notification_setting.php?types=sm';">알림설정 바로가기</button>
+        </div>
+    </div>
+</div>
+<?php } ?>
+
 <?php
 $todays = date("Y-m-d");
 $pop_list = "SELECT pop.*, files.bf_file FROM a_popup as pop
@@ -117,16 +136,13 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
     // echo $pop_total;
 }
 ?>
-<!-- style="display:block;" -->
 <?php
-// $styles = $member['mb_id'] == 'mng1' ? 'display:block;' : '';
 if($pop_total > 0){
 ?>
 <div class="cm_pop" id="banner_sm_pop">
 	<div class="cm_pop_back"></div>
 	<div class="cm_pop_cont ver_banner">
         <div class="bn_pop_cont">
-            <!-- <?php echo $pop_list;?> -->
             <div class="swiper ban_swp">
                 <div class="swiper-wrapper">
                     <?php for($i=0;$file_row = sql_fetch_array($pop_res);$i++){?>
@@ -168,22 +184,20 @@ function getCookie(name) {
     return value ? value[2] : null;
 }
 
-// 팝업 닫기 (쿠키 설정 없음)
 function closePopup() {
     document.getElementById('banner_sm_pop').style.display = 'none';
 }
 
-// 하루 동안 보지 않기 (쿠키 설정)
 function hideForOneDay() {
     setCookie('hidePopupSM', 'yes', 1);
     closePopup();
 }
 
 window.onload = function () {
-
     console.log('cookie',getCookie('hidePopupSM'));
-    if (getCookie('hidePopupSM') !== 'yes') {
-        document.getElementById('banner_sm_pop').style.display = 'block';
+    var bannerPop = document.getElementById('banner_sm_pop');
+    if (bannerPop && getCookie('hidePopupSM') !== 'yes') {
+        bannerPop.style.display = 'block';
     }
 }
 
@@ -194,8 +208,6 @@ let nowMonth = "<?php echo date("m");?>";
 let page = 1;
 tab_handler(tabIdx, tabCode);
 
-// $("#category").val('schedule').change();
-
 function tab_handler(index, code){
 
     tabIdx = index;
@@ -203,28 +215,17 @@ function tab_handler(index, code){
     const savedCategory = sessionStorage.getItem('calendar_category');
     const savedDate = sessionStorage.getItem('calendar_date');
 
-    
-   
     if(savedDate){
         saveDate2 = savedDate;
-
         nowYear = savedDate.split('-')[0];
         nowMonth = savedDate.split('-')[1];
     }else{
         saveDate2 = '';
-
         const yearSave     = sessionStorage.getItem('calendar_year');
         const monthSave    = sessionStorage.getItem('calendar_month');
-
-        if(yearSave){
-            nowYear = yearSave;
-        }
-
-        if(monthSave){
-            nowMonth = monthSave;
-        }
+        if(yearSave) nowYear = yearSave;
+        if(monthSave) nowMonth = monthSave;
     }
-    
     
     console.log('처음..',nowYear, nowMonth);
     $(".tab_lnb li").removeClass("on");
@@ -234,68 +235,52 @@ function tab_handler(index, code){
         $(".cal_state_li").hide();
         $(".cal_state_li" + index).css('display', 'flex');
         moveCal(nowYear, nowMonth, index, savedCategory, saveDate2);
-    }else{
-
     }
 
     $(".sm_section").hide();
     $(".sm_section" + index).show();      
 
     if(index == 3){
-        
         complain_list();
     }
 }
 
 function addSchedule(){
-
     let calendar_code = $("#category option:selected").val();
-
     location.href = "/schedule_add.php?cal_code=" + calendar_code;
 }
 
 function complain_list(status = 'CB'){
-    
     let mb_id = "<?php echo $member['mb_id']; ?>";
     let department = "<?php echo $mng_info['mng_department']; ?>";
     let sch_text = $("#sch_text").val();
 
     $.ajax({
-
-        url : "/sm_index_complain_list.php", //ajax 통신할 파일
-        type : "POST", // 형식
-        data: { "mb_id":mb_id, "status":status, 'department':department, "sch_text":sch_text}, //파라미터 값
-        success: function(msg){ //성공시 이벤트
-            //console.log(msg);
+        url : "/sm_index_complain_list.php",
+        type : "POST",
+        data: { "mb_id":mb_id, "status":status, 'department':department, "sch_text":sch_text},
+        success: function(msg){
             $(".sm_schedule_list_complain").html(msg);
         }
-
     });
 }
 
 function moveCal(year, month, type, calendar_code, checkDate = ''){
 
-    $("#sch_text").val(""); //검색초기화
-
+    $("#sch_text").val("");
     let mb_id = "<?php echo $member['mb_id']; ?>";
-
     nowYear = year;
     nowMonth = month;
 
-    
     if(type == '1' && calendar_code){
-       
         calendar_code = calendar_code || $("#category").val();
         sessionStorage.setItem('calendar_category', calendar_code);
     }
 
     console.log('moveCal::::' + calendar_code);
-    // sessionStorage.setItem('calendar_category', calendar_code);
     sessionStorage.setItem('calendar_year', year);
     sessionStorage.setItem('calendar_month', month);
     sessionStorage.setItem('calendar_type', type);
-    
-        
 
     $.ajax({
         type: "POST",
@@ -306,7 +291,6 @@ function moveCal(year, month, type, calendar_code, checkDate = ''){
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
         success: function(data) {
             $(".calendar_area").empty().append(data);
-
             const savedDate = sessionStorage.getItem('calendar_date');
             if(savedDate){
                 const $target = $(".cal_td_box1[data-date='"+savedDate+"']");
@@ -347,43 +331,27 @@ function moveCal(year, month, type, calendar_code, checkDate = ''){
 }
 
 function cal_code_change(){
-    
-    //let calendar_code = $("#category option:selected").val();
     let mb_id = "<?php echo $member['mb_id']; ?>";
-
     var calCodeSelect = document.getElementById("category");
     var calCodeValue = calCodeSelect.options[calCodeSelect.selectedIndex].value;
     let sch_text = $("#sch_text").val();
     console.log('calCodeValue::::',calCodeValue);
-
     sessionStorage.setItem('calendar_category', calCodeValue);
 
-  
-
     const savedDate = sessionStorage.getItem('calendar_date');
-
     if(savedDate){
         saveDate2 = savedDate;
     }else{
         saveDate2 = '';
     }
-    // localStorage.setItem('calendar_category', calCodeValue);
-
     moveCal(nowYear, nowMonth, '1', calCodeValue, saveDate2);
 }
 
-
-
 $(document).on("click", ".cal_td_box1", function(){
-    //$(this).addClass("select_dates");
-
     if ($(this).hasClass("select_dates")) {
-        // 이미 선택되어 있으면 해제만 함 (AJAX 호출 안 함)
         $(this).removeClass("select_dates");
-
         selectDate = "";
         sessionStorage.removeItem('calendar_date');
-
         schedule_sch_handler();
         return;
     }
@@ -396,12 +364,8 @@ $(document).on("click", ".cal_td_box1", function(){
     let sch_text = $("#sch_text").val();
     let mb_id = "<?php echo $member['mb_id']; ?>";
 
-
     sessionStorage.setItem('calendar_date', checkDate);
-    // localStorage.setItem('calendar_category', calendar_code);
-    // localStorage.setItem('calendar_checkdate', checkDate);
 
-    // moveCal(nowYear, nowMonth, '1', calendar_code, checkDate);
     $.ajax({
         type: "POST",
         url: "/inc/get_schedule2.php",
@@ -413,7 +377,6 @@ $(document).on("click", ".cal_td_box1", function(){
             $(".schedule_lists").empty().append(data);
         }
     });
-    //console.log('select_dates');
 });
 
 function schedule_sch_handler(){
@@ -422,7 +385,6 @@ function schedule_sch_handler(){
     let mb_id = "<?php echo $member['mb_id']; ?>";
 
     if(tabIdx == 3){
-       
         console.log('tabStatus:::',tabStatus);
         complain_list(tabStatus);
     }else{
@@ -438,11 +400,9 @@ function schedule_sch_handler(){
             }
         });
     }
-    
 }
 
 $(document).on("click", ".cal_td_box2", function(){
-    //$(this).addClass("select_dates");
     $(".cal_td_box2").removeClass("select_dates");
     $(this).addClass("select_dates");
 
@@ -462,7 +422,6 @@ $(document).on("click", ".cal_td_box2", function(){
     });
 });
 
-
 let tabIdx2 = "<?php echo $tabIdx2 ?? '1'; ?>";
 let tabStatus = "<?php echo $tabStatus ?? 'CB'; ?>";
 tabHandler2(tabIdx2, tabStatus);
@@ -470,7 +429,6 @@ tabHandler2(tabIdx2, tabStatus);
 function tabHandler2(index, tcode){
     $(".tab_btn_wrap .tab_btn").removeClass("on");
     $(".tab_btn0" + index).addClass("on");
-
     tabStatus = tcode;
     complain_list(tcode);
 }
@@ -480,17 +438,12 @@ $(".tab_btn_wrap .tab_btn").on("click", function(){
     $(this).addClass("on");
 });
 
-
 $(document).on('click', '.pg_page_noti', function() {
     page = $(this).data('page');
     var cls = '.pg_page' + page;
 
     var checkDate = '';
     if ($('.cal_td_box').hasClass("select_dates")) {
-        console.log('있음');
-
-        // console.log('선택된 데이트',$(".select_dates").data('date'));
-
         checkDate = $(".select_dates").data('date');
     }
 
@@ -513,10 +466,7 @@ $(document).on('click', '.pg_page_noti', function() {
     });
 });
 
-
-
 $(function(){
-
     let nowip = "<?php echo $_SERVER['REMOTE_ADDR']; ?>";
     let myip = "221.154.172.192";
     const year     = sessionStorage.getItem('calendar_year');
@@ -525,16 +475,10 @@ $(function(){
     const category = sessionStorage.getItem('calendar_category');
     const calendar_date = sessionStorage.getItem('calendar_date');
 
-
     console.log('month::::',year, month);
 
     if(category != '' && category != null){    
-
         $("#category").val(category);
-        if(nowip == myip){
-            // alert('category::::' + category);
-        }
-
     }else{
         category = '';
     }
