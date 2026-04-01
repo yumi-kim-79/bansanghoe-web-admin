@@ -162,6 +162,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **매니저앱 반복설정 "안함" 저장 안 되는 버그 수정** (2026-04-01)
+  - `schedule_add2.php`: JS calendar_submit에서 수정 모드 시 hidden input만 읽던 로직 → 라디오 버튼 우선 읽도록 수정
+  - `schedule_add_update2.php`: 반복일정 전체 수정 UPDATE에 `noti_repeat` 누락 → 추가
+  - 원인: 수정 모드에서 `$("#noti_repeat").val()`이 hidden input만 참조 + UPDATE 쿼리에 noti_repeat 미포함
 - [x] **캘린더 빨간 dot(●) 미표시 수정** (2026-03-30)
   - 파일: `adm/get_calendar2.php`
   - 원인: 월간반복 dot 조건 `$r['cal_date'] <= $startDate` → 같은 달 생성 일정 차단
