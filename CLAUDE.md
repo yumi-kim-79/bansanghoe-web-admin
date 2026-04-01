@@ -174,6 +174,8 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 팝업 목록에 `label`(안건명)만 간결하게 표시, 목록 영역 스크롤 지원
   - 선택 시 `title`(투표주제) + `content`(HTML) 에디터 자동 입력
   - JSON으로 데이터 전달 (HTML 특수문자/따옴표 안전 처리), smarteditor/ckeditor/summernote 호환
+- [x] **삭제 팝업 비반복/반복 분기** (2026-04-01)
+  - `schedule_add2.php`: noti_repeat='N'이면 "삭제/취소" 단순 팝업, MONTH/YEAR이면 3가지 옵션
 - [x] **툴팁 수정하기 제거 + 수정 저장 오류 수정** (2026-04-01)
   - `head_sm.php`: 툴팁에서 "수정하기" 항목 제거 (삭제하기만 유지)
   - `schedule_add_update2.php`: `$cal_info`(문자열)를 `$cal_info_row`(배열)로 참조 수정
