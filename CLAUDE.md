@@ -174,10 +174,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 팝업 목록에 `label`(안건명)만 간결하게 표시, 목록 영역 스크롤 지원
   - 선택 시 `title`(투표주제) + `content`(HTML) 에디터 자동 입력
   - JSON으로 데이터 전달 (HTML 특수문자/따옴표 안전 처리), smarteditor/ckeditor/summernote 호환
-- [x] **매니저앱/어드민 검침일 캘린더 삭제 기능 확인 및 권한 정리** (2026-04-01)
-  - `head_sm.php`: 삭제 버튼 본인 등록/담당자/관리자만 표시 (기존 주석 처리된 권한 체크 활성화)
-  - `schedule_add2.php`: 3가지 옵션 삭제 팝업 확인 완료 (이미 구현됨)
-  - `adm/calendar_form2.php`: 3가지 옵션 삭제 팝업 확인 완료 (이미 구현됨)
+- [x] **매니저앱 일정 수정 화면에서 삭제 버튼 미표시 수정** (2026-04-01)
+  - `head_sm.php`: 삭제 버튼 조건 `$w == 'i'` → `$w == 'i' || $w == 'u'`로 변경
+  - 원인: 반복일정은 `get_schedule2.php`에서 `w=u`로 접근하는데, head_sm.php에서 `w=i`만 허용
+  - 권한: 본인 등록(wid)/담당자(mng_id)/관리자(mb_level>=10) + 미처리 또는 관리자
 - [x] **매니저앱 반복설정 "안함" 저장 안 되는 버그 수정** (2026-04-01)
   - `schedule_add2.php`: JS calendar_submit에서 수정 모드 시 hidden input만 읽던 로직 → 라디오 버튼 우선 읽도록 수정
   - `schedule_add_update2.php`: 반복일정 전체 수정 UPDATE에 `noti_repeat` 누락 → 추가
