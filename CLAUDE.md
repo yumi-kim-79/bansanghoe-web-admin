@@ -164,7 +164,7 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 ### 최근 완료
 - [x] **QR 인쇄 페이지 전체 디자인 리뉴얼** (2026-04-01)
   - 파일: `adm/inspection_print.php`
-  - 헤더: #1a2e4a 배경 + 단지명 + AIVEX 로고, QR 중앙 로고 50x50px
+  - 헤더: #1a2e4a 배경 + 단지명 + AIVEX 로고, QR 180x180px, 중앙 로고 30x30px (~2.8%)
   - 카드형 레이아웃: CSS Grid 3열, border-radius:10px, box-shadow
   - 3열x3행=9개/페이지로 변경 (A4 여백 최적화), 푸터 추가
   - @media print 동일 적용, print-color-adjust:exact

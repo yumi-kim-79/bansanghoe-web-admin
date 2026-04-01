@@ -74,15 +74,15 @@ $chunked_arr = array_chunk($ins_idx_arr, 9);
     display:inline-block;
     margin-bottom:12px;
 }
-.qr_img_wrap img.qr_code {display:block;width:130px;height:130px;}
+.qr_img_wrap img.qr_code {display:block;width:180px;height:180px;}
 .qr_img_wrap .qr_logo {
     position:absolute;
     top:50%;left:50%;
     transform:translate(-50%,-50%);
-    width:50px;height:50px;
+    width:30px;height:30px;
     background:#fff;
-    padding:3px;
-    border-radius:6px;
+    padding:2px;
+    border-radius:4px;
     box-shadow:0 1px 3px rgba(0,0,0,0.1);
 }
 
@@ -137,7 +137,7 @@ foreach ($chunked_arr as $page => $items) {
         ?>
         <div class="qr_card">
             <div class="qr_img_wrap">
-                <img class="qr_code" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?php echo $homepage; ?>" alt="QR">
+                <img class="qr_code" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=<?php echo $homepage; ?>" alt="QR">
                 <img src="/images/aivex_logo_vertical.png" class="qr_logo" alt="AIVEX">
             </div>
             <div class="qr_label"><?php echo $industry_row['industry_name']; ?></div>
@@ -210,12 +210,12 @@ function printBuildingNews() {
             }
 
             .qr_img_wrap {position:relative;display:inline-block;margin-bottom:12px;}
-            .qr_img_wrap img.qr_code {display:block;width:130px;height:130px;}
+            .qr_img_wrap img.qr_code {display:block;width:180px;height:180px;}
             .qr_img_wrap .qr_logo {
                 position:absolute;top:50%;left:50%;
                 transform:translate(-50%,-50%);
-                width:50px;height:50px;
-                background:#fff;padding:3px;border-radius:6px;
+                width:30px;height:30px;
+                background:#fff;padding:2px;border-radius:4px;
             }
 
             .qr_label {font-size:14px;font-weight:700;color:#1a2e4a;text-align:center;line-height:1.3;}
