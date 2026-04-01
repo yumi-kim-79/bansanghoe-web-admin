@@ -36,7 +36,8 @@ $chunked_arr = array_chunk($ins_idx_arr, 12);
 .qr_box_wrap .qr_box:nth-child(3) {border-top: 1px solid #dfdfdf;}
 .qr_box_wrap .qr_box:nth-child(3n) {border-right: 1px solid #dfdfdf;}
 .qr_box_wrap .qr_box:last-child {border-right: 1px solid #dfdfdf;}
-.qr_box .qr_img {margin-bottom: 20px;}
+.qr_box .qr_img {margin-bottom: 20px;position:relative;display:inline-block;}
+.qr_box .qr_img .qr_logo {position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;background:#fff;padding:2px;border-radius:4px;}
 .qr_box .qr_box_tit {font-size: 16px;font-weight: 500;}
 .pages {padding:10px;font-size: 14px;text-align: right;}
 </style>
@@ -66,6 +67,7 @@ if($page >= 1){
         <div class="qr_box">
             <div class="qr_img">
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?php echo $homepage; ?>" alt="">
+                <img src="/images/aivex_logo_vertical.png" class="qr_logo" alt="AIVEX">
             </div>
             <div class="qr_box_tit">
                 <?php echo $industry_row['industry_name']; ?>
@@ -114,7 +116,8 @@ function printBuildingNews() {
             .qr_box_wrap .qr_box:nth-child(3) {border-top: 1px solid #dfdfdf;}
             .qr_box_wrap .qr_box:nth-child(3n) {border-right: 1px solid #dfdfdf;}
             .qr_box_wrap .qr_box:last-child {border-right: 1px solid #dfdfdf;}
-            .qr_box .qr_img {margin-bottom: 20px;}
+            .qr_box .qr_img {margin-bottom: 20px;position:relative;display:inline-block;}
+            .qr_box .qr_img .qr_logo {position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;background:#fff;padding:2px;border-radius:4px;}
             .qr_box .qr_box_tit {font-size: 16px;font-weight: 500;}
         }
     `;

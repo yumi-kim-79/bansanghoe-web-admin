@@ -162,6 +162,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **QR 코드 중앙에 AIVEX 로고 오버레이 추가** (2026-04-01)
+  - 파일: `adm/inspection_print.php`
+  - `.qr_img`에 `position:relative` + `.qr_logo` absolute 중앙 배치 (36x36px, 흰색 배경, 둥근 모서리)
+  - 화면용/인쇄용 스타일 양쪽 적용, 로고: `/images/aivex_logo_vertical.png`
 - [x] **온라인 투표 템플릿 선택 기능 추가** (2026-04-01)
   - `adm/online_vote_form.php`: "투표 템플릿 선택" 버튼 + 팝업 (의무관리/비의무관리 탭)
   - `adm/online_vote_template_data.php`: 의무 104건, 비의무 105건 (label/title/content 구조)
