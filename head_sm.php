@@ -178,7 +178,7 @@ if($pages != "login_sm.php" && $pages != "find_info.php" && $pages != "find_id.p
                     </ul>
                 <?php }?>
             <?php }?>
-            <?php if(($basename == "schedule_add.php" || $basename == "schedule_add2.php") && $w == 'i'){
+            <?php if(($basename == "schedule_add.php" || $basename == "schedule_add2.php") && ($w == 'i' || $w == 'u')){
                 $cal_sql = "SELECT cal.*, building.building_name FROM a_calendar as cal
                 LEFT JOIN a_building as building ON cal.building_id = building.building_id
                 WHERE cal.cal_idx = '{$cal_idx}'";
