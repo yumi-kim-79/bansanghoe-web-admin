@@ -162,6 +162,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **매니저앱/어드민 검침일 캘린더 삭제 기능 확인 및 권한 정리** (2026-04-01)
+  - `head_sm.php`: 삭제 버튼 본인 등록/담당자/관리자만 표시 (기존 주석 처리된 권한 체크 활성화)
+  - `schedule_add2.php`: 3가지 옵션 삭제 팝업 확인 완료 (이미 구현됨)
+  - `adm/calendar_form2.php`: 3가지 옵션 삭제 팝업 확인 완료 (이미 구현됨)
 - [x] **매니저앱 반복설정 "안함" 저장 안 되는 버그 수정** (2026-04-01)
   - `schedule_add2.php`: JS calendar_submit에서 수정 모드 시 hidden input만 읽던 로직 → 라디오 버튼 우선 읽도록 수정
   - `schedule_add_update2.php`: 반복일정 전체 수정 UPDATE에 `noti_repeat` 누락 → 추가
