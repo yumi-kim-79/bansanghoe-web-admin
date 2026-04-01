@@ -39,7 +39,46 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
 if($w == 'u'){
     $building_name = get_builiding_info($row['building_id'])['building_name'];
 }
+
+// 투표 템플릿 데이터
+include_once('./online_vote_template_data.php');
 ?>
+
+<div style="margin-bottom:10px;">
+    <button type="button" class="btn btn_03" onclick="$('#vote_template_pop').show();" style="font-size:14px;padding:8px 16px;">투표 템플릿 선택</button>
+</div>
+
+<!-- 투표 템플릿 팝업 -->
+<div id="vote_template_pop" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(0,0,0,0.5);">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:10px;padding:25px 20px;width:560px;max-height:80vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+            <p style="font-size:16px;font-weight:700;">투표 템플릿 선택</p>
+            <button type="button" onclick="$('#vote_template_pop').hide();" style="background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
+        </div>
+        <!-- 탭 -->
+        <div style="display:flex;gap:0;margin-bottom:15px;border-bottom:2px solid #388FCD;">
+            <button type="button" class="tpl_tab tpl_tab_active" onclick="tplTabChange('mandatory', this);" style="flex:1;padding:10px;border:1px solid #388FCD;border-bottom:none;background:#388FCD;color:#fff;font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;">의무관리</button>
+            <button type="button" class="tpl_tab" onclick="tplTabChange('non_mandatory', this);" style="flex:1;padding:10px;border:1px solid #ddd;border-bottom:none;background:#f5f5f5;color:#333;font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;">비의무관리</button>
+        </div>
+        <!-- 목록 -->
+        <div id="tpl_list_mandatory">
+            <?php foreach($vote_templates['mandatory'] as $tpl){ ?>
+            <div class="tpl_item" onclick="tplSelect('<?php echo addslashes($tpl['title']); ?>', '<?php echo addslashes($tpl['content']); ?>');" style="padding:12px 15px;border:1px solid #e4e4e4;border-radius:6px;margin-bottom:8px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
+                <span style="display:inline-block;width:30px;font-weight:700;color:#388FCD;"><?php echo $tpl['no']; ?>.</span>
+                <span style="font-weight:600;"><?php echo $tpl['title']; ?></span>
+            </div>
+            <?php } ?>
+        </div>
+        <div id="tpl_list_non_mandatory" style="display:none;">
+            <?php foreach($vote_templates['non_mandatory'] as $tpl){ ?>
+            <div class="tpl_item" onclick="tplSelect('<?php echo addslashes($tpl['title']); ?>', '<?php echo addslashes($tpl['content']); ?>');" style="padding:12px 15px;border:1px solid #e4e4e4;border-radius:6px;margin-bottom:8px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
+                <span style="display:inline-block;width:30px;font-weight:700;color:#4E5E81;"><?php echo $tpl['no']; ?>.</span>
+                <span style="font-weight:600;"><?php echo $tpl['title']; ?></span>
+            </div>
+            <?php } ?>
+        </div>
+    </div>
+</div>
 
 <form name="fonlinevote" id="fonlinevote" action="./online_vote_form_update.php" onsubmit="return fonlinevote_submit(this);" method="post" enctype="multipart/form-data">
     <input type="hidden" name="w" value="<?php echo $w ?>">
@@ -384,6 +423,41 @@ if($w == 'u'){
 </div>
 
 <script>
+
+// 투표 템플릿 탭 전환
+function tplTabChange(type, el){
+    $('#tpl_list_mandatory').hide();
+    $('#tpl_list_non_mandatory').hide();
+    $('#tpl_list_' + type).show();
+
+    $('.tpl_tab').css({background:'#f5f5f5', color:'#333', border:'1px solid #ddd'}).removeClass('tpl_tab_active');
+    $(el).css({background:'#388FCD', color:'#fff', border:'1px solid #388FCD'}).addClass('tpl_tab_active');
+}
+
+// 투표 템플릿 선택 시 자동 입력
+function tplSelect(title, content){
+    // 투표주제
+    $("input[name='vt_title']").val(title);
+
+    // 내용 에디터 - textarea 직접 설정 + iframe 에디터 시도
+    $("textarea[name='vt_content']").val(content);
+
+    // smarteditor2
+    if(typeof oEditors !== 'undefined'){
+        try { oEditors.getById['vt_content'].exec('SET_IR', ['<p>' + content + '</p>']); } catch(e){}
+    }
+    // ckeditor
+    if(typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['vt_content']){
+        try { CKEDITOR.instances['vt_content'].setData('<p>' + content + '</p>'); } catch(e){}
+    }
+    // summernote
+    if($.fn.summernote && $("textarea[name='vt_content']").data('summernote')){
+        try { $("textarea[name='vt_content']").summernote('code', '<p>' + content + '</p>'); } catch(e){}
+    }
+
+    $('#vote_template_pop').hide();
+    alert('템플릿이 적용되었습니다.\n내용을 확인 후 수정하세요.');
+}
 
 //투표 삭제
 function vote_del_handler(){
