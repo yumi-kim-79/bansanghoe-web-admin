@@ -10,28 +10,48 @@ $sql_common = " from a_building_ho as ho
                 left join a_building as building on ho.building_id = building.building_id 
                 left join a_post_addr as post on ho.post_id = post.post_idx ";
 
-$sql_search = " where (1) and ho.is_del = '0' and building.is_use = 1 ";
+$sql_search = " where (1) and ho.is_del = '0' ";
 
+// 1차 검색: 단지명
+$stx_building_ids = [];
+$stx_buildings = [];
 if ($stx) {
-    $sql_search .= " and ( ";
-    switch ($sfl) {
-        case 'mb_point':
-            $sql_search .= " ({$sfl} >= '{$stx}') ";
-            break;
-        case 'mb_level':
-            $sql_search .= " ({$sfl} = '{$stx}') ";
-            break;
-        case 'ho_name':
-            $sql_search .= " (ho.{$sfl} like '%{$stx}%') ";
-            break;
-        case 'building_name':
-            $sql_search .= " (building.{$sfl} like '%{$stx}%') ";
-            break;
-        default:
-            $sql_search .= " (ho.{$sfl} like '%{$stx}%') ";
-            break;
+    // 매칭된 단지 목록 조회
+    $stx_building_sql = "SELECT building.*, post.post_idx as stx_post_id, post.post_name as stx_post_name FROM a_building as building LEFT JOIN a_post_addr as post ON building.post_id = post.post_idx WHERE building.building_name like '%{$stx}%' and building.is_del = 0 ORDER BY building.building_name asc";
+    $stx_building_res = sql_query($stx_building_sql);
+    while($stx_b = sql_fetch_array($stx_building_res)){
+        $stx_building_ids[] = $stx_b['building_id'];
+        $stx_buildings[] = $stx_b;
     }
-    $sql_search .= " ) ";
+
+    // 단일 매칭: post_id/building_id 자동 적용 (수동 선택 없을 때)
+    if(count($stx_buildings) == 1 && !$post_id && !$building_id){
+        $post_id = $stx_buildings[0]['stx_post_id'];
+        $building_id = $stx_buildings[0]['building_id'];
+    }
+
+    // 여러 매칭: building_id IN 조건으로 필터
+    if(count($stx_buildings) > 1 && !$building_id){
+        $stx_bids_filter = implode(',', array_map('intval', $stx_building_ids));
+        $sql_search .= " and ho.building_id IN ({$stx_bids_filter}) ";
+    } else if(count($stx_buildings) == 0){
+        // 매칭 없음: building_name LIKE로 폴백
+        $sql_search .= " and (building.building_name like '%{$stx}%') ";
+    }
+}
+
+// 2차 검색: 소유자명/연락처/입주자명/연락처/호수/차량번호 통합
+if ($stx2) {
+    $sql_search .= " and (
+        ho.ho_owner like '%{$stx2}%'
+        OR ho.ho_owner_hp like '%{$stx2}%'
+        OR ho.ho_tenant like '%{$stx2}%'
+        OR ho.ho_tenant_hp like '%{$stx2}%'
+        OR ho.ho_name like '%{$stx2}%'
+        OR EXISTS (SELECT 1 FROM a_building_car as car WHERE car.ho_id = ho.ho_id AND car.is_del = 0 AND car.car_name like '%{$stx2}%')
+    ) ";
+
+    $qstr .= '&stx2='.$stx2;
 }
 
 if($ho_tenant_at){
@@ -70,6 +90,31 @@ if($dong_id){
     $qstr .= '&dong_id='.$dong_id;
 }
 
+// 1차 검색 결과 단지의 동 목록 (building_id 미선택 시)
+if(!$building_id && count($stx_building_ids) > 0){
+    $stx_bids = implode(',', array_map('intval', $stx_building_ids));
+    $sql_dong_stx = "SELECT DISTINCT dong.dong_id, dong.dong_name FROM a_building_dong as dong WHERE dong.building_id IN ({$stx_bids}) and dong.is_del = 0 ORDER BY dong.dong_name + 0 asc";
+    $res_dong_stx = sql_query($sql_dong_stx);
+}
+
+// 1차 검색 매칭 단지 JSON (JS 드롭다운 세팅용)
+$stx_match_json = [];
+if($stx && count($stx_buildings) > 0){
+    foreach($stx_buildings as $sb){
+        $dongs = [];
+        $dong_res_tmp = sql_query("SELECT dong_id, dong_name FROM a_building_dong WHERE building_id = '{$sb['building_id']}' and is_del = 0 ORDER BY dong_name + 0 asc");
+        while($d = sql_fetch_array($dong_res_tmp)) $dongs[] = ['dong_id' => $d['dong_id'], 'dong_name' => $d['dong_name']];
+        $stx_match_json[] = [
+            'post_id' => $sb['stx_post_id'],
+            'post_name' => $sb['stx_post_name'],
+            'building_id' => $sb['building_id'],
+            'building_name' => $sb['building_name'],
+            'is_use' => $sb['is_use'],
+            'dongs' => $dongs
+        ];
+    }
+}
+
 if($sst == 'deleted_at'){
     $sql_search2 .= " and std.is_del = 1 ";
 }
@@ -102,12 +147,58 @@ $from_record = ($page - 1) * $rows; // 시작 열을 구함
 $g5['title'] = "세대관리";
 require_once './admin.head.php';
 include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
+?>
+<style>
+/* 라벨 너비 통일 (상태/입주일/지역/검색 세로 정렬) */
+#fsearch .serach_box .sch_label {
+    width: 70px;
+    min-width: 70px;
+    max-width: 70px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+/* 2차 검색 구분선 */
+.sch_divider {
+    width: 1px;
+    height: 20px;
+    background: #ccc;
+    margin: 0 5px;
+    flex-shrink: 0;
+}
+#stx2 {
+    width: 300px;
+}
+/* 세대관리 테이블 컴팩트 스타일 */
+.tbl_head01 thead th {
+    padding: 5px 4px;
+}
+.tbl_head01 tbody td {
+    padding: 3px 4px;
+    line-height: 1.3em;
+}
+.tbl_head01 tbody tr {
+    height: auto;
+}
+.list_car_item, .list_hh_item {
+    font-size: 12px;
+    padding: 1px 0;
+    white-space: nowrap;
+}
+.list_car_item + .list_car_item,
+.list_hh_item + .list_hh_item {
+    border-top: 1px dotted #ddd;
+}
+.td_mng_s .btn {
+    padding: 3px 8px;
+}
+</style>
+<?php
 
 
 $sql = " select ho.*, building.building_name, building.is_use, dong.dong_name, post.post_name {$sql_common} {$sql_search} {$sql_search2} {$sql_order} limit {$from_record}, {$rows} ";
 $result = sql_query($sql);
 
-$colspan = 15;
+$colspan = 16;
 
 $post_sql = "SELECT * FROM a_post_addr ORDER BY is_prior asc, post_idx asc";
 $post_res = sql_query($post_sql);
@@ -165,15 +256,15 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             </select>
             <select name="building_id" id="building_id" class="bansang_sel" onchange="building_change();">
                 <option value="">단지 선택</option>
-                <?php while($row_building = sql_fetch_array($res_building)){ ?>
+                <?php if($res_building){ while($row_building = sql_fetch_array($res_building)){ ?>
                 <option value="<?php echo $row_building['building_id']?>" <?php echo get_selected($building_id, $row_building['building_id']); ?>><?php echo $row_building['building_name'];?></option>
-                <?php }?>
+                <?php }} ?>
             </select>
             <select name="dong_id" id="dong_id" class="bansang_sel">
                 <option value="">동 선택</option>
-                <?php while($row_dong = sql_fetch_array($res_dong)){ ?>
+                <?php if($res_dong){ while($row_dong = sql_fetch_array($res_dong)){ ?>
                 <option value="<?php echo $row_dong['dong_id']?>" <?php echo get_selected($dong_id, $row_dong['dong_id']); ?>><?php echo $row_dong['dong_name'];?>동</option>
-                <?php }?>
+                <?php }} ?>
             </select>
         </div>
         <script>
@@ -218,61 +309,132 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         }
     </script>
     </div>
+    <input type="hidden" name="sfl" value="building_name">
     <div class="serach_box">
         <div class="sch_label">검색어</div>
         <div class="sch_selects ver_flex">
-            <select name="sfl" id="sfl" class="bansang_sel">
-                <option value="building_name" <?php echo get_selected($sfl, "building_name"); ?>>단지명</option>
-                <option value="ho_owner" <?php echo get_selected($sfl, "ho_owner"); ?>>소유자명</option>
-                <option value="ho_owner_hp" <?php echo get_selected($sfl, "ho_owner_hp"); ?>>소유자 연락처</option>
-                <option value="ho_tenant" <?php echo get_selected($sfl, "ho_tenant"); ?>>입주자명</option>
-                <option value="ho_tenant_hp" <?php echo get_selected($sfl, "ho_tenant_hp"); ?>>입주자 연락처</option>
-                <option value="ho_name" <?php echo get_selected($sfl, "ho_name"); ?>>호수</option>
-            </select>
             <div class="sch_ipt_boxs">
-                <div class="sch_result_box sch_result_box1">
-                </div>
-                <label for="stx" class="sound_only">검색어<strong class="sound_only"> 필수</strong></label>
-                <input type="text" name="stx" value="<?php echo $stx ?>" id="stx"  class=" bansang_ipt ver2 building_name_sch" size="50">
+                <div class="sch_result_box sch_result_box1"></div>
+                <label for="stx" class="sound_only">단지명 검색</label>
+                <input type="text" name="stx" value="<?php echo $stx ?>" id="stx" class="bansang_ipt ver2 building_name_sch" placeholder="단지명 검색" autocomplete="off">
             </div>
+            <button type="submit" class="bansang_btns ver1">검색</button>
+            <div class="sch_divider"></div>
+            <label for="stx2" class="sound_only">상세 검색</label>
+            <input type="text" name="stx2" value="<?php echo $stx2 ?>" id="stx2" class="bansang_ipt ver2" placeholder="소유자/입주자/연락처/호수/차량번호">
             <button type="submit" class="bansang_btns ver1">검색</button>
         </div>
     </div>
 
 </form>
 <script>
-     $(document).on("keyup", ".building_name_sch", function(){
-        let sch_text = this.value;
-        let sch_category = $("#sfl option:selected").val();
-        console.log('keyup',sch_text);
+    // 1차 검색 매칭 단지 데이터 (PHP에서 전달)
+    var stxMatchData = <?php echo json_encode($stx_match_json); ?>;
 
-        if(sch_text != "" && sch_category == 'building_name'){
-           
-            let type = "<?php echo $type; ?>";
+    // 페이지 로드 시: 매칭 데이터로 드롭다운 세팅
+    $(function(){
+        if(stxMatchData && stxMatchData.length > 0){
 
-            console.log('building_name', sch_category);
-            $.ajax({
+            // 매칭 단지의 지역(post_id) 고유값 추출
+            var postMap = {};
+            stxMatchData.forEach(function(b){
+                if(b.post_id && !postMap[b.post_id]) postMap[b.post_id] = b.post_name;
+            });
+            var uniquePostIds = Object.keys(postMap);
 
-            url : "./house_hold_list_sch_text.php", //ajax 통신할 파일
-            type : "POST", // 형식
-            data: { "sch_category":sch_category, "sch_text":sch_text, "type":"Y"}, //파라미터 값
-            success: function(msg){ //성공시 이벤트
-
-             
-                console.log(msg);
-                $(".sch_result_box1").html(msg); //.select_box2에 html로 나타내라..
+            // 지역 드롭다운: 1개 지역이면 자동 선택, 여러 지역이면 "전체"
+            if(uniquePostIds.length == 1){
+                $("#post_id").val(uniquePostIds[0]);
+            } else {
+                $("#post_id").val("");
             }
-            })
+
+            // 단지 드롭다운: 매칭 단지 목록
+            var buildingHtml = '<option value="">단지 선택</option>';
+            stxMatchData.forEach(function(b){
+                var label = b.building_name + (b.is_use == 0 ? ' (해지)' : '');
+                var sel = stxMatchData.length == 1 ? ' selected' : '';
+                buildingHtml += '<option value="' + b.building_id + '"' + sel + '>' + label + '</option>';
+            });
+            $("#building_id").html(buildingHtml);
+
+            // 동 드롭다운
+            if(stxMatchData.length == 1){
+                // 단일 매칭: 해당 단지 동만
+                var dongHtml = '<option value="">동 선택</option>';
+                stxMatchData[0].dongs.forEach(function(d){
+                    dongHtml += '<option value="' + d.dong_id + '">' + d.dong_name + '동</option>';
+                });
+                $("#dong_id").html(dongHtml);
+            } else {
+                // 여러 매칭: 모든 동 합산 (중복 제거)
+                var dongMap = {};
+                stxMatchData.forEach(function(b){
+                    b.dongs.forEach(function(d){
+                        dongMap[d.dong_id] = d.dong_name;
+                    });
+                });
+                var dongHtml = '<option value="">동 선택</option>';
+                Object.keys(dongMap).sort(function(a,b){ return parseInt(dongMap[a]) - parseInt(dongMap[b]); }).forEach(function(did){
+                    dongHtml += '<option value="' + did + '">' + dongMap[did] + '동</option>';
+                });
+                $("#dong_id").html(dongHtml);
+            }
+        }
+    });
+
+    // 폼 제출 시: stx 있으면 드롭다운 초기화 (PHP+JS가 재세팅)
+    $("#fsearch").on("submit", function(){
+        var stxVal = $("#stx").val().trim();
+        if(stxVal != ""){
+            $("#post_id").val("");
+            $("#building_id").val("");
+            $("#dong_id").val("");
+        }
+    });
+
+    // 1차 검색: 단지명 자동완성
+    $(document).on("keyup", ".building_name_sch", function(){
+        let sch_text = this.value;
+
+        if(sch_text != ""){
+            $.ajax({
+                url : "./house_hold_list_sch_text.php",
+                type : "POST",
+                data: { "sch_category":"building_name", "sch_text":sch_text, "type":"Y"},
+                success: function(msg){
+                    $(".sch_result_box1").html(msg);
+                }
+            });
         }else{
             $(".sch_result_box1").html("");
         }
-      
     });
 
-    function sch_handler(text){
+    // 자동완성 항목 선택 시 단지명 확정 + 동 목록 업데이트
+    function sch_handler(text, bid){
         $(".sch_result_box1").html("");
         $(".building_name_sch").val(text);
+
+        // 동 드롭다운 업데이트
+        if(bid){
+            $.ajax({
+                url : "./building_dong_ajax.php",
+                type : "POST",
+                data: { "building_id": bid },
+                success: function(msg){
+                    $("#dong_id").html(msg);
+                }
+            });
+        }
     }
+
+    // 검색창 외부 클릭 시 자동완성 닫기
+    $(document).on("click", function(e){
+        if(!$(e.target).closest(".sch_ipt_boxs").length){
+            $(".sch_result_box1").html("");
+        }
+    });
 </script>
 
 <!-- <div class="local_desc01 local_desc">
@@ -289,6 +451,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     <input type="hidden" name="sod" value="<?php echo $sod ?>">
     <input type="hidden" name="sfl" value="<?php echo $sfl ?>">
     <input type="hidden" name="stx" value="<?php echo $stx ?>">
+    <input type="hidden" name="stx2" value="<?php echo $stx2 ?>">
     <input type="hidden" name="page" value="<?php echo $page ?>">
     <input type="hidden" name="token" value="">
 
@@ -306,13 +469,14 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                     <th>단지명</th>
                     <th>동</th>
                     <th>호수</th>
+                    <th>면적(㎡)</th>
                     <th>소유자</th>
                     <th>소유자 연락처</th>
                     <th>입주자</th>
                     <th>입주자 연락처</th>
                     <th>입주일</th>
-                    <th>등록차량 수</th>
-                    <th>세대구성원 수</th>
+                    <th>등록차량</th>
+                    <th>세대구성원</th>
                     <th>상태</th>
                     <th scope="col" id="mb_list_mng">관리</th>
                 </tr>
@@ -321,11 +485,15 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                 <?php
                 for ($i = 0; $row = sql_fetch_array($result); $i++) {
                     
-                    //차량 수
-                    $car_cnt = sql_fetch("SELECT COUNT(*) as cnt FROM a_building_car WHERE ho_id = '{$row['ho_id']}' and is_del = 0 and car_name != '' and car_type != ''");
+                    //차량 목록
+                    $car_list_res = sql_query("SELECT car_type, car_name FROM a_building_car WHERE ho_id = '{$row['ho_id']}' and is_del = 0 and car_name != '' ORDER BY car_id asc");
+                    $car_list = [];
+                    while($car_item = sql_fetch_array($car_list_res)) $car_list[] = $car_item;
 
-                    //세대구성원 수
-                    $hh_cnt = sql_fetch("SELECT COUNT(*) as cnt FROM a_building_household WHERE ho_id = '{$row['ho_id']}' and is_del = 0 and hh_relationship != '' and hh_name != ''");
+                    //세대구성원 목록
+                    $hh_list_res = sql_query("SELECT hh_relationship, hh_name FROM a_building_household WHERE ho_id = '{$row['ho_id']}' and is_del = 0 and hh_name != '' ORDER BY hh_id asc");
+                    $hh_list = [];
+                    while($hh_item = sql_fetch_array($hh_list_res)) $hh_list[] = $hh_item;
                 ?>
 
                     <tr class="<?php echo $row['ho_status'] == 'N' ? 'status_n' : ''; ?>">
@@ -341,16 +509,29 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                             ?>
                         </td>
                         <td><?php echo $row['post_name']; ?></td>
-                        <td><?php echo $row['building_name']; ?></td>
-                        <td><?php echo $row['dong_name'].'동'; ?></td>
-                        <td><?php echo $row['ho_name'].'호'; ?></td>
+                        <td><?php echo $row['building_name']; echo $row['is_use'] == 0 ? '<span style="color:#e74c3c;"> (해지)</span>' : ''; ?></td>
+                        <td><?php echo $row['dong_name']; ?></td>
+                        <td><?php echo $row['ho_name']; ?></td>
+                        <td><?php echo $row['ho_size'] ? number_format($row['ho_size'], 4) : '-'; ?></td>
                         <td><?php echo $row['ho_owner']; ?></td>
                         <td><?php echo $row['ho_owner_hp']; ?></td>
                         <td><?php echo $row['ho_status'] == 'N' ? '-' : $row['ho_tenant']; ?></td>
                         <td><?php echo $row['ho_status'] == 'N' ? '-' : $row['ho_tenant_hp']; ?></td>
                         <td><?php echo $row['ho_status'] == 'N' ? '-' : $row['ho_tenant_at']; ?></td>
-                        <td><?php echo $row['ho_status'] == 'N' ? 0 : $car_cnt['cnt']; ?></td>
-                        <td><?php echo $row['ho_status'] == 'N' ? 0 : $hh_cnt['cnt']; ?></td>
+                        <td>
+                            <?php if($row['ho_status'] == 'N'){ echo '-'; }else{ ?>
+                            <?php if(count($car_list) > 0){ foreach($car_list as $car_item){ ?>
+                                <div class="list_car_item"><?php echo $car_item['car_type'] ? $car_item['car_type'].' ' : ''; echo $car_item['car_name']; ?></div>
+                            <?php } }else{ echo '-'; } ?>
+                            <?php } ?>
+                        </td>
+                        <td>
+                            <?php if($row['ho_status'] == 'N'){ echo '-'; }else{ ?>
+                            <?php if(count($hh_list) > 0){ foreach($hh_list as $hh_item){ ?>
+                                <div class="list_hh_item"><?php echo $hh_item['hh_relationship'] ? '['.$hh_item['hh_relationship'].'] ' : ''; echo $hh_item['hh_name']; ?></div>
+                            <?php } }else{ echo '-'; } ?>
+                            <?php } ?>
+                        </td>
                         <td><?php echo $row['ho_status'] == 'Y' ? '입주' : '퇴실'; ?></td>
                         <td headers="mb_list_mng" class="td_mng td_mng_s">
                             <a href="./house_hold_form.php?<?=$qstr;?>&amp;w=<?php echo $row['ho_status'] == 'Y' ? 'u' : 'a';?>&amp;ho_id=<? echo $row['ho_id']; ?>" class="btn btn_03">관리</a>

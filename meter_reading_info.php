@@ -67,6 +67,85 @@ $nowMonnth = $selectMonth == "" ? date("n") : $selectMonth;
 </div>
 <script>
 
+// === localStorage 임시저장 ===
+var buildingId = "<?php echo $building_id; ?>";
+
+function getDraftKey(){
+    var year = $("#mr_year").val();
+    var month = $("#mr_month").val();
+    return 'meter_draft_' + buildingId + '_' + year + '_' + month + '_' + tabCode;
+}
+
+function saveDraft(){
+    var key = getDraftKey();
+    var data = {
+        total_val: $("input[name='total_val']").val() || '',
+        meter_date: $("input[name='meter_date']").val() || '',
+        readings: {},
+        timestamp: new Date().toISOString()
+    };
+    $("input[name='ho_id[]']").each(function(i){
+        var hoId = $(this).val();
+        var val = $("input[name='mr_val[]']").eq(i).val();
+        if(val !== '' && val !== undefined){
+            data.readings[hoId] = val;
+        }
+    });
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch(e){}
+}
+
+function loadDraft(){
+    var key = getDraftKey();
+    try {
+        var saved = localStorage.getItem(key);
+        if(!saved) return;
+        var data = JSON.parse(saved);
+
+        // 저장된 데이터에 실제 입력값이 있는지 확인
+        var hasData = (data.total_val && data.total_val !== '0' && data.total_val !== '')
+                      || Object.keys(data.readings).length > 0;
+        if(!hasData) return;
+
+        var timeStr = '';
+        if(data.timestamp){
+            var d = new Date(data.timestamp);
+            timeStr = ' (' + d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ')';
+        }
+
+        if(!confirm('임시저장된 데이터가 있습니다.' + timeStr + '\n불러오시겠습니까?')){
+            return;
+        }
+
+        // 메인 검침값 복원
+        if(data.total_val){
+            $("input[name='total_val']").val(data.total_val);
+        }
+        // 검침날짜 복원
+        if(data.meter_date){
+            $("input[name='meter_date']").val(data.meter_date);
+        }
+        // 세대별 검침값 복원
+        $("input[name='ho_id[]']").each(function(i){
+            var hoId = $(this).val();
+            if(data.readings[hoId] !== undefined){
+                $("input[name='mr_val[]']").eq(i).val(data.readings[hoId]);
+            }
+        });
+    } catch(e){}
+}
+
+function clearDraft(){
+    var key = getDraftKey();
+    try { localStorage.removeItem(key); } catch(e){}
+}
+
+function bindDraftEvents(){
+    $(document).off('input.draft');
+    $(document).on('input.draft', "input[name='total_val'], input[name='mr_val[]'], input[name='meter_date']", function(){
+        saveDraft();
+    });
+}
+
 function bindInputFocusEvent() {
     const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], input:not([type])');
 
@@ -108,12 +187,19 @@ function tab_handler(index, code){
         $(".meter_table_box_wrap").html(msg);
 
         bindInputFocusEvent();
+        bindDraftEvents();
+        loadDraft();
     }
 
     });
 }
 
 function meter_save(){
+    if(!navigator.onLine){
+        alert('통신이 잡히지 않습니다. 통신이 가능한 지역에서 저장을 눌러주세요');
+        return false;
+    }
+
     var formData = $("#meter_frm").serialize();
 
     var selectYear = $("#mr_year option:selected").val();
@@ -134,6 +220,7 @@ function meter_save(){
                 showToast(data.msg);
                 return false;
             }else{
+                clearDraft();
                 showToast(data.msg);
 
                 if(data.data == 'water'){
@@ -172,6 +259,8 @@ function meter_sch_handler(){
             $(".meter_table_box_wrap").html(msg);
 
             bindInputFocusEvent();
+            bindDraftEvents();
+            loadDraft();
         }
 
     });

@@ -1,4 +1,6 @@
 <?php
+header('Content-Type: application/json; charset=utf-8');
+@ob_clean();
 require_once "./_common.php";
 
 $today = date("Y-m-d H:i:s");
@@ -11,4 +13,5 @@ $update = "UPDATE a_move_request SET
             WHERE mv_idx = '{$mv_idx}'";
 sql_query($update);
 
-echo result_data(true, "이사(전출) 신청이 취소되었습니다.");
+echo result_data(true, "이사(전출) 신청이 취소되었습니다.", []);
+exit;

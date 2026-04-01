@@ -38,7 +38,11 @@ if($w == "u"){
     
         if($_SERVER['REMOTE_ADDR'] != ADMIN_IP){
             if($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']){ //토큰이 있는경우 푸시 발송
-                fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+                try {
+                    fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+                } catch(Exception $e) {
+                    // FCM 오류 무시하고 계속 진행
+                }
             }
 
             $insert_push = "INSERT INTO a_push SET
@@ -61,7 +65,6 @@ if($w == "u"){
                         {$sql_chk}
                         sign_off_memo = '{$sign_off_memo}'
                         WHERE sign_id = '{$sign_id}'";
-    // die(result_data(false, $update_query, $_POST));
     sql_query($update_query);
 
 }else{
@@ -98,7 +101,6 @@ if($w == "u"){
                         {$sql_chk}
                         created_at = '{$today}'";
 
-    //die(result_data(false, $insert_query, []));
     sql_query($insert_query);
     $sign_id = sql_insert_id(); //팝업 idx
 
@@ -126,9 +128,11 @@ if($w == "u"){
             sql_query($insert_push);
 
             if($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']){ //토큰이 있는경우 푸시 발송
-
-                fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
-                
+                try {
+                    fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+                } catch(Exception $e) {
+                    // FCM 오류 무시하고 계속 진행
+                }
             }
         }
     }
@@ -200,7 +204,6 @@ if(isset($_FILES['approval_file']['name'])){
             shuffle($chars_array);
             $shuffle = implode('', $chars_array);
 
-            // 첨부파일 첨부시 첨부파일명에 공백이 포함되어 있으면 일부 PC에서 보이지 않거나 다운로드 되지 않는 현상이 있습니다. (길상여의 님 090925)
             $upload[$i]['file'] = md5(sha1($_SERVER['REMOTE_ADDR'])).'_'.substr($shuffle,0,8).'_'.replace_filename($filename);
 
             $dest_file = $file_path.'/'.$upload[$i]['file'];
@@ -210,9 +213,8 @@ if(isset($_FILES['approval_file']['name'])){
                 if(move_uploaded_file($tmp_file, $dest_file)){
                     resizeImage($dest_file, 720, 720);
 
-                    $upload[$i]['image'] = @getimagesize($dest_file); //이미지 축소된 정보로 다시 저장
+                    $upload[$i]['image'] = @getimagesize($dest_file);
                 }else{
-                    //alert($_FILES['img_up']['error'][$i]);
                     die(result_data(false, $_FILES['approval_file']['error'][$i], []));
                 }
 
@@ -310,8 +312,6 @@ if($singature_row['cnt'] == 0){
     
         $tgt = $file_path.'/'.$wid."_".$file_name;
     
-        //echo $tgt.'<br>';
-    
         //파일저장
         file_put_contents($tgt, $decoded_image);
 
@@ -351,7 +351,6 @@ if($singature_row['cnt'] == 0){
                     sign_id = '{$sign_id}',
                     mng_id = '{$wid}',
                     created_at = '{$today}'";
-
 
     sql_query($insert_img);
 }

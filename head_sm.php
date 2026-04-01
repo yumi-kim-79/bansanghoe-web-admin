@@ -24,20 +24,16 @@ include_once(G5_LIB_PATH.'/connect.lib.php');
 include_once(G5_LIB_PATH.'/popular.lib.php');
 
 $mobile_agent = "/(iPod|iPhone|Android|BlackBerry|SymbianOS|SCH-M\d+|Opera Mini|Windows CE|Nokia|SonyEricsson|webOS|PalmOS)/";
-if(preg_match($mobile_agent, $_SERVER['HTTP_USER_AGENT'])){
+$is_webview = ($chk_app == 'Y') || 
+              (strpos($_SERVER['HTTP_USER_AGENT'], 'wv') !== false);
+if(preg_match($mobile_agent, $_SERVER['HTTP_USER_AGENT']) || $is_webview){
 	//echo "Mobile";
     
 }else{
 
     if($_SERVER['REMOTE_ADDR'] != "59.16.155.80" && $_SERVER['REMOTE_ADDR'] != "221.154.172.192"){
-
-        // if($basename != "class_test_view_adm.php"){
-        //     goto_url("/adm");
-        // }
         goto_url("/adm");
     }
-
-    //echo "231123132";
 }
 
 //매니저 계정 로그인이 아닐 때
@@ -128,7 +124,7 @@ if($pages != "login_sm.php" && $pages != "find_info.php" && $pages != "find_id.p
             $onClick = "historyBack();";
             $onClick2 = "toolTipShow();";
 
-            if($basename == "schedule_add.php"){
+            if($basename == "schedule_add.php" || $basename == "schedule_add2.php"){
                 $onClick = "location.replace('/sm_index.php?tabIdx=1&tabCode=schedule');";
             }
 
@@ -182,19 +178,23 @@ if($pages != "login_sm.php" && $pages != "find_info.php" && $pages != "find_id.p
                     </ul>
                 <?php }?>
             <?php }?>
-            <?php if($basename == "schedule_add.php" && $w == 'i'){
+            <?php if(($basename == "schedule_add.php" || $basename == "schedule_add2.php") && $w == 'i'){
                 $cal_sql = "SELECT cal.*, building.building_name FROM a_calendar as cal
                 LEFT JOIN a_building as building ON cal.building_id = building.building_id
                 WHERE cal.cal_idx = '{$cal_idx}'";
                 $cal_row = sql_fetch($cal_sql);
-                
-                //$cal_row['wid'] == $member['mb_id'] &&
-                if(!$cal_row['is_process']){
+
+                // 본인 등록 또는 담당자 또는 관리자만 수정/삭제 가능
+                // 처리완료 아닌 경우 또는 관리자(mb_level >= 10)인 경우 삭제/수정 가능
+                $is_owner = ($cal_row['wid'] == $member['mb_id'] || $cal_row['mng_id'] == $member['mb_id'] || $member['mb_level'] >= 10);
+                if($is_owner && (!$cal_row['is_process'] || $member['mb_level'] >= 10)){
+                    // 반복일정은 schedule_add2.php로, 일반일정은 schedule_add.php로 수정 이동
+                    $edit_page = $basename == "schedule_add2.php" ? "schedule_add2.php" : "schedule_add.php";
                 ?>
                 <button type="button" class="hd_btn home_btn"><img src="/images/head_option_icons.svg" alt=""></button>
                 <div class="tooltip_box">
-                    <a href="/schedule_add.php?w=u&cal_idx=<?php echo $cal_idx;?>&cal_code=<?php echo $cal_code; ?>" class="tooltip_btn">수정하기</a>
-                    <button type="button" onclick="popOpen('schedule_del_pop')"  class="tooltip_btn">삭제하기</button>
+                    <a href="/<?php echo $edit_page; ?>?w=u&cal_idx=<?php echo $cal_idx;?>&cal_code=<?php echo $cal_code; ?><?php echo $basename == 'schedule_add2.php' && $cal_date ? '&cal_date='.$cal_date : ''; ?>" class="tooltip_btn">수정하기</a>
+                    <button type="button" onclick="popOpen('schedule_del_pop')" class="tooltip_btn">삭제하기</button>
                 </div>
             <?php }?>
             <?php }?>

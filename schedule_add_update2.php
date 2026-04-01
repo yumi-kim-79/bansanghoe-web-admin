@@ -37,6 +37,7 @@ if($w == "u"){
                             mng_department = '{$mng_department}',
                             mng_id = '{$mng_id}',
                             cal_date = '{$cal_date}',
+                            noti_repeat = '{$noti_repeat}',
                             cal_title = '{$cal_title}',
                             cal_content = '{$cal_content}',
                             updated_at = '{$today}'
