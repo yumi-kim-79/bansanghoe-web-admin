@@ -174,6 +174,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 팝업 목록에 `label`(안건명)만 간결하게 표시, 목록 영역 스크롤 지원
   - 선택 시 `title`(투표주제) + `content`(HTML) 에디터 자동 입력
   - JSON으로 데이터 전달 (HTML 특수문자/따옴표 안전 처리), smarteditor/ckeditor/summernote 호환
+- [x] **매니저앱 점세개 버튼 토글 + 수정 저장 멈춤 수정** (2026-04-01)
+  - `head_sm.php`: `.hd_btn.home_btn` 클릭 시 `.tooltip_box` toggle JS 추가, 외부 클릭 시 닫기
+  - `schedule_add2.php`: AJAX error 핸들러 추가 (로딩 화면 멈춤 방지)
+  - `schedule_add_update2.php`: 비반복 수정 시 `$post_row` 미정의 → 별도 조회 추가, `$cal_code` → `$calcode` 변수명 수정
 - [x] **매니저앱 일정 수정 화면에서 삭제 버튼 미표시 수정** (2026-04-01)
   - `head_sm.php`: 삭제 버튼 조건 `$w == 'i'` → `$w == 'i' || $w == 'u'`로 변경
   - 원인: 반복일정은 `get_schedule2.php`에서 `w=u`로 접근하는데, head_sm.php에서 `w=i`만 허용

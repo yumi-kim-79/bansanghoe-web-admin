@@ -329,4 +329,22 @@ function token_save(id, apptoken, app, type){
 
     });
 }
+
+// 점세개(⋮) 버튼 클릭 시 tooltip_box 토글
+$(document).on("click", ".hd_btn.home_btn", function(e){
+    e.stopPropagation();
+    var $box = $(this).siblings(".tooltip_box");
+    $(".tooltip_box").not($box).hide();
+    $box.toggle();
+});
+
+// 외부 클릭 시 tooltip_box 닫기
+$(document).on("click", function(){
+    $(".tooltip_box").hide();
+});
+
+// tooltip_box 내부 클릭 시 버블링 방지
+$(document).on("click", ".tooltip_box", function(e){
+    e.stopPropagation();
+});
 </script>
