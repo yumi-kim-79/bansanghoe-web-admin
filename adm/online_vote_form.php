@@ -62,18 +62,18 @@ include_once('./online_vote_template_data.php');
         </div>
         <!-- 목록 -->
         <div id="tpl_list_mandatory">
-            <?php foreach($vote_templates['mandatory'] as $tpl){ ?>
-            <div class="tpl_item" onclick="tplSelect('<?php echo addslashes($tpl['title']); ?>', '<?php echo addslashes($tpl['content']); ?>');" style="padding:12px 15px;border:1px solid #e4e4e4;border-radius:6px;margin-bottom:8px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
-                <span style="display:inline-block;width:30px;font-weight:700;color:#388FCD;"><?php echo $tpl['no']; ?>.</span>
-                <span style="font-weight:600;"><?php echo $tpl['title']; ?></span>
+            <?php foreach($vote_templates['mandatory'] as $idx => $tpl){ ?>
+            <div class="tpl_item" data-tpl-idx="m_<?php echo $idx; ?>" onclick="tplSelectByIdx('mandatory', <?php echo $idx; ?>);" style="padding:12px 15px;border:1px solid #e4e4e4;border-radius:6px;margin-bottom:8px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
+                <span style="display:inline-block;min-width:30px;font-weight:700;color:#388FCD;"><?php echo $idx + 1; ?>.</span>
+                <span style="font-weight:600;"><?php echo htmlspecialchars($tpl['label']); ?></span>
             </div>
             <?php } ?>
         </div>
         <div id="tpl_list_non_mandatory" style="display:none;">
-            <?php foreach($vote_templates['non_mandatory'] as $tpl){ ?>
-            <div class="tpl_item" onclick="tplSelect('<?php echo addslashes($tpl['title']); ?>', '<?php echo addslashes($tpl['content']); ?>');" style="padding:12px 15px;border:1px solid #e4e4e4;border-radius:6px;margin-bottom:8px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
-                <span style="display:inline-block;width:30px;font-weight:700;color:#4E5E81;"><?php echo $tpl['no']; ?>.</span>
-                <span style="font-weight:600;"><?php echo $tpl['title']; ?></span>
+            <?php foreach($vote_templates['non_mandatory'] as $idx => $tpl){ ?>
+            <div class="tpl_item" data-tpl-idx="n_<?php echo $idx; ?>" onclick="tplSelectByIdx('non_mandatory', <?php echo $idx; ?>);" style="padding:12px 15px;border:1px solid #e4e4e4;border-radius:6px;margin-bottom:8px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
+                <span style="display:inline-block;min-width:30px;font-weight:700;color:#4E5E81;"><?php echo $idx + 1; ?>.</span>
+                <span style="font-weight:600;"><?php echo htmlspecialchars($tpl['label']); ?></span>
             </div>
             <?php } ?>
         </div>
@@ -424,6 +424,9 @@ include_once('./online_vote_template_data.php');
 
 <script>
 
+// 투표 템플릿 JSON 데이터 (PHP → JS)
+var tplData = <?php echo json_encode($vote_templates, JSON_UNESCAPED_UNICODE); ?>;
+
 // 투표 템플릿 탭 전환
 function tplTabChange(type, el){
     $('#tpl_list_mandatory').hide();
@@ -434,25 +437,31 @@ function tplTabChange(type, el){
     $(el).css({background:'#388FCD', color:'#fff', border:'1px solid #388FCD'}).addClass('tpl_tab_active');
 }
 
-// 투표 템플릿 선택 시 자동 입력
-function tplSelect(title, content){
-    // 투표주제
-    $("input[name='vt_title']").val(title);
+// 투표 템플릿 선택 (JSON에서 안전하게 읽기)
+function tplSelectByIdx(type, idx){
+    var tpl = tplData[type][idx];
+    if(!tpl) return;
 
-    // 내용 에디터 - textarea 직접 설정 + iframe 에디터 시도
-    $("textarea[name='vt_content']").val(content);
+    // 투표주제 (title)
+    $("input[name='vt_title']").val(tpl.title);
+
+    // 내용 에디터 (content - HTML)
+    var htmlContent = tpl.content;
+
+    // textarea 직접 설정
+    $("textarea[name='vt_content']").val(htmlContent);
 
     // smarteditor2
     if(typeof oEditors !== 'undefined'){
-        try { oEditors.getById['vt_content'].exec('SET_IR', ['<p>' + content + '</p>']); } catch(e){}
+        try { oEditors.getById['vt_content'].exec('SET_IR', [htmlContent]); } catch(e){}
     }
     // ckeditor
     if(typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['vt_content']){
-        try { CKEDITOR.instances['vt_content'].setData('<p>' + content + '</p>'); } catch(e){}
+        try { CKEDITOR.instances['vt_content'].setData(htmlContent); } catch(e){}
     }
     // summernote
     if($.fn.summernote && $("textarea[name='vt_content']").data('summernote')){
-        try { $("textarea[name='vt_content']").summernote('code', '<p>' + content + '</p>'); } catch(e){}
+        try { $("textarea[name='vt_content']").summernote('code', htmlContent); } catch(e){}
     }
 
     $('#vote_template_pop').hide();
