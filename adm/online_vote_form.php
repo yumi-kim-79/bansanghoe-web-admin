@@ -50,32 +50,32 @@ include_once('./online_vote_template_data.php');
 
 <!-- 투표 템플릿 팝업 -->
 <div id="vote_template_pop" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(0,0,0,0.5);">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:10px;padding:25px 20px;width:560px;max-height:80vh;overflow-y:auto;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:10px;padding:25px 20px;width:560px;max-height:80vh;display:flex;flex-direction:column;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-shrink:0;">
             <p style="font-size:16px;font-weight:700;">투표 템플릿 선택</p>
             <button type="button" onclick="$('#vote_template_pop').hide();" style="background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
         </div>
         <!-- 탭 -->
-        <div style="display:flex;gap:0;margin-bottom:15px;border-bottom:2px solid #388FCD;">
+        <div style="display:flex;gap:0;margin-bottom:0;border-bottom:2px solid #388FCD;flex-shrink:0;">
             <button type="button" class="tpl_tab tpl_tab_active" onclick="tplTabChange('mandatory', this);" style="flex:1;padding:10px;border:1px solid #388FCD;border-bottom:none;background:#388FCD;color:#fff;font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;">의무관리</button>
             <button type="button" class="tpl_tab" onclick="tplTabChange('non_mandatory', this);" style="flex:1;padding:10px;border:1px solid #ddd;border-bottom:none;background:#f5f5f5;color:#333;font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;">비의무관리</button>
         </div>
-        <!-- 목록 -->
-        <div id="tpl_list_mandatory">
-            <?php foreach($vote_templates['mandatory'] as $idx => $tpl){ ?>
-            <div class="tpl_item" data-tpl-idx="m_<?php echo $idx; ?>" onclick="tplSelectByIdx('mandatory', <?php echo $idx; ?>);" style="padding:12px 15px;border:1px solid #e4e4e4;border-radius:6px;margin-bottom:8px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
-                <span style="display:inline-block;min-width:30px;font-weight:700;color:#388FCD;"><?php echo $idx + 1; ?>.</span>
-                <span style="font-weight:600;"><?php echo htmlspecialchars($tpl['label']); ?></span>
+        <!-- 목록 (스크롤 영역) -->
+        <div style="overflow-y:auto;flex:1;padding-top:12px;">
+            <div id="tpl_list_mandatory">
+                <?php foreach($vote_templates['mandatory'] as $idx => $tpl){ ?>
+                <div class="tpl_item" onclick="tplSelectByIdx('mandatory', <?php echo $idx; ?>);" style="padding:10px 12px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background 0.15s;font-size:13px;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
+                    <span style="display:inline-block;min-width:28px;font-weight:700;color:#388FCD;"><?php echo $idx + 1; ?>.</span><?php echo htmlspecialchars($tpl['label']); ?>
+                </div>
+                <?php } ?>
             </div>
-            <?php } ?>
-        </div>
-        <div id="tpl_list_non_mandatory" style="display:none;">
-            <?php foreach($vote_templates['non_mandatory'] as $idx => $tpl){ ?>
-            <div class="tpl_item" data-tpl-idx="n_<?php echo $idx; ?>" onclick="tplSelectByIdx('non_mandatory', <?php echo $idx; ?>);" style="padding:12px 15px;border:1px solid #e4e4e4;border-radius:6px;margin-bottom:8px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
-                <span style="display:inline-block;min-width:30px;font-weight:700;color:#4E5E81;"><?php echo $idx + 1; ?>.</span>
-                <span style="font-weight:600;"><?php echo htmlspecialchars($tpl['label']); ?></span>
+            <div id="tpl_list_non_mandatory" style="display:none;">
+                <?php foreach($vote_templates['non_mandatory'] as $idx => $tpl){ ?>
+                <div class="tpl_item" onclick="tplSelectByIdx('non_mandatory', <?php echo $idx; ?>);" style="padding:10px 12px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background 0.15s;font-size:13px;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
+                    <span style="display:inline-block;min-width:28px;font-weight:700;color:#4E5E81;"><?php echo $idx + 1; ?>.</span><?php echo htmlspecialchars($tpl['label']); ?>
+                </div>
+                <?php } ?>
             </div>
-            <?php } ?>
         </div>
     </div>
 </div>
