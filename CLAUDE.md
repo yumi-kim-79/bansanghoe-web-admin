@@ -162,10 +162,22 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
-- [x] **매니저앱/어드민 검침일 캘린더 삭제 기능 확인 및 권한 정리** (2026-04-01)
-  - `head_sm.php`: 삭제 버튼 본인 등록/담당자/관리자만 표시 (기존 주석 처리된 권한 체크 활성화)
-  - `schedule_add2.php`: 3가지 옵션 삭제 팝업 확인 완료 (이미 구현됨)
-  - `adm/calendar_form2.php`: 3가지 옵션 삭제 팝업 확인 완료 (이미 구현됨)
+- [x] **QR 인쇄 페이지 전체 디자인 리뉴얼** (2026-04-01)
+  - 파일: `adm/inspection_print.php`
+  - 헤더: #1a2e4a 배경 + 단지명 + AIVEX 로고, QR 180x180px, 중앙 로고 30x30px (~2.8%)
+  - 카드형 레이아웃: CSS Grid 3열, border-radius:10px, box-shadow
+  - 3열x3행=9개/페이지로 변경 (A4 여백 최적화), 푸터 추가
+  - @media print 동일 적용, print-color-adjust:exact
+- [x] **온라인 투표 템플릿 선택 기능 추가** (2026-04-01)
+  - `adm/online_vote_form.php`: "투표 템플릿 선택" 버튼 + 팝업 (의무관리/비의무관리 탭)
+  - `adm/online_vote_template_data.php`: 의무 104건, 비의무 105건 (label/title/content 구조)
+  - 팝업 목록에 `label`(안건명)만 간결하게 표시, 목록 영역 스크롤 지원
+  - 선택 시 `title`(투표주제) + `content`(HTML) 에디터 자동 입력
+  - JSON으로 데이터 전달 (HTML 특수문자/따옴표 안전 처리), smarteditor/ckeditor/summernote 호환
+- [x] **매니저앱 일정 수정 화면에서 삭제 버튼 미표시 수정** (2026-04-01)
+  - `head_sm.php`: 삭제 버튼 조건 `$w == 'i'` → `$w == 'i' || $w == 'u'`로 변경
+  - 원인: 반복일정은 `get_schedule2.php`에서 `w=u`로 접근하는데, head_sm.php에서 `w=i`만 허용
+  - 권한: 본인 등록(wid)/담당자(mng_id)/관리자(mb_level>=10) + 미처리 또는 관리자
 - [x] **매니저앱 반복설정 "안함" 저장 안 되는 버그 수정** (2026-04-01)
   - `schedule_add2.php`: JS calendar_submit에서 수정 모드 시 hidden input만 읽던 로직 → 라디오 버튼 우선 읽도록 수정
   - `schedule_add_update2.php`: 반복일정 전체 수정 UPDATE에 `noti_repeat` 누락 → 추가

@@ -106,7 +106,7 @@ sort($res_date);
         <div class="cal_header_label">월</div>
         <select name="cal_month" id="cal_month" class="bansang_sel" onchange="cal_month_change();">
             <?php for($i=1;$i<=12;$i++){
-                 $monthzero = str_pad($i, 2, "0", STR_PAD_LEFT);    
+                 $monthzero = str_pad($i, 2, "0", STR_PAD_LEFT);
             ?>
             <option value="<?php echo $monthzero; ?>" <?php echo get_selected($month, $monthzero); ?>><?php echo $monthzero; ?></option>
             <?php }?>
