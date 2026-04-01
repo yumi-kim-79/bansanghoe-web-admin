@@ -590,13 +590,9 @@ function calendar_submit(){
             success: function(data) {
                 console.log('data:::', data);
 
-                if(data.result == false) { 
+                if(data.result == false) {
                     showToast(data.msg);
-                    //$(".btn_submit").attr('disabled', false);
                     $("#building_info_pop").hide();
-                    // if(data.data != ""){
-                    //     $("#" + data.data).focus();
-                    // }
                     return false;
                 }else{
                     showToast(data.msg);
@@ -608,6 +604,11 @@ function calendar_submit(){
                     }, 700);
                 }
             },
+            error: function(xhr, status, error){
+                console.log('ajax error:', status, error);
+                $("#building_info_pop").hide();
+                alert("저장 중 오류가 발생했습니다. 다시 시도해주세요.");
+            }
         });
    
     

@@ -90,9 +90,11 @@ if($w == "u"){
 
     }else{
 
+        $post_row_nr = sql_fetch("SELECT * FROM a_building WHERE building_id = '{$building_id}'");
+
         $update_query = "UPDATE a_calendar SET
-                            cal_code = '{$cal_code}',
-                            post_id = '{$post_row['post_id']}',
+                            cal_code = '{$calcode}',
+                            post_id = '{$post_row_nr['post_id']}',
                             building_id = '{$building_id}',
                             mng_department = '{$mng_department}',
                             mng_id = '{$mng_id}',
