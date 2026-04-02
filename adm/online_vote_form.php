@@ -485,8 +485,11 @@ function tplApplyItem(type, idx){
     // 투표주제 (title)
     $("input[name='vt_title']").val(tpl.title);
 
-    // 내용 에디터 (content - HTML)
+    // 내용 에디터 (content - HTML) - 불필요한 라벨 제거
     var htmlContent = tpl.content;
+    htmlContent = htmlContent.replace(/\[SM 오프닝\]\s*/g, '');
+    htmlContent = htmlContent.replace(/\[제안 사유 및 기대효과\]\s*(<br\s*\/?>)?\s*/gi, '');
+    htmlContent = htmlContent.replace(/(<br\s*\/?\s*>){3,}/gi, '<br><br>');
 
     // textarea 직접 설정
     $("textarea[name='vt_content']").val(htmlContent);
