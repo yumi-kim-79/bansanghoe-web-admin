@@ -88,10 +88,7 @@ include_once('./online_vote_template_data.php');
     <input type="hidden" name="vt_id" value="<?php echo $row['vt_id']; ?>">
 
     <div class="tbl_frm01 tbl_wrap">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <h2 class="h2_frm ver2" style="margin:0;">관리단 정보</h2>
-            <button type="button" class="btn btn_03" onclick="$('#vote_template_pop').show();" style="font-size:14px;padding:8px 16px;">투표 템플릿 선택</button>
-        </div>
+        <h2 class="h2_frm ver2">관리단 정보</h2>
         <table>
             <caption><?php echo $g5['title']; ?></caption>
             <colgroup>
@@ -383,6 +380,7 @@ include_once('./online_vote_template_data.php');
         <?php if($w == 'u'){?>
         <button type="button" onclick="vote_del_handler();" class="btn btn_01">삭제</button>
         <?php }?>
+        <button type="button" class="btn btn_03" onclick="$('#vote_template_pop').show();" style="font-size:14px;padding:8px 16px;display:inline-flex;align-items:center;">투표 템플릿 선택</button>
         <input type="submit" value="저장" class="btn_submit btn btn_02" accesskey='s'>
     </div>
 </form>

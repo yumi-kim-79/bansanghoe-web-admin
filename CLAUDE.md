@@ -162,9 +162,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
-- [x] **온라인 투표 등록 화면 '투표 템플릿 선택' 버튼 수직 중앙 정렬** (2026-04-02)
+- [x] **온라인 투표 등록 화면 '투표 템플릿 선택' 버튼 위치 및 정렬 수정** (2026-04-02)
   - 파일: `adm/online_vote_form.php`
-  - 기존: 별도 div로 분리되어 아래로 쏠림 → 수정: `h2_frm` 제목과 같은 flex 컨테이너에 배치, `align-items:center`로 수직 중앙 정렬
+  - 버튼을 우측 상단 `btn_fixed_top` 영역의 '저장' 버튼 바로 왼쪽으로 이동
+  - `display:inline-flex;align-items:center`로 버튼 내 글씨 수직 중앙 정렬
 - [x] **온라인 투표 템플릿 content에서 [SM 오프닝] 및 [제안 사유 및 기대효과] 제목 텍스트 제거** (2026-04-02)
   - 파일: `adm/online_vote_template_data.php`
   - 209건 모두 제거, `[확인 사항 및 첨부파일]` 제목은 유지
