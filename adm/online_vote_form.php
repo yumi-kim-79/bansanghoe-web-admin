@@ -75,8 +75,8 @@ include_once('./online_vote_template_data.php');
                                 <option value="mandatory">의무관리</option>
                                 <option value="non_mandatory">비의무관리</option>
                             </select>
-                            <div style="position:relative;flex:1;">
-                                <input type="text" id="tpl_search" class="bansang_ipt ver2" placeholder="템플릿 검색..." autocomplete="off" onfocus="tplDropdownShow();" oninput="tplFilterList();">
+                            <div style="position:relative;width:450px;">
+                                <input type="text" id="tpl_search" class="bansang_ipt ver2" style="width:100%;" placeholder="템플릿 검색..." autocomplete="off" onfocus="tplDropdownShow();" oninput="tplFilterList();">
                                 <button type="button" id="tpl_clear_btn" onclick="tplClearSelection();" style="display:none;position:absolute;right:-8px;top:-8px;width:18px;height:18px;background:#999;border:none;border-radius:50%;font-size:12px;color:#fff;cursor:pointer;padding:0;line-height:18px;text-align:center;z-index:10;">&times;</button>
                                 <div id="tpl_dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:300px;overflow-y:auto;background:#fff;border:1px solid #ddd;border-top:none;z-index:100;box-shadow:0 4px 8px rgba(0,0,0,0.1);"></div>
                             </div>
