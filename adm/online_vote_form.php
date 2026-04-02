@@ -76,7 +76,8 @@ include_once('./online_vote_template_data.php');
                                 <option value="non_mandatory">비의무관리</option>
                             </select>
                             <div style="position:relative;flex:1;">
-                                <input type="text" id="tpl_search" class="bansang_ipt ver2" placeholder="템플릿 검색..." autocomplete="off" onfocus="tplDropdownShow();" oninput="tplFilterList();">
+                                <input type="text" id="tpl_search" class="bansang_ipt ver2" placeholder="템플릿 검색..." autocomplete="off" onfocus="tplDropdownShow();" oninput="tplFilterList();" style="padding-right:30px;">
+                                <button type="button" id="tpl_clear_btn" onclick="tplClearSelection();" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:#999;cursor:pointer;padding:0;line-height:1;">&times;</button>
                                 <div id="tpl_dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:300px;overflow-y:auto;background:#fff;border:1px solid #ddd;border-top:none;z-index:100;box-shadow:0 4px 8px rgba(0,0,0,0.1);"></div>
                             </div>
                         </div>
@@ -504,9 +505,32 @@ function tplApplyItem(type, idx){
     }
 
     // 검색창에 선택된 템플릿 이름 표시 및 드롭다운 닫기
-    $('#tpl_search').val(tpl.label);
+    $('#tpl_search').val(tpl.label).prop('readOnly', true);
+    $('#tpl_clear_btn').show();
     $('#tpl_dropdown').hide();
     alert('템플릿이 적용되었습니다.\n내용을 확인 후 수정하세요.');
+}
+
+// 템플릿 선택 초기화
+function tplClearSelection(){
+    // 검색창 초기화
+    $('#tpl_search').val('').prop('readOnly', false).focus();
+    $('#tpl_clear_btn').hide();
+
+    // 투표주제 초기화
+    $("input[name='vt_title']").val('');
+
+    // 에디터 초기화
+    $("textarea[name='vt_content']").val('');
+    if(typeof oEditors !== 'undefined'){
+        try { oEditors.getById['vt_content'].exec('SET_IR', ['']); } catch(e){}
+    }
+    if(typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['vt_content']){
+        try { CKEDITOR.instances['vt_content'].setData(''); } catch(e){}
+    }
+    if($.fn.summernote && $("textarea[name='vt_content']").data('summernote')){
+        try { $("textarea[name='vt_content']").summernote('code', ''); } catch(e){}
+    }
 }
 
 //투표 삭제
