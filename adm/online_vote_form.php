@@ -415,25 +415,71 @@ include_once('./online_vote_template_data.php');
 
 <script>
 
-// CHEditor5 iframe 내부 기본 글씨체/크기 적용
+// CHEditor5 기본 글씨체/크기 설정 (config + iframe + 툴바)
 $(document).ready(function(){
-    var applyIframeStyle = setInterval(function(){
-        if(typeof ed_vt_content !== 'undefined' && ed_vt_content.editorIframe){
+    var defaultFontName = "'Arial Black', 'Arial', sans-serif";
+    var defaultFontSize = "16px";
+
+    var applyDefaults = setInterval(function(){
+        if(typeof ed_vt_content === 'undefined') return;
+
+        // 1. config 기본값 변경 (툴바 기본 표시값에 영향)
+        ed_vt_content.config.editorFontName = defaultFontName;
+        ed_vt_content.config.editorFontSize = defaultFontSize;
+
+        // 2. iframe body 스타일 적용
+        if(ed_vt_content.editorIframe){
             try {
                 var iframeDoc = ed_vt_content.editorIframe.contentDocument || ed_vt_content.editorIframe.contentWindow.document;
                 var body = iframeDoc.body;
                 if(body){
-                    body.style.fontFamily = "'Arial Black', 'Arial', sans-serif";
-                    body.style.fontSize = "16px";
+                    body.style.fontFamily = defaultFontName;
+                    body.style.fontSize = defaultFontSize;
                     body.style.lineHeight = "1.6";
-                    clearInterval(applyIframeStyle);
+
+                    // 3. 툴바 FontName/FontSize select 텍스트 강제 업데이트
+                    try {
+                        var toolbarDiv = ed_vt_content.currentRS.elNode.parentNode;
+                        var btns = toolbarDiv.querySelectorAll('.che_toolbar button');
+                        btns.forEach(function(btn){
+                            var span = btn.querySelector('span > span');
+                            if(!span) return;
+                            var txt = span.textContent;
+                            // FontName 버튼: 기존 기본 폰트명이 표시된 버튼 찾기
+                            if(txt.indexOf('맑은 고딕') > -1 || txt.indexOf('Malgun') > -1 || txt.indexOf('gulim') > -1 || txt === 'sans-serif'){
+                                span.textContent = 'Arial Black';
+                            }
+                            // FontSize 버튼: 기존 기본 크기가 표시된 버튼 찾기
+                            if(txt === '12px' || txt === '14' || txt === '14px' || txt === '12'){
+                                span.textContent = '16px';
+                            }
+                        });
+                    } catch(e2){}
+
+                    clearInterval(applyDefaults);
                 }
             } catch(e){}
         }
     }, 300);
-    // 5초 후 타임아웃
-    setTimeout(function(){ clearInterval(applyIframeStyle); }, 5000);
+    setTimeout(function(){ clearInterval(applyDefaults); }, 5000);
 });
+
+// 템플릿 적용 후 툴바 FontName/FontSize 강제 업데이트
+function updateToolbarFontDisplay(){
+    try {
+        var toolbarDiv = ed_vt_content.currentRS.elNode.parentNode;
+        var btns = toolbarDiv.querySelectorAll('.che_toolbar button span > span');
+        btns.forEach(function(span){
+            var txt = span.textContent;
+            if(txt.indexOf('맑은 고딕') > -1 || txt.indexOf('Malgun') > -1 || txt.indexOf('gulim') > -1 || txt === 'sans-serif' || txt.indexOf('noto') > -1 || txt.indexOf('Noto') > -1){
+                span.textContent = 'Arial Black';
+            }
+            if(txt === '12px' || txt === '14px' || txt === '14' || txt === '12' || txt === '13px' || txt === '13'){
+                span.textContent = '16px';
+            }
+        });
+    } catch(e){}
+}
 
 // 투표 템플릿 JSON 데이터 (PHP → JS)
 var tplData = <?php echo json_encode($vote_templates, JSON_UNESCAPED_UNICODE); ?>;
@@ -542,6 +588,9 @@ function tplApplyItem(type, idx){
     if($.fn.summernote && $("textarea[name='vt_content']").data('summernote')){
         try { $("textarea[name='vt_content']").summernote('code', htmlContent); } catch(e){}
     }
+
+    // 템플릿 적용 후 툴바 글씨체/크기 표시 업데이트
+    setTimeout(function(){ updateToolbarFontDisplay(); }, 200);
 
     // 검색창에 선택된 템플릿 이름 표시 및 드롭다운 닫기
     $('#tpl_search').val(tpl.label).prop('readOnly', true);

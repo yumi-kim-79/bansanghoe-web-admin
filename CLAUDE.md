@@ -179,7 +179,7 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - JS에서 에디터 입력 시 `[SM 오프닝]`, `[제안 사유 및 기대효과]` 라벨 제거 + 연속 `<br>` 3개 이상 정리 (`[확인 사항 및 첨부파일]`은 유지)
   - 검색 박스 너비 450px 고정, ✕ 버튼은 검색 박스 우측 상단 모서리에 배치 (right:-10px, top:-10px)
   - 선택 후 ✕ 버튼 표시 → 클릭 시 검색창·투표주제·에디터 내용 모두 초기화, 검색 가능 상태로 복귀
-  - 에디터 기본 글씨체 Arial Black/16px/line-height:1.6 적용 (CSS+iframe+tplApplyItem 인라인스타일 제거 후 div 래핑)
+  - 에디터 기본 글씨체 Arial Black/16px/line-height:1.6 적용 (config+CSS+iframe+툴바 강제 업데이트+tplApplyItem 인라인스타일 제거 후 div 래핑)
 - [x] **온라인 투표 템플릿 content에서 [SM 오프닝] 및 [제안 사유 및 기대효과] 제목 텍스트 제거** (2026-04-02)
   - 파일: `adm/online_vote_template_data.php`
   - 209건 모두 제거, `[확인 사항 및 첨부파일]` 제목은 유지
