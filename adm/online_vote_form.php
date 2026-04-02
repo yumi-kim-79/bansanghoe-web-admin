@@ -496,56 +496,27 @@ function tplApplyItem(type, idx){
     htmlContent = htmlContent.replace(/\s*style\s*=\s*["']\s*["']/gi, '');
     htmlContent = '<div style="font-family:\'Arial Black\',\'Arial\',sans-serif;font-size:16px;line-height:1.6;">' + htmlContent + '</div>';
 
-    // CHEditor5 에디터에 내용 설정
-    var editorApplied = false;
-
-    // 방법1: ed_vt_content 전역 변수로 접근
-    if(typeof ed_vt_content !== 'undefined' && ed_vt_content && ed_vt_content.doc && ed_vt_content.doc.body){
-        try {
-            ed_vt_content.replaceContents(htmlContent);
-            editorApplied = true;
-            console.log('[tplApplyItem] ed_vt_content.replaceContents 성공');
-        } catch(e){
-            console.warn('[tplApplyItem] replaceContents 실패:', e.message);
-        }
-    }
-
-    // 방법2: tx_vt_content textarea 근처의 iframe을 DOM에서 직접 탐색
-    if(!editorApplied){
-        var cheIframe = $('#tx_vt_content').closest('.cheditor-container, td').find('iframe').filter(function(){
-            try { return this.contentDocument && this.contentDocument.body; } catch(e){ return false; }
-        }).first();
-        if(cheIframe.length){
+    // CHEditor5 iframe에 내용 삽입 (class="cheditor-editarea")
+    var editorIframe = document.querySelector('iframe.cheditor-editarea');
+    if(!editorIframe){
+        // fallback: designMode가 on인 iframe 탐색
+        var allIframes = document.querySelectorAll('iframe');
+        for(var i = 0; i < allIframes.length; i++){
             try {
-                cheIframe[0].contentDocument.body.innerHTML = htmlContent;
-                editorApplied = true;
-                console.log('[tplApplyItem] iframe DOM 탐색으로 직접 삽입 성공');
-            } catch(e){
-                console.warn('[tplApplyItem] iframe 직접 삽입 실패:', e.message);
-            }
-        }
-    }
-
-    // 방법3: 페이지 내 cheditor iframe 전수 탐색
-    if(!editorApplied){
-        $('iframe').each(function(){
-            try {
-                var doc = this.contentDocument;
-                if(doc && doc.body && doc.designMode === 'on'){
-                    doc.body.innerHTML = htmlContent;
-                    editorApplied = true;
-                    console.log('[tplApplyItem] designMode iframe 탐색으로 삽입 성공');
-                    return false; // break
+                if(allIframes[i].contentDocument && allIframes[i].contentDocument.designMode === 'on'){
+                    editorIframe = allIframes[i];
+                    break;
                 }
             } catch(e){}
-        });
+        }
     }
-
-    if(!editorApplied){
-        console.warn('[tplApplyItem] 에디터 iframe 접근 불가, textarea만 설정');
+    if(editorIframe && editorIframe.contentDocument && editorIframe.contentDocument.body){
+        editorIframe.contentDocument.body.innerHTML = htmlContent;
+        console.log('[tplApplyItem] iframe.cheditor-editarea에 내용 삽입 성공');
+    } else {
+        console.warn('[tplApplyItem] 에디터 iframe 접근 불가');
     }
-
-    // textarea (hidden) 동기화
+    // hidden textarea 동기화
     $('#tx_vt_content').val(htmlContent);
 
     // 검색창에 선택된 템플릿 이름 표시 및 드롭다운 닫기
@@ -564,21 +535,21 @@ function tplClearSelection(){
     // 투표주제 초기화
     $("input[name='vt_title']").val('');
 
-    // 에디터 초기화
-    var cleared = false;
-    if(typeof ed_vt_content !== 'undefined' && ed_vt_content && ed_vt_content.doc && ed_vt_content.doc.body){
-        try { ed_vt_content.replaceContents(''); cleared = true; } catch(e){}
-    }
-    if(!cleared){
-        $('iframe').each(function(){
+    // 에디터 초기화 (iframe.cheditor-editarea)
+    var editorIframe = document.querySelector('iframe.cheditor-editarea');
+    if(!editorIframe){
+        var allIframes = document.querySelectorAll('iframe');
+        for(var i = 0; i < allIframes.length; i++){
             try {
-                var doc = this.contentDocument;
-                if(doc && doc.body && doc.designMode === 'on'){
-                    doc.body.innerHTML = '';
-                    return false;
+                if(allIframes[i].contentDocument && allIframes[i].contentDocument.designMode === 'on'){
+                    editorIframe = allIframes[i];
+                    break;
                 }
             } catch(e){}
-        });
+        }
+    }
+    if(editorIframe && editorIframe.contentDocument && editorIframe.contentDocument.body){
+        editorIframe.contentDocument.body.innerHTML = '';
     }
     $('#tx_vt_content').val('');
 }
