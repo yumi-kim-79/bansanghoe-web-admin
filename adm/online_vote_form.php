@@ -404,7 +404,36 @@ include_once('./online_vote_template_data.php');
 	</div>
 </div>
 
+<style>
+/* CHEditor5 에디터 영역 기본 글씨체/크기 (iframe이 아닌 경우 적용) */
+.cheditor_editer_frame, .cheditor_edit_area {
+    font-family: 'Arial Black', 'Arial', sans-serif !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+}
+</style>
+
 <script>
+
+// CHEditor5 iframe 내부 기본 글씨체/크기 적용
+$(document).ready(function(){
+    var applyIframeStyle = setInterval(function(){
+        if(typeof ed_vt_content !== 'undefined' && ed_vt_content.editorIframe){
+            try {
+                var iframeDoc = ed_vt_content.editorIframe.contentDocument || ed_vt_content.editorIframe.contentWindow.document;
+                var body = iframeDoc.body;
+                if(body){
+                    body.style.fontFamily = "'Arial Black', 'Arial', sans-serif";
+                    body.style.fontSize = "16px";
+                    body.style.lineHeight = "1.6";
+                    clearInterval(applyIframeStyle);
+                }
+            } catch(e){}
+        }
+    }, 300);
+    // 5초 후 타임아웃
+    setTimeout(function(){ clearInterval(applyIframeStyle); }, 5000);
+});
 
 // 투표 템플릿 JSON 데이터 (PHP → JS)
 var tplData = <?php echo json_encode($vote_templates, JSON_UNESCAPED_UNICODE); ?>;
@@ -485,11 +514,18 @@ function tplApplyItem(type, idx){
     // 투표주제 (title)
     $("input[name='vt_title']").val(tpl.title);
 
-    // 내용 에디터 (content - HTML) - 불필요한 라벨 제거
+    // 내용 에디터 (content - HTML) - font 인라인 스타일 제거 + 불필요한 라벨 제거
     var htmlContent = tpl.content;
+    // font-family, font-size 인라인 스타일 제거
+    htmlContent = htmlContent.replace(/\s*font-family\s*:[^;"']*[;]?/gi, '');
+    htmlContent = htmlContent.replace(/\s*font-size\s*:[^;"']*[;]?/gi, '');
+    htmlContent = htmlContent.replace(/\s*style\s*=\s*["']\s*["']/gi, '');
+    // 라벨 제거
     htmlContent = htmlContent.replace(/\[SM 오프닝\]\s*/g, '');
     htmlContent = htmlContent.replace(/\[제안 사유 및 기대효과\]\s*(<br\s*\/?>)?\s*/gi, '');
     htmlContent = htmlContent.replace(/(<br\s*\/?\s*>){3,}/gi, '<br><br>');
+    // 기본 글씨체/크기로 감싸기
+    htmlContent = '<div style="font-family:\'Arial Black\',\'Arial\',sans-serif;font-size:16px;line-height:1.6;">' + htmlContent + '</div>';
 
     // textarea 직접 설정
     $("textarea[name='vt_content']").val(htmlContent);
