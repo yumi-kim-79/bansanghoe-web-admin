@@ -23,7 +23,7 @@ $ed_nonce = ft_nonce_create('cheditor');
     .btn-area { margin-top: 15px; text-align: right; }
     .btn-test { padding: 10px 24px; background: #388FCD; color: #fff; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
     .btn-test:hover { background: #2d7ab8; }
-    .ck-editor__editable { min-height: 300px; font-family: 'Arial Black', Gadget, sans-serif; font-size: 16px; }
+    .ck-editor__editable { min-height: 300px; font-family: 'Arial Black', 'Arial', sans-serif !important; font-size: 16px !important; line-height: 1.6 !important; }
 </style>
 </head>
 <body>
@@ -132,9 +132,16 @@ ClassicEditor.create(document.querySelector('#ck5_test_editor'), {
 }).then(editor => {
     window.ck5TestEditor = editor;
 
-    // setData 래퍼: 내용 전체에 기본 글씨체/크기 적용
+    // setData 래퍼: 기존 font 인라인 스타일 제거 후 기본 스타일로 감싸기
     window.ck5SetDataWithStyle = function(html){
-        var styled = '<div style="font-family:\'Arial Black\', Gadget, sans-serif;font-size:16px;">' + html + '</div>';
+        // 1. font-family, font-size 인라인 스타일 제거
+        var cleaned = html.replace(/\s*font-family\s*:[^;"']*[;]?/gi, '');
+        cleaned = cleaned.replace(/\s*font-size\s*:[^;"']*[;]?/gi, '');
+        // 빈 style 속성 정리
+        cleaned = cleaned.replace(/\s*style\s*=\s*["']\s*["']/gi, '');
+
+        // 2. 기본 스타일 div로 감싸기
+        var styled = '<div style="font-family:\'Arial Black\',\'Arial\',sans-serif;font-size:16px;line-height:1.6;">' + cleaned + '</div>';
         editor.setData(styled);
     };
 }).catch(error => {

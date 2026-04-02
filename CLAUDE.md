@@ -166,8 +166,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 파일: `adm/editor_test.php` (신규), `plugin/editor/cheditor5/imageUpload/upload_ckeditor5.php` (신규)
   - CKEditor 5 v43.3.1 CDN, 한글 언어팩, 이미지 업로드/리사이즈, 글자크기/색상/굵기/기울임/표 삽입
   - 이미지 업로드: `upload_ckeditor5.php` (기존 cheditor5 nonce/보안 인프라 재사용, SimpleUploadAdapter 호환)
-  - 기본 글씨체 Arial Black, 기본 글씨 크기 16px (CSS+초기콘텐츠+setData 래퍼 3중 적용)
-  - `window.ck5SetDataWithStyle(html)`: 내용을 Arial Black/16px div로 감싸서 에디터에 입력하는 헬퍼
+  - 기본 글씨체 Arial Black, 기본 글씨 크기 16px, line-height 1.6
+  - CSS `!important`로 에디터 영역 기본 스타일 강제 적용
+  - `window.ck5SetDataWithStyle(html)`: font-family/font-size 인라인 스타일 제거 후 기본 스타일 div로 감싸서 입력
   - "저장 테스트" 버튼으로 에디터 HTML 내용 alert 출력
 - [x] **온라인 투표 템플릿 선택 UI를 인라인 검색 드롭다운으로 변경** (2026-04-02)
   - 파일: `adm/online_vote_form.php`
