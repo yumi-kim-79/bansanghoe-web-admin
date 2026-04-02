@@ -404,82 +404,7 @@ include_once('./online_vote_template_data.php');
 	</div>
 </div>
 
-<style>
-/* CHEditor5 에디터 영역 기본 글씨체/크기 (iframe이 아닌 경우 적용) */
-.cheditor_editer_frame, .cheditor_edit_area {
-    font-family: 'Arial Black', 'Arial', sans-serif !important;
-    font-size: 16px !important;
-    line-height: 1.6 !important;
-}
-</style>
-
 <script>
-
-// CHEditor5 기본 글씨체/크기 설정 (config + iframe + 툴바)
-$(document).ready(function(){
-    var defaultFontName = "'Arial Black', 'Arial', sans-serif";
-    var defaultFontSize = "16px";
-
-    var applyDefaults = setInterval(function(){
-        if(typeof ed_vt_content === 'undefined') return;
-
-        // 1. config 기본값 변경 (툴바 기본 표시값에 영향)
-        ed_vt_content.config.editorFontName = defaultFontName;
-        ed_vt_content.config.editorFontSize = defaultFontSize;
-
-        // 2. iframe body 스타일 적용
-        if(ed_vt_content.editorIframe){
-            try {
-                var iframeDoc = ed_vt_content.editorIframe.contentDocument || ed_vt_content.editorIframe.contentWindow.document;
-                var body = iframeDoc.body;
-                if(body){
-                    body.style.fontFamily = defaultFontName;
-                    body.style.fontSize = defaultFontSize;
-                    body.style.lineHeight = "1.6";
-
-                    // 3. 툴바 FontName/FontSize select 텍스트 강제 업데이트
-                    try {
-                        var toolbarDiv = ed_vt_content.currentRS.elNode.parentNode;
-                        var btns = toolbarDiv.querySelectorAll('.che_toolbar button');
-                        btns.forEach(function(btn){
-                            var span = btn.querySelector('span > span');
-                            if(!span) return;
-                            var txt = span.textContent;
-                            // FontName 버튼: 기존 기본 폰트명이 표시된 버튼 찾기
-                            if(txt.indexOf('맑은 고딕') > -1 || txt.indexOf('Malgun') > -1 || txt.indexOf('gulim') > -1 || txt === 'sans-serif'){
-                                span.textContent = 'Arial Black';
-                            }
-                            // FontSize 버튼: 기존 기본 크기가 표시된 버튼 찾기
-                            if(txt === '12px' || txt === '14' || txt === '14px' || txt === '12'){
-                                span.textContent = '16px';
-                            }
-                        });
-                    } catch(e2){}
-
-                    clearInterval(applyDefaults);
-                }
-            } catch(e){}
-        }
-    }, 300);
-    setTimeout(function(){ clearInterval(applyDefaults); }, 5000);
-});
-
-// 템플릿 적용 후 툴바 FontName/FontSize 강제 업데이트
-function updateToolbarFontDisplay(){
-    try {
-        var toolbarDiv = ed_vt_content.currentRS.elNode.parentNode;
-        var btns = toolbarDiv.querySelectorAll('.che_toolbar button span > span');
-        btns.forEach(function(span){
-            var txt = span.textContent;
-            if(txt.indexOf('맑은 고딕') > -1 || txt.indexOf('Malgun') > -1 || txt.indexOf('gulim') > -1 || txt === 'sans-serif' || txt.indexOf('noto') > -1 || txt.indexOf('Noto') > -1){
-                span.textContent = 'Arial Black';
-            }
-            if(txt === '12px' || txt === '14px' || txt === '14' || txt === '12' || txt === '13px' || txt === '13'){
-                span.textContent = '16px';
-            }
-        });
-    } catch(e){}
-}
 
 // 투표 템플릿 JSON 데이터 (PHP → JS)
 var tplData = <?php echo json_encode($vote_templates, JSON_UNESCAPED_UNICODE); ?>;
@@ -560,18 +485,11 @@ function tplApplyItem(type, idx){
     // 투표주제 (title)
     $("input[name='vt_title']").val(tpl.title);
 
-    // 내용 에디터 (content - HTML) - font 인라인 스타일 제거 + 불필요한 라벨 제거
+    // 내용 에디터 (content - HTML) - 불필요한 라벨 제거
     var htmlContent = tpl.content;
-    // font-family, font-size 인라인 스타일 제거
-    htmlContent = htmlContent.replace(/\s*font-family\s*:[^;"']*[;]?/gi, '');
-    htmlContent = htmlContent.replace(/\s*font-size\s*:[^;"']*[;]?/gi, '');
-    htmlContent = htmlContent.replace(/\s*style\s*=\s*["']\s*["']/gi, '');
-    // 라벨 제거
     htmlContent = htmlContent.replace(/\[SM 오프닝\]\s*/g, '');
     htmlContent = htmlContent.replace(/\[제안 사유 및 기대효과\]\s*(<br\s*\/?>)?\s*/gi, '');
     htmlContent = htmlContent.replace(/(<br\s*\/?\s*>){3,}/gi, '<br><br>');
-    // 기본 글씨체/크기로 감싸기
-    htmlContent = '<div style="font-family:\'Arial Black\',\'Arial\',sans-serif;font-size:16px;line-height:1.6;">' + htmlContent + '</div>';
 
     // textarea 직접 설정
     $("textarea[name='vt_content']").val(htmlContent);
@@ -588,9 +506,6 @@ function tplApplyItem(type, idx){
     if($.fn.summernote && $("textarea[name='vt_content']").data('summernote')){
         try { $("textarea[name='vt_content']").summernote('code', htmlContent); } catch(e){}
     }
-
-    // 템플릿 적용 후 툴바 글씨체/크기 표시 업데이트
-    setTimeout(function(){ updateToolbarFontDisplay(); }, 200);
 
     // 검색창에 선택된 템플릿 이름 표시 및 드롭다운 닫기
     $('#tpl_search').val(tpl.label).prop('readOnly', true);
