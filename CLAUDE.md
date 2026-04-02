@@ -162,6 +162,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **CKEditor 5 테스트 페이지 생성** (2026-04-02)
+  - 파일: `adm/editor_test.php` (신규), `plugin/editor/cheditor5/imageUpload/upload_ckeditor5.php` (신규)
+  - CKEditor 5 v43.3.1 CDN, 한글 언어팩, 이미지 업로드/리사이즈, 글자크기/색상/굵기/기울임/표 삽입
+  - 이미지 업로드: `upload_ckeditor5.php` (기존 cheditor5 nonce/보안 인프라 재사용, SimpleUploadAdapter 호환)
+  - "저장 테스트" 버튼으로 에디터 HTML 내용 alert 출력
 - [x] **온라인 투표 템플릿 선택 UI를 인라인 검색 드롭다운으로 변경** (2026-04-02)
   - 파일: `adm/online_vote_form.php`
   - 기존 팝업 + 우측 상단 버튼 제거
