@@ -485,11 +485,16 @@ function tplApplyItem(type, idx){
     // 투표주제 (title)
     $("input[name='vt_title']").val(tpl.title);
 
-    // 내용 에디터 (content - HTML) - 불필요한 라벨 제거
+    // 내용 에디터 (content - HTML) - 불필요한 라벨 제거 + 기본 글씨체 적용
     var htmlContent = tpl.content;
     htmlContent = htmlContent.replace(/\[SM 오프닝\]\s*/g, '');
     htmlContent = htmlContent.replace(/\[제안 사유 및 기대효과\]\s*(<br\s*\/?>)?\s*/gi, '');
     htmlContent = htmlContent.replace(/(<br\s*\/?\s*>){3,}/gi, '<br><br>');
+    // font-family, font-size 인라인 스타일 제거 후 Arial Black/16px로 감싸기
+    htmlContent = htmlContent.replace(/\s*font-family\s*:[^;"']*[;]?/gi, '');
+    htmlContent = htmlContent.replace(/\s*font-size\s*:[^;"']*[;]?/gi, '');
+    htmlContent = htmlContent.replace(/\s*style\s*=\s*["']\s*["']/gi, '');
+    htmlContent = '<div style="font-family:\'Arial Black\',\'Arial\',sans-serif;font-size:16px;line-height:1.6;">' + htmlContent + '</div>';
 
     // textarea 직접 설정
     $("textarea[name='vt_content']").val(htmlContent);
