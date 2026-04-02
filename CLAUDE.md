@@ -159,9 +159,17 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [x] Android 자동 빌드 GitHub Actions 설정 (반상회, SM매니저)
 
 ### 진행 중 / 예정 작업
-- (없음)
+- [ ] 토스페이먼츠 실제 키 교체 (test_ck_placeholder / test_sk_placeholder → 운영키)
+- [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **토스페이먼츠 카드 등록 화면 추가 (테스트 모드)** (2026-04-02)
+  - `card_register.php`: 카드 등록/관리 화면 (등록카드 표시, 변경, 삭제)
+  - `card_register_callback.php`: 토스페이먼츠 빌링키 발급 콜백 (curl로 API 확정)
+  - `api/billing_api.php`: 카드 저장/삭제 API (a_billing_card 테이블)
+  - `mypage.php`: "카드 등록/관리" 메뉴 추가 (입주민만 표시)
+  - `head.tit.php`: 페이지 타이틀 등록
+  - 테스트 클라이언트키/시크릿키 사용 (placeholder)
 - [x] **CKEditor 5 테스트 페이지 생성** (2026-04-02)
   - 파일: `adm/editor_test.php` (신규), `plugin/editor/cheditor5/imageUpload/upload_ckeditor5.php` (신규)
   - CKEditor 5 v43.3.1 CDN, 한글 언어팩, 이미지 업로드/리사이즈, 글자크기/색상/굵기/기울임/표 삽입

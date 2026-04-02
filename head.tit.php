@@ -211,6 +211,14 @@ switch($basename){
         $headerType = "ver2";
         $headerTitle = "내정보";
     break;
+    case "card_register.php":
+        $headerType = "ver2";
+        $headerTitle = "카드 등록/관리";
+    break;
+    case "card_register_callback.php":
+        $headerType = "ver2";
+        $headerTitle = "카드 등록";
+    break;
     case "app_info.php":
         $headerType = "ver2";
         $headerTitle = "앱정보";
