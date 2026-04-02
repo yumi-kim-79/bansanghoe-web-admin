@@ -49,8 +49,15 @@ while($row = sql_fetch_array($res)){
 
 $yearD = date("Y") + 10;
 
+// 반복일정 (noti_repeat가 MONTH/YEAR인 모든 레코드)
 $sql2 = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat != 'N' {$sql_where1} ";
 $res2 = sql_query($sql2);
+
+// 예외 날짜 맵 (삭제된 예외 포함)
+$exc_dates_dot = [];
+$exc_dot_sql = "SELECT exception_idx, cal_date FROM a_calendar WHERE exception_idx IS NOT NULL AND exception_idx != '' AND exception_idx != '0' AND exception_idx != 0 AND is_del = 1 {$sql_where1}";
+$exc_dot_res = sql_query($exc_dot_sql);
+while($exc_dot = sql_fetch_array($exc_dot_res)) $exc_dates_dot[$exc_dot['exception_idx'] . '_' . $exc_dot['cal_date']] = true;
 
 $def_year = date("Y", strtotime($now_month));
 $def_date = date("Y-m", strtotime($now_month));
@@ -58,12 +65,24 @@ $def_date = date("Y-m", strtotime($now_month));
 foreach ($res2 as $r) {
     if($r['noti_repeat'] == "MONTH"){
         $date_month = $def_date.'-'.date("d", strtotime($r['cal_date']));
-        if($date_month <= $endDate && $r['cal_date'] <= $startDate){
+
+        // 해당 날짜에 삭제된 예외가 있으면 dot 표시 안 함
+        if(isset($exc_dates_dot[$r['cal_idx'] . '_' . $date_month])) continue;
+
+        // cal_edate 체크
+        if($r['cal_edate'] != '' && $r['cal_edate'] !== null && $date_month > $r['cal_edate']) continue;
+
+        // 반복 시작일이 현재 월 마지막 날 이전이면 표시
+        if($date_month <= $endDate && $r['cal_date'] <= $endDate){
             array_push($date_arr, $date_month);
         }
     }
     if($r['noti_repeat'] == "YEAR"){
         $date_year = $def_year.'-'.date("m-d", strtotime($r['cal_date']));
+
+        if(isset($exc_dates_dot[$r['cal_idx'] . '_' . $date_year])) continue;
+        if($r['cal_edate'] != '' && $r['cal_edate'] !== null && $date_year > $r['cal_edate']) continue;
+
         if($date_year <= $endDate){
             array_push($date_arr, $date_year);
         }
@@ -87,17 +106,17 @@ sort($res_date);
         <div class="cal_header_label">월</div>
         <select name="cal_month" id="cal_month" class="bansang_sel" onchange="cal_month_change();">
             <?php for($i=1;$i<=12;$i++){
-                 $monthzero = str_pad($i, 2, "0", STR_PAD_LEFT);    
+                 $monthzero = str_pad($i, 2, "0", STR_PAD_LEFT);
             ?>
             <option value="<?php echo $monthzero; ?>" <?php echo get_selected($month, $monthzero); ?>><?php echo $monthzero; ?></option>
             <?php }?>
         </select>
     </div>
     <input type="text" id="cal_building_search" placeholder="검색창"
-        style="padding:5px 10px; border:2px solid #e53935; border-radius:4px; font-size:14px; width:180px; height:34px; box-sizing:border-box;">
+        style="padding:5px 10px; border:2px solid #1976d2; border-radius:4px; font-size:14px; width:180px; height:34px; box-sizing:border-box;">
     <button type="button" onclick="doCalSearch()"
-        style="padding:5px 18px; background:#e53935; color:#fff; border:2px solid #e53935; border-radius:4px; font-size:14px; cursor:pointer; height:34px;">검색</button>
-    <span id="cal_search_label" style="color:#e53935; font-size:13px; font-weight:bold;"></span>
+        style="padding:5px 18px; background:#1976d2; color:#fff; border:2px solid #1976d2; border-radius:4px; font-size:14px; cursor:pointer; height:34px;">검색</button>
+    <span id="cal_search_label" style="color:#1976d2; font-size:13px; font-weight:bold;"></span>
 </div>
 
 <section class="cal_tr cal_head">

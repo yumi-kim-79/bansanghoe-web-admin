@@ -619,7 +619,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         <?php if($w == 'u' && ($member['mb_level'] == 10 || $row['mng_id'] == $member['mb_id'] || $row['wid'] == $member['mb_id'])){?>
         <?php }?>
         <?php if($w == 'u'){?>
-        <button class="btn btn_01" type="button" onclick="calendar_del();">삭제</button>
+        <button class="btn btn_01" type="button" onclick="calendarDelPopOpen();">삭제</button>
         <?php }?>
         <input type="submit" value="<?php echo $w == 'u' ? '수정' : '저장';?>" class="btn_submit btn btn_02" accesskey='s'>
     </div>
@@ -633,6 +633,20 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         <p>잠시만 기다려주세요.</p>
     </div>
 </div>
+
+<?php if($w == 'u' && $row['noti_repeat'] != 'N'){ ?>
+<div id="calendar_del_pop" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(0,0,0,0.5);">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:10px;padding:25px 20px;min-width:320px;text-align:center;">
+        <p style="font-size:15px;font-weight:600;margin-bottom:15px;">삭제 방식을 선택해주세요.</p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            <button type="button" class="btn btn_01" style="width:100%;" onclick="calendar_del('this_only');">이 날짜 일정만 삭제</button>
+            <button type="button" class="btn btn_01" style="width:100%;" onclick="calendar_del('after_this');">이 날짜 이후 반복 일정 전체 삭제</button>
+            <button type="button" class="btn btn_01" style="width:100%;" onclick="calendar_del('all');">반복 일정 전체 삭제</button>
+            <button type="button" class="btn btn_02" style="width:100%;" onclick="$('#calendar_del_pop').hide();">취소</button>
+        </div>
+    </div>
+</div>
+<?php } ?>
 <script>
 function buildingInfoPopOpen(){
     $("#building_info_pop").show();
@@ -669,6 +683,10 @@ function calendar_process(){
     formData.append('cal_date', cal_date);
     formData.append('mb_id', mb_id);
 
+    // 현재 폼의 담당자 값 전송 (변경 시 저장되도록)
+    var currentMngId = $("#mng_id").val();
+    if(currentMngId) formData.append('mng_id', currentMngId);
+
     $.ajax({
         type: "POST",
         url: "./calendar_process2.php",
@@ -703,21 +721,25 @@ function calendar_process(){
 }
 
 
-//일정 삭제
-function calendar_del(){
-
+//삭제 팝업 열기
+function calendarDelPopOpen(){
     let noti_chk = "<?php echo $row['noti_repeat']; ?>";
-    let cal_def_date = "<?php echo $cal_date_def; ?>";
 
-    let confirm_msg = "해당 일정을 정말 삭제하시겠습니까?";
-
-    if(noti_chk != "N"){
-        confirm_msg += "\n반복 일정의 경우 " + cal_def_date + " 날짜 이후의 반복 일정이 모두 삭제됩니다.\n계속 진행하시겠습니까?";
+    // 반복일정이 아니면 바로 삭제 confirm
+    if(noti_chk == "N"){
+        if(confirm("해당 일정을 정말 삭제하시겠습니까?")){
+            calendar_del('all');
+        }
+        return;
     }
 
-    if (!confirm(confirm_msg)) {
-        return false;
-    }
+    // 반복일정이면 커스텀 팝업
+    $("#calendar_del_pop").show();
+}
+
+//일정 삭제
+function calendar_del(del_mode){
+    $("#calendar_del_pop").hide();
 
     let cal_idx = "<?php echo $cal_idx; ?>";
     let cal_date = "<?php echo $cal_date_def; ?>";
@@ -726,6 +748,7 @@ function calendar_del(){
     var formData = new FormData();
     formData.append('cal_idx', cal_idx);
     formData.append('cal_date', cal_date);
+    formData.append('del_mode', del_mode);
 
     $.ajax({
         type: "POST",
@@ -738,9 +761,8 @@ function calendar_del(){
         processData: false,
         success: function(data) {
             console.log('data:::', data);
-            if(data.result == false) { 
+            if(data.result == false) {
                 alert(data.msg);
-                //$(".btn_submit").attr('disabled', false);
                 return false;
             }else{
                 alert(data.msg);

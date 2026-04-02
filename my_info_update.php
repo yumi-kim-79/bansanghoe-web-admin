@@ -12,17 +12,11 @@ $building_info = get_builiding_info($building_id); //단지정보
 
 $member_sql = "";
 
-
-
 //휴대폰번호가 변경되었다면
 if($now_hp != $mb_hp){
-
-    //인증완료 체크
     if($regist_certi == "") die(result_data(false, "휴대폰 번호 인증을 완료해주세요.", "certi_number"));
-
     $member_sql .= " ,
                     mb_hp = '{$mb_hp}' ";
-
 }
 
 // 비밀번호 변경시 유효성검증
@@ -47,22 +41,18 @@ if($types == "sm"){
                         {$member_sql}
                         WHERE mb_id = '{$mb_id}' ";
     sql_query($update_member);
-    //die(result_data(false, $update_member, []));
 
 }else{
-
 
     $update_member = "UPDATE a_member SET
                         mb_ip = '{$_SERVER['REMOTE_ADDR']}'
                         {$member_sql}
                         WHERE mb_id = '{$mb_id}' ";
     if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
-
         // die(result_data(false, $update_member, []));
     }
 
     sql_query($update_member);
-
 
     //차량정보 변경
     if(count($car_type) > 0){
@@ -81,8 +71,6 @@ if($types == "sm"){
                     $push_content = $mb_name."님이 ". $building_info['building_name']." 단지에 차량을 등록하였습니다.";
 
                     while($buidling_mng_row = sql_fetch_array($buidling_mng_res)){
-                        //푸시발송
-                        //251017 푸시 예약방식으로 변경
                         $insert_push = "INSERT INTO a_push SET
                                 recv_id_type = 'sm',
                                 recv_id = '{$buidling_mng_row['mb_id']}',
@@ -99,7 +87,6 @@ if($types == "sm"){
                             // fcm_send($buidling_mng_row['mb_token'], $push_title, $push_content, 'car', "{$building_id}", "/sm_car_manage.php?building_id=");
                         }
                     }
-
 
                     $update_car = "INSERT INTO a_building_car SET
                                     building_id = '{$building_id}',
@@ -119,13 +106,9 @@ if($types == "sm"){
                 $sql_car = "SELECT car_type, car_name FROM a_building_car WHERE car_id = '{$car_id[$i]}' ";
                 $row_car = sql_fetch($sql_car);
 
-               
-
                 if($row_car['car_type'] != $car_type[$i] || $row_car['car_name'] != $car_name[$i]){
 
-                    
                     if($car_type[$i] == '' && $car_name[$i] == ''){
-                        //삭제된경우 푸시메시지 변경
                         $push_title = "[차량삭제] 차량이 삭제되었습니다.";
                         $push_content = $mb_name."님이 ". $building_info['building_name']." 단지에 차량정보를 삭제하였습니다.";
                     }else{
@@ -136,7 +119,6 @@ if($types == "sm"){
                     $add = '';
                     if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                         // die(result_data(false, $building_mng, []));
-
                         $add = " and mng_building.mb_id = 'thdaudwns' "; //관리자용 
                     }
 
@@ -155,7 +137,6 @@ if($types == "sm"){
                                 is_send = 0,
                                 created_at = '{$today}'";
                         sql_query($insert_push);
-
                     }
                 }
 
@@ -167,7 +148,6 @@ if($types == "sm"){
                 sql_query($update_car);
             }
 
-            
         }
     
     }

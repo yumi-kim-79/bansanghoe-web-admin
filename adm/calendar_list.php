@@ -226,8 +226,6 @@ function moveCal(year, month, type, calcode){
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
         success: function(data) {
-
-            console.log('data', data);
             $(".cal_schedule_box_wrap").empty().append(data);
         }
     });
@@ -273,8 +271,6 @@ $(document).on("click", ".cal_td_box", function(){
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
         success: function(data) {
-
-            console.log('data', data);
             $(".cal_schedule_box_wrap").empty().append(data);
         }
     });
@@ -292,8 +288,6 @@ function calendar_schedule_handler(year, month, calcode, selectDate) {
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
         success: function(data) {
-
-            console.log('data', data);
             $(".cal_schedule_box_wrap").empty().append(data);
         }
     });
@@ -369,24 +363,7 @@ $(document).ready(function(){
 });
 
 function fstudentlist_submit(f) {
-    if (!is_checked("chk[]")) {
-        alert(document.pressed + " 하실 항목을 하나 이상 선택하세요.");
-        return false;
-    }
-
-    if (document.pressed == "선택삭제") {
-        if (!confirm("선택한 회원을 정말 삭제하시겠습니까?")) {
-            return false;
-        }
-    }
-
-    if (document.pressed == "선택승인") {
-        if (!confirm("선택한 회원을 승인하시겠습니까?")) {
-            return false;
-        }
-    }
-
-    return true;
+    return false;
 }
 </script>
 

@@ -53,47 +53,59 @@ if($w == "u"){
             }else{
                 sql_query($update_query);
             }
-            // echo $update_query.'33<br>';
-            
 
         }else{
 
-            $cal_edate = date('Y-m-t',strtotime($cal_date2."-1 month")); // -1달
+            // 기존 예외 레코드가 있는지 확인
+            $exception_check = sql_fetch("SELECT cal_idx, COUNT(*) as cnt FROM a_calendar WHERE exception_idx = '{$cal_idx}' and cal_date = '{$cal_date_def}' and is_del = 0");
 
-           
-
-            //반복일정 마감일 설정
-            $update_query = "UPDATE a_calendar SET
-                                cal_edate = '{$cal_edate}'
-                                WHERE cal_idx = '{$cal_idx}'";
-            // echo $update_query.'<br>';
-            sql_query($update_query);
-    
-    
-            //일정추가
-            $insert_query = "INSERT a_calendar SET
+            if($exception_check['cnt'] > 0){
+                // 기존 예외 레코드가 있으면 UPDATE (중복 INSERT 방지)
+                $update_query = "UPDATE a_calendar SET
                                 cal_code = '{$cal_code}',
                                 post_id = '{$post_id}',
                                 building_id = '{$building_id}',
                                 mng_department = '{$mng_department}',
                                 mng_id = '{$mng_id}',
-                                exception_idx = '{$cal_idx}',
                                 cal_date = '{$cal_date2}',
                                 noti_repeat = '{$noti_repeat}',
                                 cal_title = '{$cal_title}',
                                 cal_content = '{$cal_content}',
-                                wid = '{$wid}',
-                                created_at = '{$today}'";
-            // echo $insert_query.'<br>';
-            if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
-                echo $insert_query.'33<br>';
-                
+                                updated_at = '{$today}'
+                                WHERE cal_idx = '{$exception_check['cal_idx']}'";
+
+                if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
+                    echo $update_query.'33<br>';
+                }else{
+                    sql_query($update_query);
+                }
+
+                $cal_idx = $exception_check['cal_idx'];
+
             }else{
-                sql_query($insert_query);
+                // 예외 레코드 없으면 새로 INSERT (cal_edate 설정 없이, 예외 레코드로만 처리)
+                $insert_query = "INSERT a_calendar SET
+                                    cal_code = '{$cal_code}',
+                                    post_id = '{$post_id}',
+                                    building_id = '{$building_id}',
+                                    mng_department = '{$mng_department}',
+                                    mng_id = '{$mng_id}',
+                                    exception_idx = '{$cal_idx}',
+                                    cal_date = '{$cal_date2}',
+                                    noti_repeat = 'N',
+                                    cal_title = '{$cal_title}',
+                                    cal_content = '{$cal_content}',
+                                    wid = '{$wid}',
+                                    created_at = '{$today}'";
+
+                if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
+                    echo $insert_query.'33<br>';
+                }else{
+                    sql_query($insert_query);
+                }
+
+                $cal_idx = sql_insert_id();
             }
-            
-    
-            $cal_idx = sql_insert_id(); //팝업 idx
         }
 
    
