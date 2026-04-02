@@ -23,7 +23,7 @@ $ed_nonce = ft_nonce_create('cheditor');
     .btn-area { margin-top: 15px; text-align: right; }
     .btn-test { padding: 10px 24px; background: #388FCD; color: #fff; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
     .btn-test:hover { background: #2d7ab8; }
-    .ck-editor__editable { min-height: 300px; }
+    .ck-editor__editable { min-height: 300px; font-family: 'Arial Black', Gadget, sans-serif; font-size: 16px; }
 </style>
 </head>
 <body>
@@ -89,7 +89,7 @@ ClassicEditor.create(document.querySelector('#ck5_test_editor'), {
     toolbar: [
         'heading', '|',
         'bold', 'italic', 'underline', 'strikethrough', '|',
-        'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+        'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
         'alignment', '|',
         'bulletedList', 'numberedList', 'outdent', 'indent', '|',
         'link', 'insertImage', 'insertTable', 'blockQuote', 'horizontalLine', '|',
@@ -109,6 +109,21 @@ ClassicEditor.create(document.querySelector('#ck5_test_editor'), {
     simpleUpload: {
         uploadUrl: '../plugin/editor/cheditor5/imageUpload/upload_ckeditor5.php?nonce=' + encodeURIComponent('<?php echo $ed_nonce; ?>'),
         withCredentials: true
+    },
+    fontFamily: {
+        options: [
+            'Arial Black, Gadget, sans-serif',
+            'default',
+            'Arial, Helvetica, sans-serif',
+            'Courier New, Courier, monospace',
+            'Georgia, serif',
+            'Verdana, Geneva, sans-serif',
+            '맑은 고딕, Malgun Gothic, sans-serif'
+        ]
+    },
+    fontSize: {
+        options: [10, 12, 14, 16, 18, 20, 24, 28, 32, 36],
+        supportAllValues: true
     },
     table: {
         contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
