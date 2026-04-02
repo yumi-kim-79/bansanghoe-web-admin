@@ -180,8 +180,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 검색 박스 너비 450px 고정, ✕ 버튼은 검색 박스 우측 상단 모서리에 배치 (right:-10px, top:-10px)
   - 선택 후 ✕ 버튼 표시 → 클릭 시 검색창·투표주제·에디터 내용 모두 초기화, 검색 가능 상태로 복귀
   - 템플릿 선택 시에만 font-family/font-size 인라인 스타일 제거 후 Arial Black/16px div 래핑 (빈 에디터는 기본 설정 유지)
-  - CHEditor5 iframe 직접 접근: `document.querySelector('iframe.cheditor-editarea')` → `body.innerHTML` 삽입 (fallback: `designMode=on` iframe 탐색)
+  - CHEditor5 iframe 직접 접근: `iframe.cheditor-editarea` → `body.innerHTML` 삽입, 최대 3초 100ms 폴링 대기 (fallback: `designMode=on` iframe)
   - tplClearSelection()도 동일 패턴, `#tx_vt_content` 동기화
+  - editor_test.php CDN은 online_vote_form.php에 영향 없음 (별도 파일)
 - [x] **온라인 투표 템플릿 content에서 [SM 오프닝] 및 [제안 사유 및 기대효과] 제목 텍스트 제거** (2026-04-02)
   - 파일: `adm/online_vote_template_data.php`
   - 209건 모두 제거, `[확인 사항 및 첨부파일]` 제목은 유지
