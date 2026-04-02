@@ -496,26 +496,32 @@ function tplApplyItem(type, idx){
     htmlContent = htmlContent.replace(/\s*style\s*=\s*["']\s*["']/gi, '');
     htmlContent = '<div style="font-family:\'Arial Black\',\'Arial\',sans-serif;font-size:16px;line-height:1.6;">' + htmlContent + '</div>';
 
-    // CHEditor5 iframe에 내용 삽입 (class="cheditor-editarea")
-    var editorIframe = document.querySelector('iframe.cheditor-editarea');
-    if(!editorIframe){
-        // fallback: designMode가 on인 iframe 탐색
-        var allIframes = document.querySelectorAll('iframe');
-        for(var i = 0; i < allIframes.length; i++){
-            try {
-                if(allIframes[i].contentDocument && allIframes[i].contentDocument.designMode === 'on'){
-                    editorIframe = allIframes[i];
-                    break;
-                }
-            } catch(e){}
+    // CHEditor5 iframe 준비 대기 후 내용 삽입 (최대 3초, 100ms 폴링)
+    var attempts = 0, maxAttempts = 30;
+    var pollInsert = setInterval(function(){
+        attempts++;
+        var iframe = document.querySelector('iframe.cheditor-editarea');
+        if(!iframe){
+            // fallback: designMode=on iframe
+            var all = document.querySelectorAll('iframe');
+            for(var i = 0; i < all.length; i++){
+                try {
+                    if(all[i].contentDocument && all[i].contentDocument.designMode === 'on'){
+                        iframe = all[i]; break;
+                    }
+                } catch(e){}
+            }
         }
-    }
-    if(editorIframe && editorIframe.contentDocument && editorIframe.contentDocument.body){
-        editorIframe.contentDocument.body.innerHTML = htmlContent;
-        console.log('[tplApplyItem] iframe.cheditor-editarea에 내용 삽입 성공');
-    } else {
-        console.warn('[tplApplyItem] 에디터 iframe 접근 불가');
-    }
+        if(iframe && iframe.contentDocument && iframe.contentDocument.body){
+            clearInterval(pollInsert);
+            iframe.contentDocument.body.innerHTML = htmlContent;
+            console.log('[tplApplyItem] 에디터 삽입 성공 (시도 ' + attempts + '회)');
+        } else if(attempts >= maxAttempts){
+            clearInterval(pollInsert);
+            console.warn('[tplApplyItem] 3초 대기 후에도 에디터 iframe 접근 불가');
+        }
+    }, 100);
+
     // hidden textarea 동기화
     $('#tx_vt_content').val(htmlContent);
 
