@@ -30,7 +30,7 @@ $ed_nonce = ft_nonce_create('cheditor');
 <div class="test-wrap">
     <h1>CKEditor 5 에디터 테스트</h1>
     <div id="ck5_test_editor">
-        <p>테스트 내용을 입력하세요.</p>
+        <p><span style="font-family:'Arial Black', Gadget, sans-serif;font-size:16px;">테스트 내용을 입력하세요.</span></p>
     </div>
     <div class="btn-area">
         <button type="button" class="btn-test" onclick="showEditorData();">저장 테스트</button>
@@ -119,10 +119,11 @@ ClassicEditor.create(document.querySelector('#ck5_test_editor'), {
             'Georgia, serif',
             'Verdana, Geneva, sans-serif',
             '맑은 고딕, Malgun Gothic, sans-serif'
-        ]
+        ],
+        supportAllValues: true
     },
     fontSize: {
-        options: [10, 12, 14, 16, 18, 20, 24, 28, 32, 36],
+        options: [10, 12, 14, '16', 18, 20, 24, 28, 32, 36],
         supportAllValues: true
     },
     table: {
@@ -130,6 +131,12 @@ ClassicEditor.create(document.querySelector('#ck5_test_editor'), {
     }
 }).then(editor => {
     window.ck5TestEditor = editor;
+
+    // setData 래퍼: 내용 전체에 기본 글씨체/크기 적용
+    window.ck5SetDataWithStyle = function(html){
+        var styled = '<div style="font-family:\'Arial Black\', Gadget, sans-serif;font-size:16px;">' + html + '</div>';
+        editor.setData(styled);
+    };
 }).catch(error => {
     console.error('CKEditor 5 init error:', error);
 });
