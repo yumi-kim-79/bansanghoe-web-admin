@@ -496,21 +496,19 @@ function tplApplyItem(type, idx){
     htmlContent = htmlContent.replace(/\s*style\s*=\s*["']\s*["']/gi, '');
     htmlContent = '<div style="font-family:\'Arial Black\',\'Arial\',sans-serif;font-size:16px;line-height:1.6;">' + htmlContent + '</div>';
 
-    // textarea 직접 설정
+    // CHEditor5 에디터에 내용 설정
+    if(typeof ed_vt_content !== 'undefined' && ed_vt_content.doc){
+        try {
+            ed_vt_content.replaceContents(htmlContent);
+            console.log('[tplApplyItem] CHEditor5 replaceContents 성공');
+        } catch(e){
+            console.error('[tplApplyItem] CHEditor5 replaceContents 실패:', e);
+        }
+    } else {
+        console.warn('[tplApplyItem] CHEditor5 ed_vt_content 없음, textarea fallback');
+    }
+    // textarea fallback (hidden)
     $("textarea[name='vt_content']").val(htmlContent);
-
-    // smarteditor2
-    if(typeof oEditors !== 'undefined'){
-        try { oEditors.getById['vt_content'].exec('SET_IR', [htmlContent]); } catch(e){}
-    }
-    // ckeditor
-    if(typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['vt_content']){
-        try { CKEDITOR.instances['vt_content'].setData(htmlContent); } catch(e){}
-    }
-    // summernote
-    if($.fn.summernote && $("textarea[name='vt_content']").data('summernote')){
-        try { $("textarea[name='vt_content']").summernote('code', htmlContent); } catch(e){}
-    }
 
     // 검색창에 선택된 템플릿 이름 표시 및 드롭다운 닫기
     $('#tpl_search').val(tpl.label).prop('readOnly', true);
@@ -528,17 +526,11 @@ function tplClearSelection(){
     // 투표주제 초기화
     $("input[name='vt_title']").val('');
 
-    // 에디터 초기화
+    // 에디터 초기화 (CHEditor5)
+    if(typeof ed_vt_content !== 'undefined' && ed_vt_content.doc){
+        try { ed_vt_content.replaceContents(''); } catch(e){}
+    }
     $("textarea[name='vt_content']").val('');
-    if(typeof oEditors !== 'undefined'){
-        try { oEditors.getById['vt_content'].exec('SET_IR', ['']); } catch(e){}
-    }
-    if(typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['vt_content']){
-        try { CKEDITOR.instances['vt_content'].setData(''); } catch(e){}
-    }
-    if($.fn.summernote && $("textarea[name='vt_content']").data('summernote')){
-        try { $("textarea[name='vt_content']").summernote('code', ''); } catch(e){}
-    }
 }
 
 //투표 삭제
