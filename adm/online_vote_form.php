@@ -45,38 +45,6 @@ include_once('./online_vote_template_data.php');
 ?>
 
 
-<!-- 투표 템플릿 팝업 -->
-<div id="vote_template_pop" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(0,0,0,0.5);">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:10px;padding:25px 20px;width:560px;max-height:80vh;display:flex;flex-direction:column;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-shrink:0;">
-            <p style="font-size:16px;font-weight:700;">투표 템플릿 선택</p>
-            <button type="button" onclick="$('#vote_template_pop').hide();" style="background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
-        </div>
-        <!-- 탭 -->
-        <div style="display:flex;gap:0;margin-bottom:0;border-bottom:2px solid #388FCD;flex-shrink:0;">
-            <button type="button" class="tpl_tab tpl_tab_active" onclick="tplTabChange('mandatory', this);" style="flex:1;padding:10px;border:1px solid #388FCD;border-bottom:none;background:#388FCD;color:#fff;font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;">의무관리</button>
-            <button type="button" class="tpl_tab" onclick="tplTabChange('non_mandatory', this);" style="flex:1;padding:10px;border:1px solid #ddd;border-bottom:none;background:#f5f5f5;color:#333;font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;">비의무관리</button>
-        </div>
-        <!-- 목록 (스크롤 영역) -->
-        <div style="overflow-y:auto;flex:1;padding-top:12px;">
-            <div id="tpl_list_mandatory">
-                <?php foreach($vote_templates['mandatory'] as $idx => $tpl){ ?>
-                <div class="tpl_item" onclick="tplSelectByIdx('mandatory', <?php echo $idx; ?>);" style="padding:10px 12px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background 0.15s;font-size:13px;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
-                    <span style="display:inline-block;min-width:28px;font-weight:700;color:#388FCD;"><?php echo $idx + 1; ?>.</span><?php echo htmlspecialchars($tpl['label']); ?>
-                </div>
-                <?php } ?>
-            </div>
-            <div id="tpl_list_non_mandatory" style="display:none;">
-                <?php foreach($vote_templates['non_mandatory'] as $idx => $tpl){ ?>
-                <div class="tpl_item" onclick="tplSelectByIdx('non_mandatory', <?php echo $idx; ?>);" style="padding:10px 12px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background 0.15s;font-size:13px;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'">
-                    <span style="display:inline-block;min-width:28px;font-weight:700;color:#4E5E81;"><?php echo $idx + 1; ?>.</span><?php echo htmlspecialchars($tpl['label']); ?>
-                </div>
-                <?php } ?>
-            </div>
-        </div>
-    </div>
-</div>
-
 <form name="fonlinevote" id="fonlinevote" action="./online_vote_form_update.php" onsubmit="return fonlinevote_submit(this);" method="post" enctype="multipart/form-data">
     <input type="hidden" name="w" value="<?php echo $w ?>">
     <input type="hidden" name="sfl" value="<?php echo $sfl ?>">
@@ -98,6 +66,22 @@ include_once('./online_vote_template_data.php');
                 <col>
             </colgroup>
             <tbody>
+                <tr>
+                    <th>투표 템플릿</th>
+                    <td colspan="3">
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <select id="tpl_category" class="bansang_sel" style="width:140px;" onchange="tplCategoryChange();">
+                                <option value="">전체</option>
+                                <option value="mandatory">의무관리</option>
+                                <option value="non_mandatory">비의무관리</option>
+                            </select>
+                            <div style="position:relative;flex:1;">
+                                <input type="text" id="tpl_search" class="bansang_ipt ver2" placeholder="템플릿 검색..." autocomplete="off" onfocus="tplDropdownShow();" oninput="tplFilterList();">
+                                <div id="tpl_dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:300px;overflow-y:auto;background:#fff;border:1px solid #ddd;border-top:none;z-index:100;box-shadow:0 4px 8px rgba(0,0,0,0.1);"></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
                 <tr>
                     <th>지역</th>
                     <td colspan="3">
@@ -376,7 +360,6 @@ include_once('./online_vote_template_data.php');
         <?php }?>
     </div>
     <div class="btn_fixed_top">
-        <button type="button" class="btn btn_03" onclick="$('#vote_template_pop').show();" style="font-size:14px;padding:8px 16px;display:inline-flex;align-items:center;">투표 템플릿 선택</button>
         <a href="./online_vote_list.php?<?php echo $qstr ?>" class="btn btn_02">목록</a>
         <?php if($w == 'u'){?>
         <button type="button" onclick="vote_del_handler();" class="btn btn_01">삭제</button>
@@ -425,18 +408,76 @@ include_once('./online_vote_template_data.php');
 // 투표 템플릿 JSON 데이터 (PHP → JS)
 var tplData = <?php echo json_encode($vote_templates, JSON_UNESCAPED_UNICODE); ?>;
 
-// 투표 템플릿 탭 전환
-function tplTabChange(type, el){
-    $('#tpl_list_mandatory').hide();
-    $('#tpl_list_non_mandatory').hide();
-    $('#tpl_list_' + type).show();
+// 전체 템플릿 목록 (type/idx 포함)
+var tplAllItems = [];
+$.each(['mandatory', 'non_mandatory'], function(_, type){
+    $.each(tplData[type], function(idx, tpl){
+        tplAllItems.push({ type: type, idx: idx, label: tpl.label, typeName: type === 'mandatory' ? '의무' : '비의무' });
+    });
+});
 
-    $('.tpl_tab').css({background:'#f5f5f5', color:'#333', border:'1px solid #ddd'}).removeClass('tpl_tab_active');
-    $(el).css({background:'#388FCD', color:'#fff', border:'1px solid #388FCD'}).addClass('tpl_tab_active');
+// 드롭다운 목록 렌더링
+function tplRenderDropdown(items){
+    var $dd = $('#tpl_dropdown');
+    $dd.empty();
+    if(items.length === 0){
+        $dd.append('<div style="padding:10px 12px;color:#999;font-size:13px;">검색 결과가 없습니다.</div>');
+    } else {
+        $.each(items, function(i, item){
+            var color = item.type === 'mandatory' ? '#388FCD' : '#4E5E81';
+            var $item = $('<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;">' +
+                '<span style="display:inline-block;min-width:42px;font-weight:700;color:' + color + ';">[' + item.typeName + ']</span>' +
+                $('<span>').text(item.label).prop('outerHTML') +
+                '</div>');
+            $item.on('mouseover', function(){ $(this).css('background', '#f0f7ff'); });
+            $item.on('mouseout', function(){ $(this).css('background', '#fff'); });
+            $item.on('mousedown', function(e){
+                e.preventDefault();
+                tplApplyItem(item.type, item.idx);
+            });
+            $dd.append($item);
+        });
+    }
+    $dd.show();
 }
 
-// 투표 템플릿 선택 (JSON에서 안전하게 읽기)
-function tplSelectByIdx(type, idx){
+// 필터링된 목록 반환
+function tplGetFiltered(){
+    var cat = $('#tpl_category').val();
+    var keyword = $('#tpl_search').val().toLowerCase();
+    return tplAllItems.filter(function(item){
+        if(cat && item.type !== cat) return false;
+        if(keyword && item.label.toLowerCase().indexOf(keyword) === -1) return false;
+        return true;
+    });
+}
+
+// 대분류 변경
+function tplCategoryChange(){
+    $('#tpl_search').val('');
+    tplRenderDropdown(tplGetFiltered());
+    $('#tpl_search').focus();
+}
+
+// 검색 입력
+function tplFilterList(){
+    tplRenderDropdown(tplGetFiltered());
+}
+
+// 드롭다운 표시
+function tplDropdownShow(){
+    tplRenderDropdown(tplGetFiltered());
+}
+
+// 드롭다운 닫기 (포커스 아웃 시)
+$(document).ready(function(){
+    $('#tpl_search').on('blur', function(){
+        setTimeout(function(){ $('#tpl_dropdown').hide(); }, 150);
+    });
+});
+
+// 템플릿 적용
+function tplApplyItem(type, idx){
     var tpl = tplData[type][idx];
     if(!tpl) return;
 
@@ -462,7 +503,9 @@ function tplSelectByIdx(type, idx){
         try { $("textarea[name='vt_content']").summernote('code', htmlContent); } catch(e){}
     }
 
-    $('#vote_template_pop').hide();
+    // 검색창에 선택된 템플릿 이름 표시 및 드롭다운 닫기
+    $('#tpl_search').val(tpl.label);
+    $('#tpl_dropdown').hide();
     alert('템플릿이 적용되었습니다.\n내용을 확인 후 수정하세요.');
 }
 
