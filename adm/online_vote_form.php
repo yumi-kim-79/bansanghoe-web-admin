@@ -496,34 +496,56 @@ function tplApplyItem(type, idx){
     htmlContent = htmlContent.replace(/\s*style\s*=\s*["']\s*["']/gi, '');
     htmlContent = '<div style="font-family:\'Arial Black\',\'Arial\',sans-serif;font-size:16px;line-height:1.6;">' + htmlContent + '</div>';
 
-    // CHEditor5 에디터에 내용 설정 (인스턴스: ed_vt_content)
-    console.log('[tplApplyItem] ed_vt_content 존재:', typeof ed_vt_content !== 'undefined');
-    if(typeof ed_vt_content !== 'undefined'){
-        console.log('[tplApplyItem] ed_vt_content.doc:', !!ed_vt_content.doc);
-        console.log('[tplApplyItem] ed_vt_content.cheditor:', !!ed_vt_content.cheditor);
-        console.log('[tplApplyItem] ed_vt_content.cheditor.editArea:', !!(ed_vt_content.cheditor && ed_vt_content.cheditor.editArea));
-        if(ed_vt_content.doc && ed_vt_content.doc.body){
-            try {
-                ed_vt_content.replaceContents(htmlContent);
-                console.log('[tplApplyItem] replaceContents 성공, body.innerHTML 길이:', ed_vt_content.doc.body.innerHTML.length);
-            } catch(e){
-                console.error('[tplApplyItem] replaceContents 실패:', e);
-                // fallback: iframe body에 직접 삽입
-                try {
-                    ed_vt_content.doc.body.innerHTML = htmlContent;
-                    console.log('[tplApplyItem] doc.body.innerHTML 직접 삽입 성공');
-                } catch(e2){
-                    console.error('[tplApplyItem] 직접 삽입도 실패:', e2);
-                }
-            }
-        } else {
-            console.warn('[tplApplyItem] doc.body 없음, textarea만 설정');
+    // CHEditor5 에디터에 내용 설정
+    var editorApplied = false;
+
+    // 방법1: ed_vt_content 전역 변수로 접근
+    if(typeof ed_vt_content !== 'undefined' && ed_vt_content && ed_vt_content.doc && ed_vt_content.doc.body){
+        try {
+            ed_vt_content.replaceContents(htmlContent);
+            editorApplied = true;
+            console.log('[tplApplyItem] ed_vt_content.replaceContents 성공');
+        } catch(e){
+            console.warn('[tplApplyItem] replaceContents 실패:', e.message);
         }
-    } else {
-        console.warn('[tplApplyItem] ed_vt_content 변수 미정의');
     }
+
+    // 방법2: tx_vt_content textarea 근처의 iframe을 DOM에서 직접 탐색
+    if(!editorApplied){
+        var cheIframe = $('#tx_vt_content').closest('.cheditor-container, td').find('iframe').filter(function(){
+            try { return this.contentDocument && this.contentDocument.body; } catch(e){ return false; }
+        }).first();
+        if(cheIframe.length){
+            try {
+                cheIframe[0].contentDocument.body.innerHTML = htmlContent;
+                editorApplied = true;
+                console.log('[tplApplyItem] iframe DOM 탐색으로 직접 삽입 성공');
+            } catch(e){
+                console.warn('[tplApplyItem] iframe 직접 삽입 실패:', e.message);
+            }
+        }
+    }
+
+    // 방법3: 페이지 내 cheditor iframe 전수 탐색
+    if(!editorApplied){
+        $('iframe').each(function(){
+            try {
+                var doc = this.contentDocument;
+                if(doc && doc.body && doc.designMode === 'on'){
+                    doc.body.innerHTML = htmlContent;
+                    editorApplied = true;
+                    console.log('[tplApplyItem] designMode iframe 탐색으로 삽입 성공');
+                    return false; // break
+                }
+            } catch(e){}
+        });
+    }
+
+    if(!editorApplied){
+        console.warn('[tplApplyItem] 에디터 iframe 접근 불가, textarea만 설정');
+    }
+
     // textarea (hidden) 동기화
-    $("textarea[name='vt_content']").val(htmlContent);
     $('#tx_vt_content').val(htmlContent);
 
     // 검색창에 선택된 템플릿 이름 표시 및 드롭다운 닫기
@@ -542,13 +564,22 @@ function tplClearSelection(){
     // 투표주제 초기화
     $("input[name='vt_title']").val('');
 
-    // 에디터 초기화 (CHEditor5 인스턴스: ed_vt_content)
-    if(typeof ed_vt_content !== 'undefined' && ed_vt_content.doc && ed_vt_content.doc.body){
-        try { ed_vt_content.replaceContents(''); } catch(e){
-            try { ed_vt_content.doc.body.innerHTML = ''; } catch(e2){}
-        }
+    // 에디터 초기화
+    var cleared = false;
+    if(typeof ed_vt_content !== 'undefined' && ed_vt_content && ed_vt_content.doc && ed_vt_content.doc.body){
+        try { ed_vt_content.replaceContents(''); cleared = true; } catch(e){}
     }
-    $("textarea[name='vt_content']").val('');
+    if(!cleared){
+        $('iframe').each(function(){
+            try {
+                var doc = this.contentDocument;
+                if(doc && doc.body && doc.designMode === 'on'){
+                    doc.body.innerHTML = '';
+                    return false;
+                }
+            } catch(e){}
+        });
+    }
     $('#tx_vt_content').val('');
 }
 
