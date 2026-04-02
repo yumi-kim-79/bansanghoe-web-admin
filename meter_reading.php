@@ -42,8 +42,7 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
             </div>
             <div class="bbs_vote_notice ver2 mgt15">
                 <div class="bbs_vote_notice_inner ver2">
-                데이터 통신이 불안정한 경우, 검침 데이터가 저장되지 않을 수 있으니
-                통신이 원활한 구역에서 저장하세요.
+                검침 데이터는 입력 즉시 임시저장됩니다. 통신 불안정 또는 앱이 종료되어도 다시 열면 이어서 작성할 수 있습니다.
                 </div>
             </div>
             <ul class="meter_reading_list">

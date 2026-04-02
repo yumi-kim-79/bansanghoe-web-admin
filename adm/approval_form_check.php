@@ -3,17 +3,6 @@ require_once './_common.php';
 
 $today = date("Y-m-d H:i:s");
 
-// -----------------------------------------------------------------------------
-// [approval_form_check.php]
-// - 결재자 서명 저장 + 결재 진행 상태(sign_status) 업데이트
-// - 기존 기능 유지 + 아래 개선
-//   1) data 파라미터 누락/오염 시에도 현재 결재자를 추론하여 정상 처리
-//   2) 결재자 수(1~3명)에 맞춰 sign_status를 N/P/E 로 정확히 계산
-//   3) 동일 결재자의 중복 row 방지(업서트)
-//   4) 응답 종료(ajax 안정화)
-// -----------------------------------------------------------------------------
-
-// ✅ 안전한 입력값
 $sign_id  = isset($_POST['sign_id']) ? trim($_POST['sign_id']) : '';
 $sign_id  = (int)$sign_id;
 $mb_id    = isset($_POST['mb_id']) ? trim($_POST['mb_id']) : '';
@@ -27,13 +16,11 @@ if ($signdata === '') {
     die(result_data(false, "서명을 입력해주세요.", []));
 }
 
-// 결재 정보(최신)
 $sign_info = sql_fetch("SELECT * FROM a_sign_off WHERE sign_id = '{$sign_id}'");
 if (!$sign_info || !isset($sign_info['sign_id'])) {
     die(result_data(false, "결재 정보를 찾을 수 없습니다.", []));
 }
 
-// ✅ data 파라미터 검증(혹시 잘못 들어오면 현재 결재자를 추론)
 $allowed_keys = ['sign_off_mng_id1', 'sign_off_mng_id2', 'sign_off_mng_id3'];
 if (!in_array($data, $allowed_keys, true)) {
     if ($sign_info['sign_off_mng_id1'] === $mb_id) $data = 'sign_off_mng_id1';
@@ -41,7 +28,6 @@ if (!in_array($data, $allowed_keys, true)) {
     else if ($sign_info['sign_off_mng_id3'] === $mb_id) $data = 'sign_off_mng_id3';
 }
 
-// 그래도 없으면 "미서명 첫 결재자"를 추론
 if (!in_array($data, $allowed_keys, true)) {
     if (!$sign_info['sign_off_status']) $data = 'sign_off_mng_id1';
     else if (!$sign_info['sign_off_status2']) $data = 'sign_off_mng_id2';
@@ -52,7 +38,6 @@ if (!in_array($data, $allowed_keys, true)) {
     die(result_data(false, "결재자 정보가 올바르지 않습니다.", []));
 }
 
-// 문서/작성자 정보(푸시용)
 $approval_name = approval_category_name($sign_info['sign_off_category']);
 $wname = get_member($sign_info['mng_id'])['mb_name'];
 $wid = $sign_info['mng_id'];
@@ -151,7 +136,6 @@ $update_sign = "UPDATE a_sign_off SET
                 WHERE sign_id = '{$sign_id}'";
 sql_query($update_sign);
 
-// 최신 정보 재조회(이 결과로 상태/푸시도 판단)
 $sign_row = sql_fetch("SELECT * FROM a_sign_off WHERE sign_id = '{$sign_id}'");
 
 // -----------------------------------------------------------------------------
@@ -201,7 +185,8 @@ if ($status === 'P') {
 
         if ($sign_off_id_info['mb_token'] != "") {
             try {
-                fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/adm/approval_info.php?w=u&sign_id=");
+                // ✅ 수정: 매니저앱 화면으로 이동
+                fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
             } catch(Exception $e) {
                 // FCM 오류 무시하고 계속 진행
             }
@@ -228,7 +213,8 @@ if ($status === 'P') {
 
         if ($sign_off_id_info['mb_token'] != "") {
             try {
-                fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/adm/approval_info.php?w=u&sign_id=");
+                // ✅ 수정: 매니저앱 화면으로 이동
+                fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
             } catch(Exception $e) {
                 // FCM 오류 무시하고 계속 진행
             }

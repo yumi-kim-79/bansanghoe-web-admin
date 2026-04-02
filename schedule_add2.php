@@ -488,10 +488,12 @@ $building_res = sql_query($building_sql);
 <div class="cm_pop" id="schedule_del_pop">
 	<div class="cm_pop_back"></div>
 	<div class="cm_pop_cont">
-		<p class="cm_pop_desc2">해당 일정을 삭제하시겠습니까?</p>
-		<div class="cm_pop_btn_box flex_ver">
+		<p class="cm_pop_desc2">삭제 방식을 선택해주세요.</p>
+		<div class="cm_pop_btn_box" style="display:flex;flex-direction:column;gap:8px;">
+			<button type="button" class="cm_pop_btn ver2" onClick="scheduleDelHandler('this_only');">이 날짜 일정만 삭제</button>
+			<button type="button" class="cm_pop_btn ver2" onClick="scheduleDelHandler('after_this');">이 날짜 이후 반복 일정 전체 삭제</button>
+			<button type="button" class="cm_pop_btn ver2" onClick="scheduleDelHandler('all');">반복 일정 전체 삭제</button>
 			<button type="button" class="cm_pop_btn" onClick="popClose('schedule_del_pop');">취소</button>
-            <button type="button" class="cm_pop_btn ver2" onClick="scheduleDelHandler();">삭제</button>
 		</div>
 	</div>
 </div>
@@ -554,11 +556,10 @@ function calendar_submit(){
     let building_id = $("#building_id").val();
     let cal_date = "<?php echo $cal_date_def; ?>";
     // let cal_date = $("#cal_date").val();
-    let noti_repeat; 
-    if(w_status == "u"){
-        noti_repeat = $("#noti_repeat").val();
-    }else{
-        noti_repeat = $("input[name='noti_repeat']:checked").val(); 
+    // 라디오 버튼이 있으면 선택값, 없으면 hidden input 값
+    let noti_repeat = $("input[name='noti_repeat']:checked").val();
+    if(!noti_repeat){
+        noti_repeat = $("input[name='noti_repeat']").val();
     }
     
     let cal_title = $("#cal_title").val();
@@ -613,26 +614,14 @@ function calendar_submit(){
 }
 
 //일정삭제
-function scheduleDelHandler(){
+function scheduleDelHandler(del_mode){
     let cal_idx = "<?php echo $cal_idx; ?>";
     let cal_date = "<?php echo $cal_date_def; ?>";
     let mb_id = "<?php echo $member['mb_id']; ?>";
 
+    popClose('schedule_del_pop');
 
-    let noti_chk = "<?php echo $cal_row['noti_repeat']; ?>";
-    let cal_def_date = "<?php echo $cal_date_def; ?>";
-
-    let confirm_msg = "해당 일정을 정말 삭제하시겠습니까?";
-
-    if(noti_chk != "N"){
-        confirm_msg += "\n반복 일정의 경우 " + cal_def_date + " 날짜 이후의 반복 일정이 모두 삭제됩니다.\n계속 진행하시겠습니까?";
-    }
-
-    if (!confirm(confirm_msg)) {
-        return false;
-    }
-    
-    let sendData = {cal_idx:cal_idx, cal_date:cal_date, mb_id:mb_id};
+    let sendData = {cal_idx:cal_idx, cal_date:cal_date, mb_id:mb_id, del_mode:del_mode};
 
     $.ajax({
         type: "POST",
@@ -644,7 +633,7 @@ function scheduleDelHandler(){
         success: function(data) {
             console.log('data:::', data);
 
-            if(data.result == false) { 
+            if(data.result == false) {
                 showToast(data.msg);
                 return false;
             }else{
