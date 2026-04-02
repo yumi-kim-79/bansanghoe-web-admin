@@ -162,6 +162,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **온라인 투표 템플릿 content에서 [SM 오프닝] 및 [제안 사유 및 기대효과] 제목 텍스트 제거** (2026-04-02)
+  - 파일: `adm/online_vote_template_data.php`
+  - 209건 모두 제거, `[확인 사항 및 첨부파일]` 제목은 유지
 - [x] **QR 인쇄 페이지 전체 디자인 리뉴얼** (2026-04-01)
   - 파일: `adm/inspection_print.php`
   - 헤더: #1a2e4a 배경 + 단지명 + AIVEX 로고, QR 180x180px, 중앙 로고 30x30px (~2.8%)
