@@ -376,11 +376,11 @@ include_once('./online_vote_template_data.php');
         <?php }?>
     </div>
     <div class="btn_fixed_top">
+        <button type="button" class="btn btn_03" onclick="$('#vote_template_pop').show();" style="font-size:14px;padding:8px 16px;display:inline-flex;align-items:center;">투표 템플릿 선택</button>
         <a href="./online_vote_list.php?<?php echo $qstr ?>" class="btn btn_02">목록</a>
         <?php if($w == 'u'){?>
         <button type="button" onclick="vote_del_handler();" class="btn btn_01">삭제</button>
         <?php }?>
-        <button type="button" class="btn btn_03" onclick="$('#vote_template_pop').show();" style="font-size:14px;padding:8px 16px;display:inline-flex;align-items:center;">투표 템플릿 선택</button>
         <input type="submit" value="저장" class="btn_submit btn btn_02" accesskey='s'>
     </div>
 </form>
