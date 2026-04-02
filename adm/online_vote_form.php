@@ -44,9 +44,6 @@ if($w == 'u'){
 include_once('./online_vote_template_data.php');
 ?>
 
-<div style="margin-bottom:10px;">
-    <button type="button" class="btn btn_03" onclick="$('#vote_template_pop').show();" style="font-size:14px;padding:8px 16px;">투표 템플릿 선택</button>
-</div>
 
 <!-- 투표 템플릿 팝업 -->
 <div id="vote_template_pop" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(0,0,0,0.5);">
@@ -91,7 +88,10 @@ include_once('./online_vote_template_data.php');
     <input type="hidden" name="vt_id" value="<?php echo $row['vt_id']; ?>">
 
     <div class="tbl_frm01 tbl_wrap">
-        <h2 class="h2_frm ver2">관리단 정보</h2>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h2 class="h2_frm ver2" style="margin:0;">관리단 정보</h2>
+            <button type="button" class="btn btn_03" onclick="$('#vote_template_pop').show();" style="font-size:14px;padding:8px 16px;">투표 템플릿 선택</button>
+        </div>
         <table>
             <caption><?php echo $g5['title']; ?></caption>
             <colgroup>
