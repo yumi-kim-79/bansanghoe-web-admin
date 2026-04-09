@@ -1,5 +1,11 @@
 <?php
 include_once('./_common.php');
+
+// HTTP 캐시 제어 - 매번 최신 내용 로드
+header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 if($types == "sm"){
     include_once(G5_PATH.'/head_sm.php');
 }else{
