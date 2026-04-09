@@ -162,6 +162,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **CHEditor5 스페이서 단락 처리 CSS 추가** (2026-04-09)
+  - 파일: `css/default.css`
+  - 근본 원인: CHEditor5가 이미지 사이에 `<p><br class="cheditor-bogus-br"></p>` 스페이서 단락 삽입
+  - 수정: `cheditor-bogus-br` 숨김, `p > br:only-child` 숨김, 인라인 style 무효화
 - [x] **투표 상세 이미지 공백 재수정 + 캐시 제어** (2026-04-09)
   - `css/default.css`: img/figure/p 스타일에 `!important` 추가, `font-size:0`, `line-height:0` 적용
   - `p:empty` 숨김, `<a>` 감싼 이미지(`p:has(> a > img)`)도 처리
