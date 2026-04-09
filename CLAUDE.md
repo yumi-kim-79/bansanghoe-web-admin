@@ -162,6 +162,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **사용자앱 투표 상세 이미지 아래 과도한 공백 수정** (2026-04-09)
+  - 파일: `css/default.css` (`.bbs_content_box` 관련)
+  - 원인: `<img>` 인라인 baseline 디센더 + `<p>` 태그 기본 margin(1em) + CKEditor `<figure class="image">` margin
+  - 수정: img `display:block; vertical-align:bottom`, p margin 축소, p:has(>img) line-height:0, figure margin:4px
 - [x] **투표 템플릿 데이터 main에 동기화** (2026-04-09)
   - 파일: `adm/online_vote_template_data.php`
   - develop 버전으로 main 덮어쓰기 (209줄 변경)
