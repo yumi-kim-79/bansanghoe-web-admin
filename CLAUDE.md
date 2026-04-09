@@ -162,6 +162,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **투표 상세 이미지 공백 재수정 + 캐시 제어** (2026-04-09)
+  - `css/default.css`: img/figure/p 스타일에 `!important` 추가, `font-size:0`, `line-height:0` 적용
+  - `p:empty` 숨김, `<a>` 감싼 이미지(`p:has(> a > img)`)도 처리
+  - `online_vote_info.php`: Cache-Control: no-cache, no-store, Pragma: no-cache 헤더 추가
 - [x] **사용자앱 투표 상세 이미지/마크다운 렌더링 수정** (2026-04-09)
   - 파일: `online_vote_info.php`
   - `**텍스트**` 마크다운을 `<strong>`으로 변환 (preg_replace)
