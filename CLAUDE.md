@@ -162,6 +162,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **사용자앱 투표 상세 이미지/마크다운 렌더링 수정** (2026-04-09)
+  - 파일: `online_vote_info.php`
+  - `**텍스트**` 마크다운을 `<strong>`으로 변환 (preg_replace)
+  - `<img src="/..."` 상대경로를 절대경로(host URL 포함)로 변환 → 앱 WebView 호환
 - [x] **사용자앱 투표 상세 이미지 아래 과도한 공백 수정** (2026-04-09)
   - 파일: `css/default.css` (`.bbs_content_box` 관련)
   - 원인: `<img>` 인라인 baseline 디센더 + `<p>` 태그 기본 margin(1em) + CKEditor `<figure class="image">` margin

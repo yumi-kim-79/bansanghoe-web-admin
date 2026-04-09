@@ -75,7 +75,18 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP) echo $sql_result;
                         </div>
                     </div>
                     <?php }?>
-                    <?php echo $row['vt_content']; ?>
+                    <?php
+                    $vt_content_display = $row['vt_content'];
+
+                    // **텍스트** 마크다운을 <strong>으로 변환
+                    $vt_content_display = preg_replace('/\*\*(.+?)\*\*/s', '<strong>$1</strong>', $vt_content_display);
+
+                    // 이미지 상대경로를 절대경로로 변환 (앱 WebView 호환)
+                    $host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+                    $vt_content_display = preg_replace('/<img([^>]*)src=["\'](\/[^"\']*)["\']/i', '<img$1src="' . $host_url . '$2"', $vt_content_display);
+
+                    echo $vt_content_display;
+                    ?>
                 </div>
                 
                 <input type="hidden" id="q_cnt" value="1"> <!--  질문 개수 -->
