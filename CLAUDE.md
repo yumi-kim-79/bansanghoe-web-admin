@@ -162,6 +162,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **vt_content PHP 전처리: float 제거, 인라인 width 제거, 빈 div 제거** (2026-04-09)
+  - 파일: `online_vote_info.php`
+  - `float:left/right` 제거 + `display:block` 추가
+  - 이미지 인라인 `width/height` 값 제거 → `max-width:100%; width:auto; height:auto`
+  - 이미지 뒤 연속 `<div><br></div>`, `<p><br></p>` 빈 블록 제거
+  - style 속성 없는 img에도 기본 스타일 추가
 - [x] **CHEditor5 스페이서 단락 처리 CSS 추가** (2026-04-09)
   - 파일: `css/default.css`
   - 근본 원인: CHEditor5가 이미지 사이에 `<p><br class="cheditor-bogus-br"></p>` 스페이서 단락 삽입

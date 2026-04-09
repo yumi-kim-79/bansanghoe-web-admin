@@ -84,12 +84,44 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP) echo $sql_result;
                     <?php
                     $vt_content_display = $row['vt_content'];
 
-                    // **텍스트** 마크다운을 <strong>으로 변환
+                    // 1. **텍스트** 마크다운을 <strong>으로 변환
                     $vt_content_display = preg_replace('/\*\*(.+?)\*\*/s', '<strong>$1</strong>', $vt_content_display);
 
-                    // 이미지 상대경로를 절대경로로 변환 (앱 WebView 호환)
+                    // 2. 이미지 상대경로를 절대경로로 변환 (앱 WebView 호환)
                     $host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
                     $vt_content_display = preg_replace('/<img([^>]*)src=["\'](\/[^"\']*)["\']/i', '<img$1src="' . $host_url . '$2"', $vt_content_display);
+
+                    // 3. float:left / float:right 이미지 → display:block으로 변경
+                    $vt_content_display = preg_replace_callback(
+                        '/<img([^>]*?)style=(["\'])([^"\']*)\2([^>]*)>/i',
+                        function($m){
+                            $style = $m[3];
+                            // float 제거
+                            $style = preg_replace('/float\s*:\s*(left|right)\s*;?/i', '', $style);
+                            // width 인라인 값 제거 (숫자 지정된 경우)
+                            $style = preg_replace('/width\s*:\s*\d+(\.\d+)?(px|%|em|rem)\s*;?/i', '', $style);
+                            // height 인라인 값 제거
+                            $style = preg_replace('/height\s*:\s*\d+(\.\d+)?(px|%|em|rem)\s*;?/i', '', $style);
+                            // display:block + max-width:100% + width:auto 추가
+                            $style = trim($style);
+                            $style = ($style ? $style . ';' : '') . 'display:block;max-width:100%;width:auto;height:auto;margin:0;';
+                            return '<img' . $m[1] . 'style="' . $style . '"' . $m[4] . '>';
+                        },
+                        $vt_content_display
+                    );
+
+                    // 4. style 속성 없는 이미지에도 기본 스타일 추가
+                    $vt_content_display = preg_replace(
+                        '/<img((?:(?!style=)[^>])*?)>/i',
+                        '<img$1 style="display:block;max-width:100%;width:auto;height:auto;margin:0;">',
+                        $vt_content_display
+                    );
+
+                    // 5. 이미지 뒤 연속 빈 div/p 제거 (<div><br></div>, <div style="..."><br></div>, <p><br></p>)
+                    $vt_content_display = preg_replace('/(<\/img>|<img[^>]*>)\s*(<(?:div|p)[^>]*>\s*(?:&nbsp;|<br\s*\/?>)?\s*<\/(?:div|p)>\s*){1,}/i', '$1', $vt_content_display);
+
+                    // 6. 연속된 빈 div/p 블록 제거 (이미지와 무관하게)
+                    $vt_content_display = preg_replace('/(<(?:div|p)[^>]*>\s*(?:&nbsp;|<br\s*\/?>)?\s*<\/(?:div|p)>\s*){2,}/i', '', $vt_content_display);
 
                     echo $vt_content_display;
                     ?>
