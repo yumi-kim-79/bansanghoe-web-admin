@@ -162,6 +162,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **투표 템플릿 데이터 main에 동기화** (2026-04-09)
+  - 파일: `adm/online_vote_template_data.php`
+  - develop 버전으로 main 덮어쓰기 (209줄 변경)
+  - 비의무관리 105개 안건의 `[제안 사유 및 기대효과]` 상세 내용 포함
+  - 의무관리도 `[SM 오프닝]`, `[제안 사유 및 기대효과]` 라벨 포함 버전으로 복원
 - [x] **CKEditor 5 테스트 페이지 생성** (2026-04-02)
   - 파일: `adm/editor_test.php` (신규), `plugin/editor/cheditor5/imageUpload/upload_ckeditor5.php` (신규)
   - CKEditor 5 v43.3.1 CDN, 한글 언어팩, 이미지 업로드/리사이즈, 글자크기/색상/굵기/기울임/표 삽입
