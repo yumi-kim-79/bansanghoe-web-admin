@@ -159,9 +159,15 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [x] Android 자동 빌드 GitHub Actions 설정 (반상회, SM매니저)
 
 ### 진행 중 / 예정 작업
-- (없음)
+- [ ] `sql/alter_building_manager.sql` 서버 DB 실행 (sinbansang + bansanghoe)
 
 ### 최근 완료
+- [x] **단지 담당자/연체요율 API + 어드민 폼 추가** (2026-04-13)
+  - `a_building` 테이블: manager_name, manager_phone, manager_email, late_fee_rate, late_fee_base 컬럼 추가
+  - `adm/building_mng_add.php`: 담당자/연체요율 입력 필드 추가
+  - `adm/building_mng_add_update.php`: INSERT/UPDATE 쿼리에 5개 컬럼 추가
+  - `api/building_settings_api.php`: building_settings(단지별)/building_settings_all(전체)/update_building_settings(수정) API
+  - `sql/alter_building_manager.sql`: DB 마이그레이션 SQL
 - [x] **점검일지 누락업체 조회 기능 추가** (2026-04-13)
   - `adm/inspection_missing.php`: 신규, sub_menu=700200
   - 검색: 지역/단지명/년월 필터

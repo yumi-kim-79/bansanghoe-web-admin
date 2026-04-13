@@ -38,6 +38,11 @@ if($w == "u"){
                     building_bigo = '{$building_bigo}',
                     building_memo = '{$building_memo}',
                     building_policy = '{$building_policy}',
+                    manager_name = '{$manager_name}',
+                    manager_phone = '{$manager_phone}',
+                    manager_email = '{$manager_email}',
+                    late_fee_rate = '{$late_fee_rate}',
+                    late_fee_base = '{$late_fee_base}',
                     ip_info = '{$ip_info}'
                     WHERE building_id = '{$building_id}'";
 
@@ -107,6 +112,11 @@ if($w == "u"){
                     building_bigo = '{$building_bigo}',
                     building_memo = '{$building_memo}',
                     building_policy = '{$building_policy}',
+                    manager_name = '{$manager_name}',
+                    manager_phone = '{$manager_phone}',
+                    manager_email = '{$manager_email}',
+                    late_fee_rate = '{$late_fee_rate}',
+                    late_fee_base = '{$late_fee_base}',
                     ip_info = '{$ip_info}'
                     WHERE building_id = '{$building_id}'";
 
@@ -169,6 +179,11 @@ if($w == "u"){
                     building_bigo = '{$building_bigo}',
                     building_memo = '{$building_memo}',
                     building_policy = '{$building_policy}',
+                    manager_name = '{$manager_name}',
+                    manager_phone = '{$manager_phone}',
+                    manager_email = '{$manager_email}',
+                    late_fee_rate = '{$late_fee_rate}',
+                    late_fee_base = '{$late_fee_base}',
                     ip_info = '{$ip_info}',
                     wid = '{$member['mb_id']}',
                     created_at = '{$today}'";

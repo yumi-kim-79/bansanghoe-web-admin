@@ -256,6 +256,32 @@ add_javascript(G5_POSTCODE_JS, 0);    //다음 주소 js
                 </tr>
                 <?php }?>
                 <tr>
+                    <th>담당자명</th>
+                    <td>
+                        <input type="text" name="manager_name" id="manager_name" class="bansang_ipt ver2" value="<?php echo $row['manager_name']?>">
+                    </td>
+                    <th>담당자 연락처</th>
+                    <td>
+                        <input type="tel" name="manager_phone" id="manager_phone" class="bansang_ipt ver2" value="<?php echo $row['manager_phone']?>" maxlength="13">
+                    </td>
+                </tr>
+                <tr>
+                    <th>담당자 이메일</th>
+                    <td>
+                        <input type="email" name="manager_email" id="manager_email" class="bansang_ipt ver2" value="<?php echo $row['manager_email']?>">
+                    </td>
+                    <th>연체요율(%)</th>
+                    <td>
+                        <div class="ipt_boxs" style="display:flex;gap:10px;align-items:center;">
+                            <input type="number" name="late_fee_rate" id="late_fee_rate" class="bansang_ipt ver2" value="<?php echo $row['late_fee_rate'] ?: '0.00';?>" step="0.01" min="0" max="100" style="width:100px;">
+                            <select name="late_fee_base" id="late_fee_base" class="bansang_sel" style="width:auto;">
+                                <option value="미납금액" <?php echo get_selected($row['late_fee_base'], '미납금액');?>>미납금액 기준</option>
+                                <option value="당월금액" <?php echo get_selected($row['late_fee_base'], '당월금액');?>>당월금액 기준</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
                     <th>단지 메모</th>
                     <td colspan='3'>
                         <textarea name="building_memo" id="building_memo" class="bansang_ipt ver2 full ta"><?php echo $row['building_memo']?></textarea>
