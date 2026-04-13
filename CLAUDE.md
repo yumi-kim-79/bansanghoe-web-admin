@@ -202,11 +202,21 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
-- [x] **결재서류 서명 이미지 복원 완료 + 스크립트 삭제** (2026-04-14)
-  - `adm/signature_recover.php` 1회 실행 → base64에서 PNG 복원 → 삭제 완료
+- [x] **서버 data 폴더 자동 백업 크론잡 설정** (2026-04-14)
+  - 매일 새벽 3시, `/var/www/html/data/` → `/var/backups/bansanghoe/data/YYYYMMDD/`, 30일 보관
+- [x] **서버 실행 금지 정책 + deploy.yml 수정** (2026-04-14)
+  - `git reset --hard` 서버 실행 금지 문서화 (data/ 손실 사고 이력)
+  - deploy.yml: `git reset --hard HEAD` → `git checkout -- .` 변경
+- [x] **결재서류 서명 이미지 복원** (2026-04-14)
+  - 원인: mkdir recursive 미적용 시절 file_put_contents 실패 → 파일 없음
+  - `signature_recover.php` 1회 실행 → base64에서 PNG 복원 → 스크립트 삭제 완료
 - [x] **카드 등록/관리 메뉴 "개발 중" 차단** (2026-04-14)
   - `mypage.php`: 링크 → alert("개발 중") + 이동 차단
   - `card_register.php`, `card_register_callback.php`: 직접 접근 시 alert + history.back()
+- [x] **첨부파일 이미지 404 문제 해결** (2026-04-13~14)
+  - 원인: `@mkdir($path, 0755)` 중간 디렉토리 미생성 → 업로드 실패 → DB 레코드만 생성
+  - 수정: 24개 파일 `@mkdir($path, G5_DIR_PERMISSION, true)` recursive 추가
+  - 민원/게시판/서명 이미지 저장 경로 전체 수정
 - [x] **adm/file_check.php 진단 도구 삭제** (2026-04-13)
 - [x] **main→develop 동기화 완료** (2026-04-13)
   - mkdir recursive, alert→die, or die→error_log, FCM try-catch, alert(e)→안전메시지 등 35개 파일
