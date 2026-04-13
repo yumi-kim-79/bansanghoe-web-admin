@@ -135,6 +135,21 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - 모든 수정은 로컬 → GitHub → 자동배포 순서로 진행
 - DB 스키마 변경은 서버에서 직접 mysql 명령으로 실행 필요
 
+## ⚠️ 서버 실행 금지 명령어
+
+서버에서 절대 실행하지 말 것 (업로드 파일 손실 위험):
+
+- `git reset --hard` (서버에서)
+- `git clean -fd` (서버에서)
+- `rm -rf /var/www/html/data/`
+- `find ... -delete` (data 디렉토리 대상)
+
+이유: `/var/www/html/data/` 는 git 관리 대상이 아닌 실제 업로드 파일 저장소.
+`git reset --hard` 실행 시 코드는 복구되지만 data/ 폴더가 삭제될 수 있음.
+→ **2026-04-14 민원/서명 이미지 전체 소실 사고 발생 이력 있음.**
+
+로컬(개발 PC)에서의 `git reset --hard`는 정상 사용 가능.
+
 ---
 
 ## 🎨 CSS 주요 변수

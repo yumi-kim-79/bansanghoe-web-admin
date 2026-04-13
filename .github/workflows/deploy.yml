@@ -45,7 +45,8 @@ jobs:
             fi
 
             # git pull로 전체 동기화 (신규 파일 포함)
-            git reset --hard HEAD
+            # ⚠️ git reset --hard 사용 금지 — data/ 업로드 파일 손실 위험
+            git checkout -- .
             git pull origin $BRANCH
 
             # 30일 이상 된 백업 정리
