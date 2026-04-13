@@ -163,6 +163,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **단지 추가/수정 시 담당자 일괄 선택 기능** (2026-04-13)
+  - `adm/building_mng_add.php`: 담당자 설정 섹션 (미배정↔배정 이동 UI, 검색, 체크박스)
+  - `adm/building_mng_add_update.php`: manager_ids[] 배열로 a_mng_building 일괄 저장 (soft delete + INSERT/복원)
 - [x] **building_settings_api DB 연결 PDO 직접 연결로 변경** (2026-04-13)
   - `api/building_settings_api.php`: `require_once _common.php` 제거 → PDO 직접 연결
   - 모든 SQL을 prepared statement로 변환 (SQL injection 방지)
