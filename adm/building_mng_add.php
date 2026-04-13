@@ -363,6 +363,145 @@ add_javascript(G5_POSTCODE_JS, 0);    //다음 주소 js
         </table>
     </div>
 
+    <!-- 담당자 설정 섹션 -->
+    <?php
+    // 전체 정상 담당자 조회
+    $all_mng_sql = "SELECT mng.mng_id, mng.mng_name, dept.md_name, grade.mg_name
+                    FROM a_mng AS mng
+                    LEFT JOIN a_mng_department AS dept ON mng.mng_department = dept.md_idx
+                    LEFT JOIN a_mng_grade AS grade ON mng.mng_grades = grade.mg_idx
+                    WHERE mng.mng_status = 1 AND mng.is_del = 0
+                    ORDER BY dept.is_prior ASC, grade.is_prior DESC, mng.mng_name ASC";
+    $all_mng_res = sql_query($all_mng_sql);
+
+    // 현재 배정된 담당자 ID 목록
+    $assigned_ids = [];
+    if($w == 'u' || $w == 'a'){
+        $assigned_sql = "SELECT mb_id FROM a_mng_building WHERE building_id = '{$building_id}' AND is_del = 0";
+        $assigned_res = sql_query($assigned_sql);
+        while($arow = sql_fetch_array($assigned_res)){
+            $assigned_ids[] = $arow['mb_id'];
+        }
+    }
+    ?>
+    <div class="tbl_frm01 tbl_wrap">
+        <h2 class="h2_frm ver2">담당자 설정</h2>
+        <div class="manager_assign_wrap">
+            <div class="manager_search_box">
+                <input type="text" id="mng_search" class="bansang_ipt ver2" placeholder="이름 또는 부서 검색" onkeyup="filterManagers();">
+            </div>
+            <div class="manager_dual_box">
+                <div class="manager_panel">
+                    <div class="manager_panel_title">미배정 담당자</div>
+                    <div class="manager_list" id="unassigned_list">
+                        <?php while($mrow = sql_fetch_array($all_mng_res)){
+                            $is_assigned = in_array($mrow['mng_id'], $assigned_ids);
+                            if($is_assigned) continue;
+                        ?>
+                        <label class="manager_item" data-name="<?php echo $mrow['mng_name'];?>" data-dept="<?php echo $mrow['md_name'];?>">
+                            <input type="checkbox" value="<?php echo $mrow['mng_id'];?>">
+                            <span class="mng_name"><?php echo $mrow['mng_name'];?></span>
+                            <span class="mng_dept"><?php echo $mrow['md_name'];?></span>
+                            <span class="mng_grade"><?php echo $mrow['mg_name'];?></span>
+                        </label>
+                        <?php } ?>
+                    </div>
+                </div>
+                <div class="manager_btns">
+                    <button type="button" class="btn btn_03" onclick="moveManagers('assign');">추가 →</button>
+                    <button type="button" class="btn btn_02" onclick="moveManagers('remove');">← 제거</button>
+                </div>
+                <div class="manager_panel">
+                    <div class="manager_panel_title">배정된 담당자 <span id="assigned_count">(<?php echo count($assigned_ids);?>명)</span></div>
+                    <div class="manager_list" id="assigned_list">
+                        <?php
+                        // 배정된 담당자 다시 조회 (상세 정보 포함)
+                        if(count($assigned_ids) > 0){
+                            $aids = "'".implode("','", $assigned_ids)."'";
+                            $assigned_detail_sql = "SELECT mng.mng_id, mng.mng_name, dept.md_name, grade.mg_name
+                                FROM a_mng AS mng
+                                LEFT JOIN a_mng_department AS dept ON mng.mng_department = dept.md_idx
+                                LEFT JOIN a_mng_grade AS grade ON mng.mng_grades = grade.mg_idx
+                                WHERE mng.mng_id IN ({$aids}) AND mng.mng_status = 1 AND mng.is_del = 0
+                                ORDER BY dept.is_prior ASC, grade.is_prior DESC";
+                            $assigned_detail_res = sql_query($assigned_detail_sql);
+                            while($arow = sql_fetch_array($assigned_detail_res)){
+                        ?>
+                        <label class="manager_item" data-name="<?php echo $arow['mng_name'];?>" data-dept="<?php echo $arow['md_name'];?>">
+                            <input type="checkbox" value="<?php echo $arow['mng_id'];?>">
+                            <input type="hidden" name="manager_ids[]" value="<?php echo $arow['mng_id'];?>">
+                            <span class="mng_name"><?php echo $arow['mng_name'];?></span>
+                            <span class="mng_dept"><?php echo $arow['md_name'];?></span>
+                            <span class="mng_grade"><?php echo $arow['mg_name'];?></span>
+                        </label>
+                        <?php }} ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .manager_assign_wrap {padding:10px 0;}
+    .manager_search_box {margin-bottom:10px;}
+    .manager_dual_box {display:flex;gap:10px;align-items:stretch;}
+    .manager_panel {flex:1;border:1px solid #d6dce7;border-radius:6px;overflow:hidden;}
+    .manager_panel_title {padding:8px 12px;background:#f4f6f9;font-weight:600;font-size:13px;border-bottom:1px solid #d6dce7;}
+    .manager_list {height:240px;overflow-y:auto;padding:4px;}
+    .manager_item {display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:12px;}
+    .manager_item:hover {background:#f0f7ff;}
+    .manager_item input[type="checkbox"] {flex-shrink:0;}
+    .mng_name {font-weight:600;min-width:50px;}
+    .mng_dept {color:#666;min-width:50px;}
+    .mng_grade {color:#999;font-size:11px;}
+    .manager_btns {display:flex;flex-direction:column;gap:8px;justify-content:center;flex-shrink:0;}
+    .manager_btns .btn {padding:8px 12px;font-size:12px;white-space:nowrap;}
+    </style>
+
+    <script>
+    function filterManagers(){
+        var keyword = document.getElementById('mng_search').value.toLowerCase();
+        document.querySelectorAll('#unassigned_list .manager_item').forEach(function(item){
+            var name = (item.dataset.name || '').toLowerCase();
+            var dept = (item.dataset.dept || '').toLowerCase();
+            item.style.display = (name.indexOf(keyword) >= 0 || dept.indexOf(keyword) >= 0) ? '' : 'none';
+        });
+    }
+
+    function moveManagers(direction){
+        if(direction === 'assign'){
+            var checked = document.querySelectorAll('#unassigned_list input[type="checkbox"]:checked');
+            checked.forEach(function(cb){
+                var item = cb.closest('.manager_item');
+                // hidden input 추가 (폼 제출용)
+                var hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'manager_ids[]';
+                hidden.value = cb.value;
+                item.appendChild(hidden);
+                cb.checked = false;
+                document.getElementById('assigned_list').appendChild(item);
+            });
+        } else {
+            var checked = document.querySelectorAll('#assigned_list input[type="checkbox"]:checked');
+            checked.forEach(function(cb){
+                var item = cb.closest('.manager_item');
+                // hidden input 제거
+                var hidden = item.querySelector('input[name="manager_ids[]"]');
+                if(hidden) hidden.remove();
+                cb.checked = false;
+                document.getElementById('unassigned_list').appendChild(item);
+            });
+        }
+        updateCount();
+    }
+
+    function updateCount(){
+        var count = document.querySelectorAll('#assigned_list .manager_item').length;
+        document.getElementById('assigned_count').textContent = '(' + count + '명)';
+    }
+    </script>
+
     <div class="btn_fixed_top">
         <a href="./building_mng.php?type=<?php echo $type; ?>&amp;<?php echo $qstr ?>" class="btn btn_02">목록</a>
         <!-- <?php if($member['mb_level'] == 10 || $mng_infos['mng_certi'] == 'A' || $mng_infos['mng_certi'] == 'B'){?>

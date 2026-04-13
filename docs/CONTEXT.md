@@ -43,7 +43,7 @@
 | `a_building_ho` | 세대(호수) 정보 |
 | `a_building_dong` | 동 정보 |
 | `a_mng` | 담당자(매니저) 정보 |
-| `a_mng_building` | 단지-담당자 매핑 (N:N) |
+| `a_mng_building` | 단지-담당자 매핑 (N:N, 단지 폼에서 일괄 배정) |
 | `a_mng_department` | 부서 |
 | `a_mng_grade` | 직급 |
 | `a_member` | 입주민 회원 |

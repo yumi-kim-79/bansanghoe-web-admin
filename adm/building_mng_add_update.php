@@ -401,6 +401,32 @@ for ($i=0; $i<count($upload); $i++)
     }
 }
 
+// 담당자 배정 처리 (a_mng_building)
+if($building_id && isset($_POST['manager_ids'])){
+    $new_ids = $_POST['manager_ids'];
+
+    // 기존 배정 전체 soft delete
+    sql_query("UPDATE a_mng_building SET is_del = 1, deleted_at = '{$today}' WHERE building_id = '{$building_id}' AND is_del = 0");
+
+    // 새로 선택된 담당자 INSERT
+    if(is_array($new_ids)){
+        foreach($new_ids as $mid){
+            $mid = trim($mid);
+            if($mid == '') continue;
+            // 기존 레코드가 있으면 is_del=0으로 복원, 없으면 INSERT
+            $exist = sql_fetch("SELECT mng_id FROM a_mng_building WHERE building_id = '{$building_id}' AND mb_id = '{$mid}'");
+            if($exist['mng_id']){
+                sql_query("UPDATE a_mng_building SET is_del = 0, deleted_at = NULL WHERE building_id = '{$building_id}' AND mb_id = '{$mid}'");
+            } else {
+                sql_query("INSERT INTO a_mng_building SET building_id = '{$building_id}', mb_id = '{$mid}', created_at = '{$today}'");
+            }
+        }
+    }
+} else if($building_id && !isset($_POST['manager_ids'])){
+    // 담당자가 하나도 선택 안 된 경우: 모두 제거
+    sql_query("UPDATE a_mng_building SET is_del = 1, deleted_at = '{$today}' WHERE building_id = '{$building_id}' AND is_del = 0");
+}
+
 if($w == 'u'){
     if($is_use == 0){
         alert('단지가 해지되었습니다.', '/adm/building_mng.php?type=N');
