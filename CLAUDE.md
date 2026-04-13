@@ -178,6 +178,7 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **adm/file_check.php 진단 도구 삭제** (2026-04-13)
 - [x] **main→develop 동기화 완료** (2026-04-13)
   - mkdir recursive, alert→die, or die→error_log, FCM try-catch, alert(e)→안전메시지 등 35개 파일
 - [x] **민원 저장 500 에러 + [object Object] alert 수정** (2026-04-13)
