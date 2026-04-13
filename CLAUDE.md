@@ -162,6 +162,8 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **결재 탭 텍스트 간결화** (2026-04-13)
+  - `approval_document.php`: "결재 관리"→"결재관리", "결재 승인건"→"승인건", "결재 반려건"→"반려건", "내 결재"→"내결재"
 - [x] **매니저앱 결재 '내 결재' 탭 추가** (2026-04-13)
   - `approval_document.php`: tab04 "내 결재" 추가
   - `approval_document_ajax.php`: `my_approval` 필터 쿼리
