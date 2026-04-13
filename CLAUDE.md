@@ -163,6 +163,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **building_settings_api DB 연결 PDO 직접 연결로 변경** (2026-04-13)
+  - `api/building_settings_api.php`: `require_once _common.php` 제거 → PDO 직접 연결
+  - 모든 SQL을 prepared statement로 변환 (SQL injection 방지)
+  - Gnuboard 의존성 완전 제거 → 독립 API 파일
 - [x] **단지 담당자 조회 API (a_mng_building 활용)** (2026-04-13)
   - `api/building_settings_api.php`: building_managers(단지별)/building_managers_all(전체) API
   - 기존 `a_mng_building` JOIN `a_mng` + 부서/직급 테이블 활용 (DB 변경 최소화)

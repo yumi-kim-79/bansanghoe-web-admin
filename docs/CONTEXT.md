@@ -25,6 +25,7 @@
 - 단지 동기화: 반상회 API → Firestore complexes 컬렉션
 
 ### API 엔드포인트
+> API 파일(`api/building_settings_api.php`)은 PDO 직접 연결 — Gnuboard 세션/인증 불필요
 
 | 메서드 | 엔드포인트 | 설명 |
 |--------|-----------|------|
