@@ -163,6 +163,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **adm/bbs_form.php AJAX 성공/에러 콜백 안전화** (2026-04-13)
+  - `data.msg` undefined 시 "저장되었습니다." 폴백 메시지
+  - error 콜백에 사용자 알림 추가 + btn_submit 재활성화
+  - building_info_pop 숨김을 success/error 양쪽에서 보장
 - [x] **adm/bbs_form_update.php JSON 응답 오염 수정** (2026-04-13)
   - 원인: `alert()` 함수가 HTML 페이지 출력 → AJAX dataType:json 파싱 실패
   - 수정: `alert("파일 유형")` → `die(result_data(false, "...", []))` (2개소)

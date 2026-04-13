@@ -415,14 +415,14 @@ function fbbs_submit() {
             processData: false,
             success: function(data) {
                 console.log('data:::', data);
-                if(data.result == false) { 
-                    alert(data.msg);
-                    $(".btn_submit").attr('disabled', false);
+                $("#building_info_pop").hide();
+                $(".btn_submit").attr('disabled', false);
 
-                    $("#building_info_pop").hide();
+                if(data && data.result == false) {
+                    alert(data.msg || '저장 중 오류가 발생했습니다.');
                     return false;
                 }else{
-                    alert(data.msg);
+                    alert(data && data.msg ? data.msg : '저장되었습니다.');
 
                     setTimeout(() => {
                         if(w_status == 'u'){
@@ -430,18 +430,14 @@ function fbbs_submit() {
                         }else{
                             window.location.href = './bbs_list.php?bbs_code=<?php echo $bbs_code?>';
                         }
-                        
-                    }, 1000);
-
-                    $("#building_info_pop").hide();
+                    }, 500);
                 }
             },
-            error:function(e){
-
-                console.log('e', e);
-                // alert(e);
-
+            error:function(xhr, status, error){
+                console.log('ajax error:', status, error, xhr.responseText);
                 $("#building_info_pop").hide();
+                $(".btn_submit").attr('disabled', false);
+                alert('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
             }
         });
 
