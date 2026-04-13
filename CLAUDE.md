@@ -163,10 +163,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
-- [x] **민원/게시판 첨부 이미지 진단 도구 추가** (2026-04-13)
-  - `adm/file_check.php`: 첨부파일 진단 페이지 (관리자 전용)
-  - complain/bbs_img/bbs_pdf 등 테이블별 최근 5건 조회
-  - 서버 파일 존재 여부(file_exists) + 웹 경로 + 미리보기 표시
+- [x] **첨부파일 이미지 404 원인 파악 및 해결** (2026-04-13)
+  - 원인: 서버에서 data 디렉토리 중복 (`/var/www/html/data/data/file/`)
+  - 웹 경로 `/data/file/complain/` → 실제 파일 `/data/data/file/complain/` 불일치
+  - 해결: 서버에서 심볼릭 링크 `ln -s /var/www/html/data/data/file /var/www/html/data/file`
+  - `adm/file_check.php`: 진단 도구 (사용 후 삭제 권장)
   - 경로 구조: 업로드 `G5_DATA_PATH/file/{bo_table}/` → 웹 `/data/file/{bo_table}/`
   - `smtm2017.com/adm/file_check.php` 에서 확인 후 원인 파악 가능
 - [x] **민원/게시판 이미지 표시 + 결재 탭 레이아웃 수정** (2026-04-13)
