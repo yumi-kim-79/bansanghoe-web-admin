@@ -162,6 +162,18 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **매니저앱 결재 '내 결재' 탭 추가** (2026-04-13)
+  - `approval_document.php`: tab04 "내 결재" 추가
+  - `approval_document_ajax.php`: `my_approval` 필터 쿼리
+    - 내가 1~3차 결재자이고 현재 차례인 미처리 문서만 표시
+    - 1차: sign_off_mng_id1=나 AND sign_off_status 미승인
+    - 2차: sign_off_mng_id2=나 AND 1차 승인 AND sign_off_status2 미승인
+    - 3차: sign_off_mng_id3=나 AND 2차 승인 AND sign_off_status3 미승인
+- [x] **결재(내 결재) 시스템 구조 파악** (2026-04-13)
+  - 관리자: `adm/approval_list.php`(목록), `approval_form.php`(양식), `approval_info.php`(상세/승인/반려)
+  - 매니저: `approval_document.php`(현황), `holiday_reqeust.php`(휴가), `expense_report.php`(경비)
+  - DB: `a_sign_off`(결재문서), `a_sign_off_category`(14종), `a_signature`(전자서명), `a_expense_report`(경비)
+  - 프로세스: 등록(N)→1차승인(P)→2차→3차→완료(E), 반려(R), FCM 푸시, 첨부파일
 - [x] **vt_content PHP 전처리: float 제거, 인라인 width 제거, 빈 div 제거** (2026-04-09)
   - 파일: `online_vote_info.php`
   - `float:left/right` 제거 + `display:block` 추가
