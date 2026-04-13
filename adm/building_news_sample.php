@@ -206,9 +206,9 @@ function bbsToImg(){
                 }
                 
             },
-            error:function(e){
+            error:function(xhr, status, error){
                 console.log('error', e);
-                alert(e);
+                console.log("ajax error:", status, error); alert("저장 중 오류가 발생했습니다.");
             }
         });
     });

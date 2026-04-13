@@ -609,8 +609,8 @@ function calendar_process(){
                 }, 100);
             }
         },
-        error:function(e){
-            alert(e);
+        error:function(xhr, status, error){
+            console.log("ajax error:", status, error); alert("저장 중 오류가 발생했습니다.");
         }
     });
 }
@@ -651,8 +651,8 @@ function calendar_del(){
                 }, 700);
             }
         },
-        error:function(e){
-            alert(e);
+        error:function(xhr, status, error){
+            console.log("ajax error:", status, error); alert("저장 중 오류가 발생했습니다.");
         }
     });
 }

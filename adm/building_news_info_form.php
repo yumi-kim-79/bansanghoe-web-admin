@@ -1000,8 +1000,8 @@ function bbs_submit(){
                 }, 1000);
             }
         },
-        error:function(e){
-            alert(e);
+        error:function(xhr, status, error){
+            console.log("ajax error:", status, error); alert("저장 중 오류가 발생했습니다.");
         }
     });
 }
@@ -1049,8 +1049,8 @@ function bbs_recall_submit(){
                 }, 1000);
             }
         },
-        error:function(e){
-            alert(e);
+        error:function(xhr, status, error){
+            console.log("ajax error:", status, error); alert("저장 중 오류가 발생했습니다.");
         }
     });
 }

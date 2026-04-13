@@ -1369,8 +1369,10 @@ function fcomplain_submit(f) {
                     buildingInfoPopClose();
                 }
             },
-            error:function(e){
-                alert(e);
+            error:function(xhr, status, error){
+                console.log('ajax error:', status, error, xhr.responseText);
+                buildingInfoPopClose();
+                alert('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
             }
         });
     }, 50);

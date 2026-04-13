@@ -163,6 +163,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **민원 저장 500 에러 + [object Object] alert 수정** (2026-04-13)
+  - `adm/complain_form_update.php`: `alert()` HTML 함수 → `die(result_data())` JSON 변환 (3개소)
+  - `adm/complain_form_update.php`: `move_uploaded_file or die(0)` → `error_log` 변환 (3개소)
+  - `adm/complain_form.php` + 9개 어드민 파일: `alert(e)` → `alert("저장 중 오류가 발생했습니다.")`
 - [x] **첨부파일 업로드 실패 수정: mkdir recursive 추가** (2026-04-13)
   - 원인: `@mkdir($path, 0755)` — 중간 디렉토리(`/file/`) 없으면 하위 생성 실패, `@`로 에러 무시
   - 수정: 24개 파일에서 `@mkdir($path, G5_DIR_PERMISSION, true)` recursive 플래그 추가

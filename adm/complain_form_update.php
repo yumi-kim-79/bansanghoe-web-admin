@@ -208,7 +208,7 @@ if(isset($_FILES['complain_file']['name'])){
 
             if ( preg_match("/\.({$config['cf_image_extension']})$/i", $filename) || preg_match("/\.({$config['cf_flash_extension']})$/i", $filename) ) {
                 if ($timg['2'] < 1 || $timg['2'] > 18){
-                    alert("등록할 수 있는 파일 유형이 아닙니다.");
+                    die(result_data(false, "등록할 수 있는 파일 유형이 아닙니다.", []));
                 }
             }
 
@@ -243,7 +243,9 @@ if(isset($_FILES['complain_file']['name'])){
             // }else{
             //     $error_code = move_uploaded_file($tmp_file, $dest_file) or die(result_data(false, $_FILES['complain_file']['error'][$i], []));
             // }
-            $error_code = move_uploaded_file($tmp_file, $dest_file) or die(result_data(false, $_FILES['complain_file']['error'][$i], []));
+            if(!move_uploaded_file($tmp_file, $dest_file)){
+                error_log("[complain_form_update] file move failed: idx={$i}, error=" . $_FILES['complain_file']['error'][$i]);
+            }
         }
     }
 }
@@ -362,7 +364,7 @@ if(isset($_FILES['answer_file']['name'])){
 
             if ( preg_match("/\.({$config['cf_image_extension']})$/i", $filename) || preg_match("/\.({$config['cf_flash_extension']})$/i", $filename) ) {
                 if ($timg['2'] < 1 || $timg['2'] > 18){
-                    alert("등록할 수 있는 파일 유형이 아닙니다.");
+                    die(result_data(false, "등록할 수 있는 파일 유형이 아닙니다.", []));
                 }
             }
 
@@ -397,7 +399,9 @@ if(isset($_FILES['answer_file']['name'])){
             // }else{
             //     $error_code = move_uploaded_file($tmp_file, $dest_file2) or die(result_data(false, $_FILES['answer_file']['error'][$i], []));
             // }
-            $error_code = move_uploaded_file($tmp_file, $dest_file2) or die(result_data(false, $_FILES['answer_file']['error'][$i], []));
+            if(!move_uploaded_file($tmp_file, $dest_file2)){
+                error_log("[complain_form_update] answer file move failed: idx={$i}, error=" . $_FILES['answer_file']['error'][$i]);
+            }
         }
     }
 }
@@ -517,7 +521,7 @@ if(isset($_FILES['answer_add_file']['name'])){
 
             if ( preg_match("/\.({$config['cf_image_extension']})$/i", $filename) || preg_match("/\.({$config['cf_flash_extension']})$/i", $filename) ) {
                 if ($timg['2'] < 1 || $timg['2'] > 18){
-                    alert("등록할 수 있는 파일 유형이 아닙니다.");
+                    die(result_data(false, "등록할 수 있는 파일 유형이 아닙니다.", []));
                 }
             }
 
@@ -552,7 +556,9 @@ if(isset($_FILES['answer_add_file']['name'])){
             // }else{
             //     $error_code = move_uploaded_file($tmp_file, $dest_file3) or die(result_data(false, $_FILES['answer_add_file']['error'][$i], []));
             // }
-            $error_code = move_uploaded_file($tmp_file, $dest_file3) or die(result_data(false, $_FILES['answer_add_file']['error'][$i], []));
+            if(!move_uploaded_file($tmp_file, $dest_file3)){
+                error_log("[complain_form_update] add file move failed: idx={$i}, error=" . $_FILES['answer_add_file']['error'][$i]);
+            }
         }
     }
 }
