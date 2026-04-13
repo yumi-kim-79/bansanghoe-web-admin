@@ -144,7 +144,7 @@ if(isset($_FILES['img_up']['name'])){
 
             if ( preg_match("/\.({$config['cf_image_extension']})$/i", $filename) || preg_match("/\.({$config['cf_flash_extension']})$/i", $filename) ) {
                 if ($timg['2'] < 1 || $timg['2'] > 18){
-                    alert("등록할 수 있는 파일 유형이 아닙니다.");
+                    die(result_data(false, "등록할 수 있는 파일 유형이 아닙니다.", []));
                 }
             }
 
@@ -314,7 +314,7 @@ if(isset($_FILES['bf_file']['name'])){
 
             if ( preg_match("/\.({$config['cf_image_extension']})$/i", $filename) || preg_match("/\.({$config['cf_flash_extension']})$/i", $filename) ) {
                 if ($timg['2'] < 1 || $timg['2'] > 18){
-                    alert("등록할 수 있는 파일 유형이 아닙니다.");
+                    die(result_data(false, "등록할 수 있는 파일 유형이 아닙니다.", []));
                 }
             }
 

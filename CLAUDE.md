@@ -163,6 +163,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **adm/bbs_form_update.php JSON 응답 오염 수정** (2026-04-13)
+  - 원인: `alert()` 함수가 HTML 페이지 출력 → AJAX dataType:json 파싱 실패
+  - 수정: `alert("파일 유형")` → `die(result_data(false, "...", []))` (2개소)
 - [x] **FCM 호출 안전화: 프로젝트 전체 45개소 try-catch 적용** (2026-04-13)
   - `lib/common.lib.php fcm_send()`: 함수 전체 try-catch, printf 제거, 빈 토큰 조기 반환
   - 루트 14개 파일 + adm/ 16개 파일: 모든 fcm_send 호출에 try-catch 감쌈
