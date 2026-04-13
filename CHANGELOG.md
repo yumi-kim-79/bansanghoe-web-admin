@@ -1,6 +1,9 @@
 # Changelog
 
 ## 2026-04-13
+### Changed
+- building_settings_api.php DB 연결: Gnuboard `_common.php` → PDO 직접 연결 + prepared statement
+
 ### Added
 - 단지 담당자 조회 API — 기존 `a_mng_building` 활용 (`api/building_settings_api.php`)
 - 연체요율 조회/수정 API (`building_settings`, `update_building_settings`)
