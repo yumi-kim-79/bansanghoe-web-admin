@@ -163,6 +163,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **민원/게시판 이미지 표시 + 결재 탭 레이아웃 수정** (2026-04-13)
+  - `css/default.css`: `.bbs_img_box`에 `min-height:80px` 추가, img `display:block !important`
+  - `css/default.css`: `.tab_lnb.ver4 li`를 `calc(100%/3)` → `flex:1`로 변경 (4탭 지원)
 - [x] **adm/bbs_form_update.php alert("0") 근본 원인 수정** (2026-04-13)
   - 원인: `move_uploaded_file() or die(result_data(false, 0))` — 빈 Blob 파일 이동 실패 시 에러코드 0 반환
   - 수정: `or die` 제거 → `if(!move_uploaded_file)` + error_log로 변경 (실패해도 계속 진행)
