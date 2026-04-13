@@ -165,7 +165,7 @@ $chars_array = array_merge(range(0,9), range('a','z'), range('A','Z'));
 $file_path = G5_DATA_PATH.'/file/complain';
 
 // 디렉토리가 없다면 생성합니다. (퍼미션도 변경하구요.)
-@mkdir($file_path, G5_DIR_PERMISSION);
+@mkdir($file_path, G5_DIR_PERMISSION, true);
 @chmod($file_path, G5_DIR_PERMISSION);
 
 $upload = array();
@@ -208,7 +208,7 @@ if(isset($_FILES['complain_file']['name'])){
 
             if ( preg_match("/\.({$config['cf_image_extension']})$/i", $filename) || preg_match("/\.({$config['cf_flash_extension']})$/i", $filename) ) {
                 if ($timg['2'] < 1 || $timg['2'] > 18){
-                    alert("등록할 수 있는 파일 유형이 아닙니다.");
+                    die(result_data(false, "등록할 수 있는 파일 유형이 아닙니다.", []));
                 }
             }
 
@@ -243,7 +243,9 @@ if(isset($_FILES['complain_file']['name'])){
             // }else{
             //     $error_code = move_uploaded_file($tmp_file, $dest_file) or die(result_data(false, $_FILES['complain_file']['error'][$i], []));
             // }
-            $error_code = move_uploaded_file($tmp_file, $dest_file) or die(result_data(false, $_FILES['complain_file']['error'][$i], []));
+            if(!move_uploaded_file($tmp_file, $dest_file)){
+                error_log("[complain_form_update] file move failed: idx={$i}, error=" . $_FILES['complain_file']['error'][$i]);
+            }
         }
     }
 }
@@ -319,7 +321,7 @@ for ($i=0; $i<count($upload); $i++)
 $file_path2 = G5_DATA_PATH.'/file/complain_answer';
 
 // 디렉토리가 없다면 생성합니다. (퍼미션도 변경하구요.)
-@mkdir($file_path2, G5_DIR_PERMISSION);
+@mkdir($file_path2, G5_DIR_PERMISSION, true);
 @chmod($file_path2, G5_DIR_PERMISSION);
 
 $upload_a = array();
@@ -362,7 +364,7 @@ if(isset($_FILES['answer_file']['name'])){
 
             if ( preg_match("/\.({$config['cf_image_extension']})$/i", $filename) || preg_match("/\.({$config['cf_flash_extension']})$/i", $filename) ) {
                 if ($timg['2'] < 1 || $timg['2'] > 18){
-                    alert("등록할 수 있는 파일 유형이 아닙니다.");
+                    die(result_data(false, "등록할 수 있는 파일 유형이 아닙니다.", []));
                 }
             }
 
@@ -397,7 +399,9 @@ if(isset($_FILES['answer_file']['name'])){
             // }else{
             //     $error_code = move_uploaded_file($tmp_file, $dest_file2) or die(result_data(false, $_FILES['answer_file']['error'][$i], []));
             // }
-            $error_code = move_uploaded_file($tmp_file, $dest_file2) or die(result_data(false, $_FILES['answer_file']['error'][$i], []));
+            if(!move_uploaded_file($tmp_file, $dest_file2)){
+                error_log("[complain_form_update] answer file move failed: idx={$i}, error=" . $_FILES['answer_file']['error'][$i]);
+            }
         }
     }
 }
@@ -474,7 +478,7 @@ for ($i=0; $i<count($upload_a); $i++)
 $file_path3 = G5_DATA_PATH.'/file/complain_add';
 
 // 디렉토리가 없다면 생성합니다. (퍼미션도 변경하구요.)
-@mkdir($file_path3, G5_DIR_PERMISSION);
+@mkdir($file_path3, G5_DIR_PERMISSION, true);
 @chmod($file_path3, G5_DIR_PERMISSION);
 
 $upload_add = array();
@@ -517,7 +521,7 @@ if(isset($_FILES['answer_add_file']['name'])){
 
             if ( preg_match("/\.({$config['cf_image_extension']})$/i", $filename) || preg_match("/\.({$config['cf_flash_extension']})$/i", $filename) ) {
                 if ($timg['2'] < 1 || $timg['2'] > 18){
-                    alert("등록할 수 있는 파일 유형이 아닙니다.");
+                    die(result_data(false, "등록할 수 있는 파일 유형이 아닙니다.", []));
                 }
             }
 
@@ -552,7 +556,9 @@ if(isset($_FILES['answer_add_file']['name'])){
             // }else{
             //     $error_code = move_uploaded_file($tmp_file, $dest_file3) or die(result_data(false, $_FILES['answer_add_file']['error'][$i], []));
             // }
-            $error_code = move_uploaded_file($tmp_file, $dest_file3) or die(result_data(false, $_FILES['answer_add_file']['error'][$i], []));
+            if(!move_uploaded_file($tmp_file, $dest_file3)){
+                error_log("[complain_form_update] add file move failed: idx={$i}, error=" . $_FILES['answer_add_file']['error'][$i]);
+            }
         }
     }
 }

@@ -47,7 +47,7 @@ if (((isset($co_row['co_include_head']) && $co_row['co_include_head'] !== $co_in
     }
 }
 
-@mkdir(G5_DATA_PATH . "/content", G5_DIR_PERMISSION);
+@mkdir(G5_DATA_PATH . "/content", G5_DIR_PERMISSION, true);
 @chmod(G5_DATA_PATH . "/content", G5_DIR_PERMISSION);
 
 if ($co_himg_del) {

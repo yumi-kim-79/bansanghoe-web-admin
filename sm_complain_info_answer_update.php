@@ -58,7 +58,7 @@ $chars_array = array_merge(range(0,9), range('a','z'), range('A','Z'));
 $file_path2 = G5_DATA_PATH.'/file/complain_answer';
 
 // 디렉토리가 없다면 생성합니다. (퍼미션도 변경하구요.)
-@mkdir($file_path2, G5_DIR_PERMISSION);
+@mkdir($file_path2, G5_DIR_PERMISSION, true);
 @chmod($file_path2, G5_DIR_PERMISSION);
 
 $upload_a = array();
@@ -246,7 +246,7 @@ for ($i=0; $i<count($upload_a); $i++)
 $file_path3 = G5_DATA_PATH.'/file/complain_add';
 
 // 디렉토리가 없다면 생성합니다. (퍼미션도 변경하구요.)
-@mkdir($file_path3, G5_DIR_PERMISSION);
+@mkdir($file_path3, G5_DIR_PERMISSION, true);
 @chmod($file_path3, G5_DIR_PERMISSION);
 
 $upload_add = array();

@@ -14,7 +14,7 @@ if ($w == 'd') {
 
 check_admin_token();
 
-@mkdir(G5_DATA_PATH . "/faq", G5_DIR_PERMISSION);
+@mkdir(G5_DATA_PATH . "/faq", G5_DIR_PERMISSION, true);
 @chmod(G5_DATA_PATH . "/faq", G5_DIR_PERMISSION);
 
 $fm_id = isset($_REQUEST['fm_id']) ? (int) $_REQUEST['fm_id'] : 0;

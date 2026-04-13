@@ -1718,7 +1718,7 @@ if ($config['cf_cert_use']) {
         if (!is_dir($log_path)) {
             if (is_writable(G5_LGXPAY_PATH . '/lgdacom/')) {
                 // 디렉토리가 없다면 생성합니다. (퍼미션도 변경하구요.)
-                @mkdir($log_path, G5_DIR_PERMISSION);
+                @mkdir($log_path, G5_DIR_PERMISSION, true);
                 @chmod($log_path, G5_DIR_PERMISSION);
             }
 

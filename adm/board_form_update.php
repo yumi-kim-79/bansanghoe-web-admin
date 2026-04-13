@@ -77,7 +77,7 @@ if (function_exists('filter_input_include_path')) {
 $board_path = G5_DATA_PATH . '/file/' . $bo_table;
 
 // 게시판 디렉토리 생성
-@mkdir($board_path, G5_DIR_PERMISSION);
+@mkdir($board_path, G5_DIR_PERMISSION, true);
 @chmod($board_path, G5_DIR_PERMISSION);
 
 // 디렉토리에 있는 파일의 목록을 보이지 않게 한다.

@@ -511,7 +511,7 @@ function approval_submit(){
                 }, 1000);
             }
         },
-        error:function(e){
+        error:function(xhr, status, error){
             alert('오류가 발생했습니다.');
             console.log('e', e);
         }

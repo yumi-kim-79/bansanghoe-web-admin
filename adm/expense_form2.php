@@ -444,8 +444,8 @@ $disabled = $member['mb_level'] == '9' ? 'disabled' : '';
                                                 }, 700);
                                             }
                                         },
-                                        error:function(e){
-                                            alert(e);
+                                        error:function(xhr, status, error){
+                                            console.log("ajax error:", status, error); alert("저장 중 오류가 발생했습니다.");
                                         }
                                     });
                                 }
@@ -546,8 +546,8 @@ function expense_del(){
                 }, 700);
             }
         },
-        error:function(e){
-            alert(e);
+        error:function(xhr, status, error){
+            console.log("ajax error:", status, error); alert("저장 중 오류가 발생했습니다.");
         }
     });
 }
@@ -590,8 +590,8 @@ function enforce_change(){
                 }, 1000);
             }
         },
-        error:function(e){
-            alert(e);
+        error:function(xhr, status, error){
+            console.log("ajax error:", status, error); alert("저장 중 오류가 발생했습니다.");
         }
     });
    
@@ -862,8 +862,8 @@ function expense_submit(){
                     }, 1000);
                 }
             },
-            error:function(e){
-                alert(e);
+            error:function(xhr, status, error){
+                console.log("ajax error:", status, error); alert("저장 중 오류가 발생했습니다.");
             }
         });
     }, 50);

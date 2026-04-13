@@ -293,7 +293,7 @@ if($singature_row['cnt'] == 0){
     
         $file_path = G5_DATA_PATH.'/file/approval';
     
-        @mkdir($file_path, G5_DIR_PERMISSION);
+        @mkdir($file_path, G5_DIR_PERMISSION, true);
         @chmod($file_path, G5_DIR_PERMISSION);
     
         $file_name2 = $wid."_".$file_name;

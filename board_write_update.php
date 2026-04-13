@@ -71,7 +71,7 @@ $chars_array = array_merge(range(0,9), range('a','z'), range('A','Z'));
 $file_path = G5_DATA_PATH.'/file/bbs_img';
 
 // 디렉토리가 없다면 생성합니다. (퍼미션도 변경하구요.)
-@mkdir($file_path, G5_DIR_PERMISSION);
+@mkdir($file_path, G5_DIR_PERMISSION, true);
 @chmod($file_path, G5_DIR_PERMISSION);
 
 $upload = array();
@@ -221,7 +221,7 @@ for ($i=0; $i<count($upload); $i++)
 $file_path2 = G5_DATA_PATH.'/file/bbs_pdf';
 
 // 디렉토리가 없다면 생성합니다. (퍼미션도 변경하구요.)
-@mkdir($file_path2, G5_DIR_PERMISSION);
+@mkdir($file_path2, G5_DIR_PERMISSION, true);
 @chmod($file_path2, G5_DIR_PERMISSION);
 
 $upload_pdf = array();
