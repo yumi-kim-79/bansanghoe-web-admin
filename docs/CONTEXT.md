@@ -28,17 +28,23 @@
 
 | 메서드 | 엔드포인트 | 설명 |
 |--------|-----------|------|
-| GET | `/api/building_settings_api.php?action=building_settings&building_id=N` | 단지별 담당자/연체요율 조회 |
-| GET | `/api/building_settings_api.php?action=building_settings_all` | 전체 단지 담당자/연체요율 목록 |
-| POST | `/api/building_settings_api.php?action=update_building_settings` | 단지 담당자/연체요율 수정 |
+| GET | `/api/building_settings_api.php?action=building_managers&building_id=N` | 단지별 담당자 목록 (a_mng_building 활용) |
+| GET | `/api/building_settings_api.php?action=building_managers_all` | 전체 단지 담당자 목록 |
+| GET | `/api/building_settings_api.php?action=building_settings&building_id=N` | 단지별 연체요율 조회 |
+| GET | `/api/building_settings_api.php?action=building_settings_all` | 전체 단지 연체요율 목록 |
+| POST | `/api/building_settings_api.php?action=update_building_settings` | 단지 연체요율 수정 |
 
 ### 주요 테이블 (sinbansang DB)
 
 | 테이블 | 역할 |
 |--------|------|
-| `a_building` | 단지 정보 (담당자, 연체요율 포함) |
+| `a_building` | 단지 정보 (연체요율 포함) |
 | `a_building_ho` | 세대(호수) 정보 |
 | `a_building_dong` | 동 정보 |
+| `a_mng` | 담당자(매니저) 정보 |
+| `a_mng_building` | 단지-담당자 매핑 (N:N) |
+| `a_mng_department` | 부서 |
+| `a_mng_grade` | 직급 |
 | `a_member` | 입주민 회원 |
 | `a_billing_card` | 자동결제 카드 (토스페이먼츠) |
 

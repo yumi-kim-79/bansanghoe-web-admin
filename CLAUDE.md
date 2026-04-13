@@ -163,6 +163,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **단지 담당자 조회 API (a_mng_building 활용)** (2026-04-13)
+  - `api/building_settings_api.php`: building_managers(단지별)/building_managers_all(전체) API
+  - 기존 `a_mng_building` JOIN `a_mng` + 부서/직급 테이블 활용 (DB 변경 최소화)
+  - 연체요율: `a_building.late_fee_rate/late_fee_base` 컬럼만 추가
+  - manager_name/phone/email 컬럼 추가 방식 폐기
 - [x] **배포 스크립트 git pull 방식으로 수정** (2026-04-13)
   - `.github/workflows/deploy.yml`: curl 개별 파일 다운로드 → `git pull origin $BRANCH`
   - 문제: 머지 커밋 시 신규 파일 누락 (git diff에 있어도 curl로 받을 때 실패)
