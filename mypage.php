@@ -37,10 +37,17 @@ if($types == "sm"){
                     </a>
                 </li>
                 <?php }?>
+                <?php if($types != "sm"){?>
+                <li>
+                    <a href="/card_register.php">
+                        카드 등록/관리
+                    </a>
+                </li>
+                <?php }?>
                 <li>
                     <a href="/notification_setting.php?types=<?php echo $types;?>">
                         알림설정
-                    </a> 
+                    </a>
                 </li>
                 <li>
                     <a href="/policy.php?co_id=<?php echo $types == 'sm' ? 'provision_sm' : 'provision'; ?>&types=<?php echo $types;?>">

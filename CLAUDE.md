@@ -159,63 +159,17 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [x] Android 자동 빌드 GitHub Actions 설정 (반상회, SM매니저)
 
 ### 진행 중 / 예정 작업
-- (없음)
+- [ ] 토스페이먼츠 실제 키 교체 (test_ck_placeholder / test_sk_placeholder → 운영키)
+- [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
-- [x] **점검일지 누락업체 조회 기능 추가** (2026-04-13)
-  - `adm/inspection_missing.php`: 신규, sub_menu=700200
-  - 검색: 지역/단지명/년월 필터
-  - 로직: a_contract(계약업종) vs a_inspection(제출여부) 대조
-  - 상태: ✅제출(N/Y/H) / ❌미제출(없음) / 🔄반려(R)
-  - 결과: 단지별 그룹핑, 누락 건수 요약, 누락 있는 단지 상단 정렬
-  - `adm/admin.head.php`: 점검일지 메뉴에 "누락업체 조회" 추가
-- [x] **점검일지 시스템 구조 파악** (2026-04-13)
-  - DB: `a_inspection`(점검일지), `a_industry_list`(업종/QR항목), `a_manage_company`(업체), `a_contract`(계약)
-  - 관리자: `adm/inspection_list.php`(목록), `inspection_form.php`(상세/승인), `inspection_status_change_ajax.php`(상태변경)
-  - 업체: QR→`inspection_form.php?bdi=building|industry`→작성→제출(N)
-  - 상태: N(대기)→Y(승인)/R(재요청)/H(보류), 승인 시 입주민 푸시
-  - QR: `inspection_print.php` A4 3x3, `a_industry_list` 업종별 생성
-- [x] **결재 탭 텍스트 간결화** (2026-04-13)
-  - `approval_document.php`: "결재 관리"→"결재관리", "결재 승인건"→"승인건", "결재 반려건"→"반려건", "내 결재"→"내결재"
-- [x] **매니저앱 결재 '내 결재' 탭 추가** (2026-04-13)
-  - `approval_document.php`: tab04 "내 결재" 추가
-  - `approval_document_ajax.php`: `my_approval` 필터 쿼리
-    - 내가 1~3차 결재자이고 현재 차례인 미처리 문서만 표시
-    - 1차: sign_off_mng_id1=나 AND sign_off_status 미승인
-    - 2차: sign_off_mng_id2=나 AND 1차 승인 AND sign_off_status2 미승인
-    - 3차: sign_off_mng_id3=나 AND 2차 승인 AND sign_off_status3 미승인
-- [x] **결재(내 결재) 시스템 구조 파악** (2026-04-13)
-  - 관리자: `adm/approval_list.php`(목록), `approval_form.php`(양식), `approval_info.php`(상세/승인/반려)
-  - 매니저: `approval_document.php`(현황), `holiday_reqeust.php`(휴가), `expense_report.php`(경비)
-  - DB: `a_sign_off`(결재문서), `a_sign_off_category`(14종), `a_signature`(전자서명), `a_expense_report`(경비)
-  - 프로세스: 등록(N)→1차승인(P)→2차→3차→완료(E), 반려(R), FCM 푸시, 첨부파일
-- [x] **vt_content PHP 전처리: float 제거, 인라인 width 제거, 빈 div 제거** (2026-04-09)
-  - 파일: `online_vote_info.php`
-  - `float:left/right` 제거 + `display:block` 추가
-  - 이미지 인라인 `width/height` 값 제거 → `max-width:100%; width:auto; height:auto`
-  - 이미지 뒤 연속 `<div><br></div>`, `<p><br></p>` 빈 블록 제거
-  - style 속성 없는 img에도 기본 스타일 추가
-- [x] **CHEditor5 스페이서 단락 처리 CSS 추가** (2026-04-09)
-  - 파일: `css/default.css`
-  - 근본 원인: CHEditor5가 이미지 사이에 `<p><br class="cheditor-bogus-br"></p>` 스페이서 단락 삽입
-  - 수정: `cheditor-bogus-br` 숨김, `p > br:only-child` 숨김, 인라인 style 무효화
-- [x] **투표 상세 이미지 공백 재수정 + 캐시 제어** (2026-04-09)
-  - `css/default.css`: img/figure/p 스타일에 `!important` 추가, `font-size:0`, `line-height:0` 적용
-  - `p:empty` 숨김, `<a>` 감싼 이미지(`p:has(> a > img)`)도 처리
-  - `online_vote_info.php`: Cache-Control: no-cache, no-store, Pragma: no-cache 헤더 추가
-- [x] **사용자앱 투표 상세 이미지/마크다운 렌더링 수정** (2026-04-09)
-  - 파일: `online_vote_info.php`
-  - `**텍스트**` 마크다운을 `<strong>`으로 변환 (preg_replace)
-  - `<img src="/..."` 상대경로를 절대경로(host URL 포함)로 변환 → 앱 WebView 호환
-- [x] **사용자앱 투표 상세 이미지 아래 과도한 공백 수정** (2026-04-09)
-  - 파일: `css/default.css` (`.bbs_content_box` 관련)
-  - 원인: `<img>` 인라인 baseline 디센더 + `<p>` 태그 기본 margin(1em) + CKEditor `<figure class="image">` margin
-  - 수정: img `display:block; vertical-align:bottom`, p margin 축소, p:has(>img) line-height:0, figure margin:4px
-- [x] **투표 템플릿 데이터 main에 동기화** (2026-04-09)
-  - 파일: `adm/online_vote_template_data.php`
-  - develop 버전으로 main 덮어쓰기 (209줄 변경)
-  - 비의무관리 105개 안건의 `[제안 사유 및 기대효과]` 상세 내용 포함
-  - 의무관리도 `[SM 오프닝]`, `[제안 사유 및 기대효과]` 라벨 포함 버전으로 복원
+- [x] **토스페이먼츠 카드 등록 화면 추가 (테스트 모드)** (2026-04-02)
+  - `card_register.php`: 카드 등록/관리 화면 (등록카드 표시, 변경, 삭제)
+  - `card_register_callback.php`: 토스페이먼츠 빌링키 발급 콜백 (curl로 API 확정)
+  - `api/billing_api.php`: 카드 저장/삭제 API (a_billing_card 테이블)
+  - `mypage.php`: "카드 등록/관리" 메뉴 추가 (입주민만 표시)
+  - `head.tit.php`: 페이지 타이틀 등록
+  - 테스트 클라이언트키/시크릿키 사용 (placeholder)
 - [x] **CKEditor 5 테스트 페이지 생성** (2026-04-02)
   - 파일: `adm/editor_test.php` (신규), `plugin/editor/cheditor5/imageUpload/upload_ckeditor5.php` (신규)
   - CKEditor 5 v43.3.1 CDN, 한글 언어팩, 이미지 업로드/리사이즈, 글자크기/색상/굵기/기울임/표 삽입
@@ -234,6 +188,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 검색 박스 너비 450px 고정, ✕ 버튼은 검색 박스 우측 상단 모서리에 배치 (right:-10px, top:-10px)
   - 선택 후 ✕ 버튼 표시 → 클릭 시 검색창·투표주제·에디터 내용 모두 초기화, 검색 가능 상태로 복귀
   - 템플릿 선택 시에만 font-family/font-size 인라인 스타일 제거 후 Arial Black/16px div 래핑 (빈 에디터는 기본 설정 유지)
+  - CHEditor5 공식 API 사용: `ed_vt_content.replaceContents()` (내용 삽입), `ed_vt_content.outputBodyHTML()` (저장 시 추출)
+  - tplClearSelection(): `ed_vt_content.replaceContents('')`
+  - fonlinevote_submit(): `ed_vt_content.outputBodyHTML()` → textarea 동기화
 - [x] **온라인 투표 템플릿 content에서 [SM 오프닝] 및 [제안 사유 및 기대효과] 제목 텍스트 제거** (2026-04-02)
   - 파일: `adm/online_vote_template_data.php`
   - 209건 모두 제거, `[확인 사항 및 첨부파일]` 제목은 유지
@@ -249,17 +206,6 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 팝업 목록에 `label`(안건명)만 간결하게 표시, 목록 영역 스크롤 지원
   - 선택 시 `title`(투표주제) + `content`(HTML) 에디터 자동 입력
   - JSON으로 데이터 전달 (HTML 특수문자/따옴표 안전 처리), smarteditor/ckeditor/summernote 호환
-- [x] **삭제 팝업 비반복/반복 분기** (2026-04-01)
-  - `schedule_add2.php`: noti_repeat='N'이면 "삭제/취소" 단순 팝업, MONTH/YEAR이면 3가지 옵션
-- [x] **툴팁 수정하기 제거 + 수정 저장 오류 수정** (2026-04-01)
-  - `head_sm.php`: 툴팁에서 "수정하기" 항목 제거 (삭제하기만 유지)
-  - `schedule_add_update2.php`: `$cal_info`(문자열)를 `$cal_info_row`(배열)로 참조 수정
-    → 기존: 문자열에 배열 접근 → 항상 true → 매번 FCM 발송 → 예외로 JSON 깨짐
-  - FCM 전송에 try-catch 추가, 담당자 변경 비교 조건에 빈값 체크 추가
-- [x] **매니저앱 점세개 버튼 토글 + 수정 저장 멈춤 수정** (2026-04-01)
-  - `head_sm.php`: `.hd_btn.home_btn` 클릭 시 `.tooltip_box` toggle JS 추가, 외부 클릭 시 닫기
-  - `schedule_add2.php`: AJAX error 핸들러 추가 (로딩 화면 멈춤 방지)
-  - `schedule_add_update2.php`: 비반복 수정 시 `$post_row` 미정의 → 별도 조회 추가, `$cal_code` → `$calcode` 변수명 수정
 - [x] **매니저앱 일정 수정 화면에서 삭제 버튼 미표시 수정** (2026-04-01)
   - `head_sm.php`: 삭제 버튼 조건 `$w == 'i'` → `$w == 'i' || $w == 'u'`로 변경
   - 원인: 반복일정은 `get_schedule2.php`에서 `w=u`로 접근하는데, head_sm.php에서 `w=i`만 허용
@@ -373,4 +319,4 @@ curl https://raw.githubusercontent.com/yumi-kim-79/{저장소}/main/{경로}/{�
 
 ---
 
-*최종 업데이트: 2026-04-01*
+*최종 업데이트: 2026-03-30*

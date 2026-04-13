@@ -482,37 +482,27 @@ function tplApplyItem(type, idx){
     var tpl = tplData[type][idx];
     if(!tpl) return;
 
-    // 투표주제 (title)
+    // 투표주제
     $("input[name='vt_title']").val(tpl.title);
 
-    // 내용 에디터 (content - HTML) - 불필요한 라벨 제거 + 기본 글씨체 적용
+    // 내용 필터링
     var htmlContent = tpl.content;
     htmlContent = htmlContent.replace(/\[SM 오프닝\]\s*/g, '');
     htmlContent = htmlContent.replace(/\[제안 사유 및 기대효과\]\s*(<br\s*\/?>)?\s*/gi, '');
     htmlContent = htmlContent.replace(/(<br\s*\/?\s*>){3,}/gi, '<br><br>');
-    // font-family, font-size 인라인 스타일 제거 후 Arial Black/16px로 감싸기
+
+    // font 인라인 스타일 제거 후 Arial Black/16px 래핑
     htmlContent = htmlContent.replace(/\s*font-family\s*:[^;"']*[;]?/gi, '');
     htmlContent = htmlContent.replace(/\s*font-size\s*:[^;"']*[;]?/gi, '');
     htmlContent = htmlContent.replace(/\s*style\s*=\s*["']\s*["']/gi, '');
     htmlContent = '<div style="font-family:\'Arial Black\',\'Arial\',sans-serif;font-size:16px;line-height:1.6;">' + htmlContent + '</div>';
 
-    // textarea 직접 설정
-    $("textarea[name='vt_content']").val(htmlContent);
+    // CHEditor5 에디터에 내용 삽입
+    ed_vt_content.replaceContents(htmlContent);
+    // hidden textarea 동기화
+    $('#tx_vt_content').val(htmlContent);
 
-    // smarteditor2
-    if(typeof oEditors !== 'undefined'){
-        try { oEditors.getById['vt_content'].exec('SET_IR', [htmlContent]); } catch(e){}
-    }
-    // ckeditor
-    if(typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['vt_content']){
-        try { CKEDITOR.instances['vt_content'].setData(htmlContent); } catch(e){}
-    }
-    // summernote
-    if($.fn.summernote && $("textarea[name='vt_content']").data('summernote')){
-        try { $("textarea[name='vt_content']").summernote('code', htmlContent); } catch(e){}
-    }
-
-    // 검색창에 선택된 템플릿 이름 표시 및 드롭다운 닫기
+    // 검색창 업데이트
     $('#tpl_search').val(tpl.label).prop('readOnly', true);
     $('#tpl_clear_btn').show();
     $('#tpl_dropdown').hide();
@@ -521,24 +511,13 @@ function tplApplyItem(type, idx){
 
 // 템플릿 선택 초기화
 function tplClearSelection(){
-    // 검색창 초기화
     $('#tpl_search').val('').prop('readOnly', false).focus();
     $('#tpl_clear_btn').hide();
-
-    // 투표주제 초기화
     $("input[name='vt_title']").val('');
 
-    // 에디터 초기화
-    $("textarea[name='vt_content']").val('');
-    if(typeof oEditors !== 'undefined'){
-        try { oEditors.getById['vt_content'].exec('SET_IR', ['']); } catch(e){}
-    }
-    if(typeof CKEDITOR !== 'undefined' && CKEDITOR.instances['vt_content']){
-        try { CKEDITOR.instances['vt_content'].setData(''); } catch(e){}
-    }
-    if($.fn.summernote && $("textarea[name='vt_content']").data('summernote')){
-        try { $("textarea[name='vt_content']").summernote('code', ''); } catch(e){}
-    }
+    // CHEditor5 에디터 초기화
+    ed_vt_content.replaceContents('');
+    $('#tx_vt_content').val('');
 }
 
 //투표 삭제
@@ -660,7 +639,9 @@ function checkValidDate(value) {
 
 
 function fonlinevote_submit(f) {
- 
+
+    // CHEditor5 → hidden textarea 동기화
+    document.getElementById('tx_vt_content').value = ed_vt_content.outputBodyHTML();
 
     if(f.vt_period_type.value == "period"){
         if(!checkValidDate(f.vt_sdate.value)){
