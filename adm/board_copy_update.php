@@ -139,7 +139,7 @@ $sql = " insert into {$g5['board_table']}
 sql_query($sql, false);
 
 // 게시판 폴더 생성
-@mkdir(G5_DATA_PATH . '/file/' . $target_table, G5_DIR_PERMISSION);
+@mkdir(G5_DATA_PATH . '/file/' . $target_table, G5_DIR_PERMISSION, true);
 @chmod(G5_DATA_PATH . '/file/' . $target_table, G5_DIR_PERMISSION);
 
 // 디렉토리에 있는 파일의 목록을 보이지 않게 한다.
@@ -161,7 +161,7 @@ if ($copy_case == 'schema_data_both') {
         // 김선용 201007 :
         if (is_dir(G5_DATA_PATH . '/file/' . $bo_table . '/' . $entry)) {
             $dd = dir(G5_DATA_PATH . '/file/' . $bo_table . '/' . $entry);
-            @mkdir(G5_DATA_PATH . '/file/' . $target_table . '/' . $entry, G5_DIR_PERMISSION);
+            @mkdir(G5_DATA_PATH . '/file/' . $target_table . '/' . $entry, G5_DIR_PERMISSION, true);
             @chmod(G5_DATA_PATH . '/file/' . $target_table . '/' . $entry, G5_DIR_PERMISSION);
             while ($entry2 = $dd->read()) {
                 if ($entry2 == '.' || $entry2 == '..') {

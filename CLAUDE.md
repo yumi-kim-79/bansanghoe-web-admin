@@ -163,6 +163,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **첨부파일 업로드 실패 수정: mkdir recursive 추가** (2026-04-13)
+  - 원인: `@mkdir($path, 0755)` — 중간 디렉토리(`/file/`) 없으면 하위 생성 실패, `@`로 에러 무시
+  - 수정: 24개 파일에서 `@mkdir($path, G5_DIR_PERMISSION, true)` recursive 플래그 추가
+  - 파일 저장 실패해도 DB 레코드만 생성되던 문제 해결
 - [x] **첨부파일 이미지 404 원인 파악 및 해결** (2026-04-13)
   - 원인: 서버에서 data 디렉토리 중복 (`/var/www/html/data/data/file/`)
   - 웹 경로 `/data/file/complain/` → 실제 파일 `/data/data/file/complain/` 불일치

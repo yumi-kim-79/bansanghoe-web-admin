@@ -216,7 +216,7 @@ if ($w == '' || $w == 'u') {
 
         if (preg_match($image_regex, $_FILES['mb_icon']['name'])) {
             $mb_icon_dir = G5_DATA_PATH . '/member/' . $mb_dir;
-            @mkdir($mb_icon_dir, G5_DIR_PERMISSION);
+            @mkdir($mb_icon_dir, G5_DIR_PERMISSION, true);
             @chmod($mb_icon_dir, G5_DIR_PERMISSION);
 
             $dest_path = $mb_icon_dir . '/' . $mb_icon_img;
@@ -249,7 +249,7 @@ if ($w == '' || $w == 'u') {
 
     $mb_img_dir = G5_DATA_PATH . '/member_image/';
     if (!is_dir($mb_img_dir)) {
-        @mkdir($mb_img_dir, G5_DIR_PERMISSION);
+        @mkdir($mb_img_dir, G5_DIR_PERMISSION, true);
         @chmod($mb_img_dir, G5_DIR_PERMISSION);
     }
     $mb_img_dir .= substr($mb_id, 0, 2);
@@ -266,7 +266,7 @@ if ($w == '' || $w == 'u') {
         }
 
         if (preg_match($image_regex, $_FILES['mb_img']['name'])) {
-            @mkdir($mb_img_dir, G5_DIR_PERMISSION);
+            @mkdir($mb_img_dir, G5_DIR_PERMISSION, true);
             @chmod($mb_img_dir, G5_DIR_PERMISSION);
 
             $dest_path = $mb_img_dir . '/' . $mb_icon_img;

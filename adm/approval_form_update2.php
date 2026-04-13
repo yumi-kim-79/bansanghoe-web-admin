@@ -145,7 +145,7 @@ $chars_array = array_merge(range(0,9), range('a','z'), range('A','Z'));
 $file_path = G5_DATA_PATH.'/file/signOff';
 
 // 디렉토리가 없다면 생성합니다. (퍼미션도 변경하구요.)
-@mkdir($file_path, G5_DIR_PERMISSION);
+@mkdir($file_path, G5_DIR_PERMISSION, true);
 @chmod($file_path, G5_DIR_PERMISSION);
 
 $upload = array();
@@ -305,7 +305,7 @@ if($singature_row['cnt'] == 0){
     
         $file_path = G5_DATA_PATH.'/file/approval';
     
-        @mkdir($file_path, G5_DIR_PERMISSION);
+        @mkdir($file_path, G5_DIR_PERMISSION, true);
         @chmod($file_path, G5_DIR_PERMISSION);
     
         $file_name2 = $wid."_".$file_name;

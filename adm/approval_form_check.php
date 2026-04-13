@@ -61,7 +61,7 @@ if ((int)$singature_row['cnt'] === 0) {
     $file_name = preg_replace("/\.(php|phtm|htm|cgi|pl|exe|jsp|asp|inc)/i", "$0-x", $file_name);
 
     $file_path = G5_DATA_PATH.'/file/approval';
-    @mkdir($file_path, G5_DIR_PERMISSION);
+    @mkdir($file_path, G5_DIR_PERMISSION, true);
     @chmod($file_path, G5_DIR_PERMISSION);
 
     $tgt = $file_path.'/'.$file_name;
