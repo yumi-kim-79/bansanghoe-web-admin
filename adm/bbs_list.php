@@ -193,10 +193,9 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
             <caption><?php echo $g5['title']; ?> 목록</caption>
             <thead>
                 <tr>
-                    <!-- <th scope="col" id="mb_list_chk" >
-                        <label for="chkall" class="sound_only">회원 전체</label>
-                        <input type="checkbox" name="chkall" value="1" id="chkall" onclick="check_all(this.form)">
-                    </th> -->
+                    <?php if($is_admin == 'super' || $member['mb_level'] >= 10){?>
+                    <th style="width:40px;"><input type="checkbox" id="bbs_chkall" onchange="bbsCheckAll(this);"></th>
+                    <?php }?>
                     <th class="bbs_th1">번호</th>
                     <th class="bbs_th2">제목</th>
                     <th class="bbs_th3">작성일</th>
@@ -214,9 +213,9 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
                 ?>
 
                     <tr class="<?php echo $bg; ?>">
-                        <!-- <td headers="mb_list_chk" class="td_chk" >
-                            <input type="checkbox" name="chk[]" value="<?php echo $row['bbs_idx']; ?>" id="chk_<?php echo $i ?>">
-                        </td> -->
+                        <?php if($is_admin == 'super' || $member['mb_level'] >= 10){?>
+                        <td><input type="checkbox" class="bbs_chk" value="<?php echo $row['bbs_idx']; ?>"></td>
+                        <?php }?>
                         <td>
                             <?php
                             
@@ -246,7 +245,9 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
     </div>
 
     <div class="btn_fixed_top">
-        <!-- <input type="submit" name="act_button" value="선택삭제" onclick="document.pressed=this.value" class="btn btn_02"> -->
+        <?php if ($is_admin == 'super' || $member['mb_level'] >= 10) { ?>
+        <button type="button" onclick="bbsDelete();" class="btn btn_01">선택 삭제</button>
+        <?php } ?>
         <?php if ($is_admin == 'super') { ?>
             <a href="./bbs_form.php?bbs_code=<?php echo $bbs_code?>" id="member_add" class="btn btn_03">게시글 등록</a>
         <?php } ?>
@@ -261,6 +262,38 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
 $(function(){
     $("#dates").datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd", showButtonPanel: true, yearRange: "c-99:c+99", maxDate: "+365d", minDate:"0d" });
 });
+
+function bbsCheckAll(source){
+    document.querySelectorAll('.bbs_chk').forEach(function(cb){ cb.checked = source.checked; });
+}
+
+function bbsDelete(){
+    var idxList = [];
+    document.querySelectorAll('.bbs_chk:checked').forEach(function(cb){ idxList.push(cb.value); });
+
+    if(idxList.length === 0){
+        alert('삭제할 게시글을 하나 이상 선택해주세요.');
+        return;
+    }
+
+    if(!confirm('선택한 ' + idxList.length + '건의 게시글을 삭제하시겠습니까?\n(첨부파일도 함께 삭제됩니다)')){
+        return;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "./bbs_del_update.php",
+        data: { idx_list: idxList.join(','), bbs_code: '<?php echo $bbs_code; ?>' },
+        dataType: "json",
+        success: function(data){
+            alert(data.msg || '삭제되었습니다.');
+            location.reload();
+        },
+        error: function(){
+            alert('삭제 중 오류가 발생했습니다.');
+        }
+    });
+}
 
 function fbbslist_submit(f) {
     if (!is_checked("chk[]")) {

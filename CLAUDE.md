@@ -202,6 +202,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **사내용 게시판 목록 일괄 삭제 기능 추가** (2026-04-14)
+  - `adm/bbs_list.php`: 관리자만 체크박스 + "선택 삭제" 버튼
+  - `adm/bbs_del_update.php`: 신규 — 이미지(bbs_img) + PDF(bbs_pdf) 서버파일/DB 삭제 + soft delete
 - [x] **민원 목록 일괄 삭제 기능 추가** (2026-04-14)
   - `adm/complain_list.php`: 관리자(super/mb_level>=10)만 "선택 삭제" 버튼 표시
   - `adm/complain_del_update.php`: 신규 — AJAX 일괄 삭제 (soft delete + 첨부파일 삭제)
