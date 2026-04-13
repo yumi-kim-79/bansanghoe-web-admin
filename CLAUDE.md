@@ -178,6 +178,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **결재서류 서명 이미지 복원 스크립트** (2026-04-14)
+  - `adm/signature_recover.php`: a_signature.signature_data(base64) → PNG 파일 재생성
+  - 원인: mkdir recursive 미적용 시절 file_put_contents 실패 → DB에 base64는 있으나 파일 없음
+  - mkdir(true)는 이미 적용됨 → 신규 서명은 정상 저장
+  - 사용: `smtm2017.com/adm/signature_recover.php` 1회 실행 후 삭제
 - [x] **카드 등록/관리 메뉴 "개발 중" 차단** (2026-04-14)
   - `mypage.php`: 링크 → alert("개발 중") + 이동 차단
   - `card_register.php`, `card_register_callback.php`: 직접 접근 시 alert + history.back()
