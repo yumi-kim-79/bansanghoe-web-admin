@@ -18,8 +18,6 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
-            export GITHUB_TOKEN=${{ secrets.DEPLOY_TOKEN }}
-
             # 브랜치에 따라 배포 경로 결정
             BRANCH="${{ github.ref_name }}"
             if [ "$BRANCH" = "main" ]; then
@@ -28,31 +26,32 @@ jobs:
               DEPLOY_DIR="/var/www/html_test"
             fi
 
+            cd $DEPLOY_DIR
+
+            # 백업: 변경될 파일 미리 백업
             BACKUP_DIR="${DEPLOY_DIR}/_backups/$(date +%Y%m%d_%H%M%S)"
             mkdir -p "$BACKUP_DIR"
 
-            cd $DEPLOY_DIR
             git fetch origin $BRANCH
-
             CHANGED_FILES=$(git diff --name-only HEAD origin/$BRANCH 2>/dev/null)
 
-            echo "$CHANGED_FILES" | while read file; do
-              if [ -f "$DEPLOY_DIR/$file" ]; then
-                mkdir -p "$BACKUP_DIR/$(dirname $file)"
-                cp "$DEPLOY_DIR/$file" "$BACKUP_DIR/$file"
-              fi
-            done
+            if [ -n "$CHANGED_FILES" ]; then
+              echo "$CHANGED_FILES" | while read file; do
+                if [ -n "$file" ] && [ -f "$DEPLOY_DIR/$file" ]; then
+                  mkdir -p "$BACKUP_DIR/$(dirname $file)"
+                  cp "$DEPLOY_DIR/$file" "$BACKUP_DIR/$file"
+                fi
+              done
+            fi
 
-            echo "$CHANGED_FILES" | while read file; do
-              if [ -n "$file" ]; then
-                mkdir -p "$DEPLOY_DIR/$(dirname $file)"
-                curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                  -o "$DEPLOY_DIR/$file" \
-                  "https://raw.githubusercontent.com/yumi-kim-79/bansanghoe-web-admin/$BRANCH/$file"
-              fi
-            done
+            # git pull로 전체 동기화 (신규 파일 포함)
+            git reset --hard HEAD
+            git pull origin $BRANCH
 
-            git merge origin/$BRANCH
+            # 30일 이상 된 백업 정리
             find ${DEPLOY_DIR}/_backups -maxdepth 1 -type d -mtime +30 -exec rm -rf {} \; 2>/dev/null || true
+
+            # Apache 재시작
             systemctl restart httpd
-            echo "✅ $BRANCH → $DEPLOY_DIR 배포 완료!"
+
+            echo "✅ $BRANCH → $DEPLOY_DIR 배포 완료! (git pull)"
