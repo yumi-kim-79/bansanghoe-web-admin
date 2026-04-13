@@ -1,6 +1,10 @@
 <?php
 include_once('./_common.php');
 
+// 개발 중 — 접근 차단
+echo "<script>alert('개발 중입니다.'); history.back();</script>";
+exit;
+
 // 토스페이먼츠 빌링키 발급 성공 콜백
 // GET: authKey, customerKey, ho_id
 

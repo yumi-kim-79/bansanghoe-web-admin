@@ -1,5 +1,10 @@
 <?php
 include_once('./_common.php');
+
+// 개발 중 — 접근 차단
+echo "<script>alert('개발 중입니다. 서비스 준비 중이오니 조금만 기다려 주세요.'); history.back();</script>";
+exit;
+
 include_once(G5_PATH.'/head.php');
 
 // 로그인 체크

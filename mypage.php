@@ -39,7 +39,7 @@ if($types == "sm"){
                 <?php }?>
                 <?php if($types != "sm"){?>
                 <li>
-                    <a href="/card_register.php">
+                    <a href="javascript:void(0);" onclick="alert('개발 중입니다. 서비스 준비 중이오니 조금만 기다려 주세요.');">
                         카드 등록/관리
                     </a>
                 </li>
