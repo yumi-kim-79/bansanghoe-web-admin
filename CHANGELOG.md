@@ -1,11 +1,13 @@
 # Changelog
 
 ## 2026-04-13
+### Added
+- 단지 담당자 조회 API — 기존 `a_mng_building` 활용 (`api/building_settings_api.php`)
+- 연체요율 조회/수정 API (`building_settings`, `update_building_settings`)
+- 점검일지 누락업체 조회 (`adm/inspection_missing.php`)
+
 ### Fixed
 - 배포 스크립트(deploy.yml) git pull 방식으로 변경 — 머지 커밋 시 신규 파일 누락 해결
-
-### Added
-- 점검일지 누락업체 조회 (`adm/inspection_missing.php`)
 - 결재관리 '내결재' 탭 (`approval_document.php`)
 - 단지 담당자/연체요율 API (`api/building_settings_api.php`)
 - 서버/인프라 컨텍스트 문서 (`docs/CONTEXT.md`)
