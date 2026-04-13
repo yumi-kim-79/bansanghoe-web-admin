@@ -4,6 +4,10 @@
 ### Changed
 - building_settings_api.php DB 연결: Gnuboard `_common.php` → PDO 직접 연결 + prepared statement
 
+### Added (단지 관리)
+- 단지 추가/수정 폼에 담당자 일괄 선택 기능 (`adm/building_mng_add.php`)
+- 미배정↔배정 이동 UI, 이름/부서 검색, a_mng_building 일괄 저장
+
 ### Added
 - 단지 담당자 조회 API — 기존 `a_mng_building` 활용 (`api/building_settings_api.php`)
 - 연체요율 조회/수정 API (`building_settings`, `update_building_settings`)
