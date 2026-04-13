@@ -260,7 +260,10 @@ $colspan = 16;
     </div>
 
     <div class="btn_fixed_top">
-        <?php if ($is_admin == 'super' && $type=="progress") { ?>
+        <?php if ($is_admin == 'super' || $member['mb_level'] >= 10) { ?>
+        <button type="button" onclick="complainDelete();" class="btn btn_01">선택 삭제</button>
+        <?php } ?>
+        <?php if (($is_admin == 'super' || $member['mb_level'] >= 10) && $type=="progress") { ?>
         <a href="./complain_form.php?type=<?=$type;?>" class="btn btn_03">민원 등록</a>
         <?php } ?>
     </div>
@@ -311,6 +314,34 @@ function complainCheckAll(source) {
     } else {
         document.getElementById('chkAllLabel').innerText = '';
     }
+}
+
+function complainDelete() {
+    var idxList = [];
+    document.querySelectorAll('.complain_chk:checked').forEach(function(cb){ idxList.push(cb.value); });
+
+    if (idxList.length === 0) {
+        alert('삭제할 민원을 하나 이상 선택해주세요.');
+        return;
+    }
+
+    if (!confirm('선택한 ' + idxList.length + '건의 민원을 삭제하시겠습니까?\n(첨부파일도 함께 삭제됩니다)')) {
+        return;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "./complain_del_update.php",
+        data: { idx_list: idxList.join(','), type: '<?php echo $type; ?>' },
+        dataType: "json",
+        success: function(data) {
+            alert(data.msg || '삭제되었습니다.');
+            location.reload();
+        },
+        error: function() {
+            alert('삭제 중 오류가 발생했습니다.');
+        }
+    });
 }
 
 function complainExcelDownload() {

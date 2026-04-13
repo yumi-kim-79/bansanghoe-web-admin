@@ -202,6 +202,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **민원 목록 일괄 삭제 기능 추가** (2026-04-14)
+  - `adm/complain_list.php`: 관리자(super/mb_level>=10)만 "선택 삭제" 버튼 표시
+  - `adm/complain_del_update.php`: 신규 — AJAX 일괄 삭제 (soft delete + 첨부파일 삭제)
+  - 첨부파일(complain/complain_answer/complain_add) 서버 파일 + DB 레코드 함께 삭제
 - [x] **서버 data 폴더 자동 백업 크론잡 설정** (2026-04-14)
   - 매일 새벽 3시, `/var/www/html/data/` → `/var/backups/bansanghoe/data/YYYYMMDD/`, 30일 보관
 - [x] **서버 실행 금지 정책 + deploy.yml 수정** (2026-04-14)
