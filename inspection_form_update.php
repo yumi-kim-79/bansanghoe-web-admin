@@ -67,7 +67,7 @@ if($w == "u"){
         $push_content = $inspection_name.'님의 '.$building_name." ".$industry_name." 점검일지가 작성되었습니다.";
 
         if($mng_row['mb_token'] != ""){ //토큰이 있는경우 푸시 발송
-            fcm_send($mng_row['mb_token'], $push_title, $push_content, 'inspection', $inspection_idx);
+            try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'inspection', $inspection_idx); } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET

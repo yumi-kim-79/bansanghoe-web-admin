@@ -53,7 +53,7 @@ if($inspection_status == 'Y'){
 
         if($ho_row['mb_token'] != ""){ //토큰이 있는경우 푸시 발송
             
-            fcm_send($ho_row['mb_token'], $push_title, $push_content, 'inspection_y', "{$inspection_idx}", "/inspection_info.php?inspection_idx=");
+            try { fcm_send($ho_row['mb_token'], $push_title, $push_content, 'inspection_y', "{$inspection_idx}", "/inspection_info.php?inspection_idx="); } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET

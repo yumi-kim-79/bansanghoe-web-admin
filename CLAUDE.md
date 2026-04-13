@@ -163,10 +163,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
-- [x] **FCM 호출 안전화: alert("0") 문제 수정** (2026-04-13)
-  - `lib/common.lib.php fcm_send()`: 함수 전체를 try-catch로 감쌈, printf 에러 출력 제거, 빈 토큰 조기 반환
-  - `board_write_update.php`: fcm_send 호출에 try-catch 추가
-  - 원인: FCM 예외/에러 출력이 JSON 응답 앞에 붙어서 AJAX 파싱 실패 → alert("0")
+- [x] **FCM 호출 안전화: 프로젝트 전체 45개소 try-catch 적용** (2026-04-13)
+  - `lib/common.lib.php fcm_send()`: 함수 전체 try-catch, printf 제거, 빈 토큰 조기 반환
+  - 루트 14개 파일 + adm/ 16개 파일: 모든 fcm_send 호출에 try-catch 감쌈
+  - 원인: FCM 예외/에러 출력이 JSON 응답 앞에 붙어 AJAX 파싱 실패 → alert("0")
 - [x] **단지 추가/수정 시 담당자 일괄 선택 기능** (2026-04-13)
   - `adm/building_mng_add.php`: 담당자 설정 섹션 (미배정↔배정 이동 UI, 검색, 체크박스)
   - `adm/building_mng_add_update.php`: manager_ids[] 배열로 a_mng_building 일괄 저장 (soft delete + INSERT/복원)

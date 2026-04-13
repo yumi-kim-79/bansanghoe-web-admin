@@ -186,7 +186,7 @@ if ($status === 'P') {
         if ($sign_off_id_info['mb_token'] != "") {
             try {
                 // ✅ 수정: 매니저앱 화면으로 이동
-                fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+                try { fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
             } catch(Exception $e) {
                 // FCM 오류 무시하고 계속 진행
             }
@@ -214,7 +214,7 @@ if ($status === 'P') {
         if ($sign_off_id_info['mb_token'] != "") {
             try {
                 // ✅ 수정: 매니저앱 화면으로 이동
-                fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+                try { fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
             } catch(Exception $e) {
                 // FCM 오류 무시하고 계속 진행
             }

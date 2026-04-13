@@ -54,7 +54,7 @@ sql_query($insert_push);
 
 // ── FCM 직접 발송 (토큰 있는 경우) ───────────────────────────────────────
 if ($mb_token != '') {
-    fcm_send($mb_token, $push_title, $push_content, 'parking_move', "{$target_ho_id}", "/parking_manage.php?");
+    try { fcm_send($mb_token, $push_title, $push_content, 'parking_move', "{$target_ho_id}", "/parking_manage.php?"); } catch(Exception $e) {}
 }
 
 echo json_encode(['result' => true, 'msg' => '이동 주차 요청을 전송했습니다.']);

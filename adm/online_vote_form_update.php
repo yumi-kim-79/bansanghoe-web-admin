@@ -140,7 +140,7 @@ if($w == "u"){
         //noti5 온라인투표 알림 수신여부 1 수신 0 안함
         if($ho_row['mb_token'] != "" && $ho_row['noti5']){ //토큰이 있는경우 푸시 발송
 
-            fcm_send($ho_row['mb_token'], $push_title, $push_content, 'vote', "{$vt_id}", "/online_vote_info.php?vote=prg&vt_id=");
+            try { fcm_send($ho_row['mb_token'], $push_title, $push_content, 'vote', "{$vt_id}", "/online_vote_info.php?vote=prg&vt_id="); } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET

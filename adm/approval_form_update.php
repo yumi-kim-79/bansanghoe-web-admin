@@ -71,7 +71,7 @@ if($w == "u"){
     
 
         if($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']){ //토큰이 있는경우 푸시 발송
-            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) try { fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET
@@ -262,7 +262,7 @@ if($w == "u"){
     
 
         if($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']){ //토큰이 있는경우 푸시 발송
-            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) try { fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET

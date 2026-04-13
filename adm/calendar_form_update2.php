@@ -155,7 +155,7 @@ if($w == "u"){
             if($mng_row['mb_token'] != "" && $mng_row['noti3']){ //토큰이 있는경우 푸시 발송
                 if($_SERVER['REMOTE_ADDR'] != ADMIN_IP){
                     try {
-                        fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+                        try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx="); } catch(Exception $e) {}
                     } catch(Exception $e) {
                         // FCM 오류 무시하고 계속 진행
                     }
@@ -244,7 +244,7 @@ if($w == "u"){
         if($mng_row['mb_token'] != "" && $mng_row['noti3']){ //토큰이 있는경우 푸시 발송
             if($_SERVER['REMOTE_ADDR'] != ADMIN_IP){
                 try {
-                    fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+                    try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx="); } catch(Exception $e) {}
                 } catch(Exception $e) {
                     // FCM 오류 무시하고 계속 진행
                 }

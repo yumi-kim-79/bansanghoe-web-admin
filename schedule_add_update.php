@@ -43,7 +43,7 @@ if($w == "u"){
 
         if($mng_row['mb_token'] != "" && $mng_row['noti3']){ //토큰이 있는경우 푸시 발송
            
-            fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+            try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx="); } catch(Exception $e) {}
         }
     
         $insert_push = "INSERT INTO a_push SET
@@ -123,7 +123,7 @@ if($w == "u"){
 
         if($mng_row['mb_token'] != "" && $mng_row['noti3']){ //토큰이 있는경우 푸시 발송
             
-            fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+            try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx="); } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET
@@ -149,7 +149,7 @@ if($w == "u"){
 
         if($mng_row['mb_token'] != "" && $mng_row['noti3']){ //토큰이 있는경우 푸시 발송
            
-            fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+            try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx="); } catch(Exception $e) {}
         }
     
         $insert_push = "INSERT INTO a_push SET

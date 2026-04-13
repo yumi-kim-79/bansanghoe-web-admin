@@ -118,7 +118,7 @@ if ($sum_sign === 0) {
     sql_query($insert_push);
     
     if($ex_wid_info['mb_token'] != "" && $ex_wid_info['noti5']){ //토큰이 있는경우 푸시 발송
-        fcm_send($ex_wid_info['mb_token'], $push_title, $push_content, 'expense', "{$ex_id}", "/expense_report_info.php?types=sm&ex_id=");
+        try { fcm_send($ex_wid_info['mb_token'], $push_title, $push_content, 'expense', "{$ex_id}", "/expense_report_info.php?types=sm&ex_id="); } catch(Exception $e) {}
     }
 
 
@@ -138,7 +138,7 @@ if ($sum_sign === 0) {
         $push_content2 = "품의서가 등록되었습니다.";
 
         if($tenant_info['mb_token'] != "" && $tenant_info['noti6']){ //토큰이 있는경우 푸시 발송
-            fcm_send($tenant_info['mb_token'], $push_title2, $push_content2, 'expense', "{$ex_id}", "/expense_report_info.php?ex_id=");
+            try { fcm_send($tenant_info['mb_token'], $push_title2, $push_content2, 'expense', "{$ex_id}", "/expense_report_info.php?ex_id="); } catch(Exception $e) {}
         }
 
         //푸시발송
@@ -179,7 +179,7 @@ if ($sum_sign === 0) {
         sql_query($insert_push);
 
         if($ex_approver2_info['mb_token'] != "" && $ex_approver2_info['noti6'] ){ //토큰이 있는경우 푸시 발송
-            fcm_send($ex_approver2_info['mb_token'], $push_title, $push_content, 'expense', "{$ex_id}", "/expense_report_adm_info.php?ex_id=");
+            try { fcm_send($ex_approver2_info['mb_token'], $push_title, $push_content, 'expense', "{$ex_id}", "/expense_report_adm_info.php?ex_id="); } catch(Exception $e) {}
         }
     }
 
@@ -205,7 +205,7 @@ if ($sum_sign === 0) {
         sql_query($insert_push);
 
         if($ex_approver3_info['mb_token'] != "" && $ex_approver3_info['noti6']){ //토큰이 있는경우 푸시 발송
-            fcm_send($ex_approver3_info['mb_token'], $push_title, $push_content, 'expense', "{$ex_id}", "/expense_report_adm_info.php?ex_id=");
+            try { fcm_send($ex_approver3_info['mb_token'], $push_title, $push_content, 'expense', "{$ex_id}", "/expense_report_adm_info.php?ex_id="); } catch(Exception $e) {}
         }
     }
 }

@@ -94,7 +94,7 @@ if($w == "u"){
 
 
         if($ex_approver1_info['mb_token'] != ""){ //토큰이 있는경우 푸시 발송
-            fcm_send($ex_approver1_info['mb_token'], $push_title, $push_content, 'expense', "{$ex_id}", "/expense_report_adm_info.php?ex_id=");
+            try { fcm_send($ex_approver1_info['mb_token'], $push_title, $push_content, 'expense', "{$ex_id}", "/expense_report_adm_info.php?ex_id="); } catch(Exception $e) {}
         }
         
     }

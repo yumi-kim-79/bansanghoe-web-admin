@@ -44,7 +44,7 @@ while($row_ho = sql_fetch_array($res_ho)){
 
     if($row_ho['mb_token'] != "" && $row_ho['noti1']){ //토큰이 있는경우 푸시 발송
            
-        fcm_send($row_ho['mb_token'], $push_title, $push_content, 'bill', "{$bill_id}", "/bill.php?bill_id=");
+        try { fcm_send($row_ho['mb_token'], $push_title, $push_content, 'bill', "{$bill_id}", "/bill.php?bill_id="); } catch(Exception $e) {}
     }
 }
 
