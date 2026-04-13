@@ -55,6 +55,13 @@
 ### 배포 워크플로우
 
 ```
-develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
-→ main 브랜치 merge → 자동 배포 → smtm2017.com (운영)
+develop 브랜치 push → GitHub Actions → SSH → git pull → test.smtm2017.com
+main 브랜치 push → GitHub Actions → SSH → git pull → smtm2017.com (운영)
 ```
+
+### 배포 스크립트 (.github/workflows/deploy.yml)
+
+- 방식: `git pull origin $BRANCH` (전체 동기화)
+- 백업: 변경 파일을 `_backups/YYYYMMDD_HHMMSS/` 에 사전 복사
+- 30일 이상 백업 자동 삭제
+- 배포 후 `systemctl restart httpd`
