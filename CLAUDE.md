@@ -135,6 +135,15 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - 모든 수정은 로컬 → GitHub → 자동배포 순서로 진행
 - DB 스키마 변경은 서버에서 직접 mysql 명령으로 실행 필요
 
+## 💾 서버 백업 정책
+- **대상**: `/var/www/html/data/` (업로드 파일 — 민원사진, 서명, 게시판 이미지 등)
+- **주기**: 매일 새벽 3시 (크론잡)
+- **위치**: `/var/backups/bansanghoe/data/YYYYMMDD/`
+- **보관**: 30일 (이전 자동 삭제)
+- **스크립트**: `/usr/local/bin/bansanghoe_backup.sh`
+- **로그**: `/var/log/bansanghoe_backup.log`
+- **복구**: `rsync -a /var/backups/bansanghoe/data/YYYYMMDD/ /var/www/html/data/`
+
 ## ⚠️ 서버 실행 금지 명령어
 
 서버에서 절대 실행하지 말 것 (업로드 파일 손실 위험):
