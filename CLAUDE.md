@@ -120,6 +120,21 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 → main 브랜치 merge → 자동 배포 → smtm2017.com (운영)
 ```
 
+## 🖥️ 서버 배포 방식
+- GitHub Actions 자동 배포 설정됨 (`.github/workflows/deploy.yml`)
+- main 브랜치 push 시 → smtm2017.com `/var/www/html` 자동 배포
+- develop 브랜치 push 시 → `/var/www/html_test` 자동 배포
+- 배포 방식: `git reset --hard HEAD` → `git pull origin $BRANCH`
+- 신규 파일도 자동 배포됨 (git pull 방식)
+- 백업: 배포 전 변경파일 `/var/www/html/_backups/날짜시간/` 에 자동 백업
+- 서버 직접 접속: `ssh root@smtm2017.com` (또는 IP: `223.130.156.223`)
+- 서버 웹 경로: `/var/www/html` (운영), `/var/www/html_test` (테스트)
+
+## ⚠️ 주의사항
+- 서버에서 직접 파일 수정 금지 (`git reset --hard` 로 덮어씌워짐)
+- 모든 수정은 로컬 → GitHub → 자동배포 순서로 진행
+- DB 스키마 변경은 서버에서 직접 mysql 명령으로 실행 필요
+
 ---
 
 ## 🎨 CSS 주요 변수
