@@ -162,6 +162,19 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - (없음)
 
 ### 최근 완료
+- [x] **점검일지 누락업체 조회 기능 추가** (2026-04-13)
+  - `adm/inspection_missing.php`: 신규, sub_menu=700200
+  - 검색: 지역/단지명/년월 필터
+  - 로직: a_contract(계약업종) vs a_inspection(제출여부) 대조
+  - 상태: ✅제출(N/Y/H) / ❌미제출(없음) / 🔄반려(R)
+  - 결과: 단지별 그룹핑, 누락 건수 요약, 누락 있는 단지 상단 정렬
+  - `adm/admin.head.php`: 점검일지 메뉴에 "누락업체 조회" 추가
+- [x] **점검일지 시스템 구조 파악** (2026-04-13)
+  - DB: `a_inspection`(점검일지), `a_industry_list`(업종/QR항목), `a_manage_company`(업체), `a_contract`(계약)
+  - 관리자: `adm/inspection_list.php`(목록), `inspection_form.php`(상세/승인), `inspection_status_change_ajax.php`(상태변경)
+  - 업체: QR→`inspection_form.php?bdi=building|industry`→작성→제출(N)
+  - 상태: N(대기)→Y(승인)/R(재요청)/H(보류), 승인 시 입주민 푸시
+  - QR: `inspection_print.php` A4 3x3, `a_industry_list` 업종별 생성
 - [x] **결재 탭 텍스트 간결화** (2026-04-13)
   - `approval_document.php`: "결재 관리"→"결재관리", "결재 승인건"→"승인건", "결재 반려건"→"반려건", "내 결재"→"내결재"
 - [x] **매니저앱 결재 '내 결재' 탭 추가** (2026-04-13)

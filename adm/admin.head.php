@@ -260,6 +260,7 @@ if (!empty($_COOKIE['g5_admin_btn_gnb'])) {
             <button type="button" class="<?php echo substr($sub_menu, 0, 3) == "700" ? "active" : ""; ?>">점검 일지</button>
             <div class="admin_sub_menu">
                 <a href="./inspection_list.php" class="<?php echo $sub_menu == "700100" ? "active" : "";?>">점검 일지</a>
+                <a href="./inspection_missing.php" class="<?php echo $sub_menu == "700200" ? "active" : "";?>">누락업체 조회</a>
             </div>
         </li>
         <li>
