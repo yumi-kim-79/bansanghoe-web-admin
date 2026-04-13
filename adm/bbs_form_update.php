@@ -139,7 +139,7 @@ if(isset($_FILES['img_up']['name'])){
         $filename  = $_FILES['img_up']['name'][$i];
         $filename  = get_safe_filename($filename);
 
-        if (is_uploaded_file($tmp_file)) {
+        if (is_uploaded_file($tmp_file) && $filesize > 0 && $filename != 'blob') {
             $timg = @getimagesize($tmp_file);
 
             if ( preg_match("/\.({$config['cf_image_extension']})$/i", $filename) || preg_match("/\.({$config['cf_flash_extension']})$/i", $filename) ) {
@@ -177,7 +177,10 @@ if(isset($_FILES['img_up']['name'])){
                 }
 
             }else{
-                $error_code = move_uploaded_file($tmp_file, $dest_file) or die(result_data(false, $_FILES['img_up']['error'][$i], []));
+                if(!move_uploaded_file($tmp_file, $dest_file)){
+                    error_log("[bbs_form_update] img move failed: idx={$i}, error=" . $_FILES['img_up']['error'][$i] . ", tmp={$tmp_file}, dest={$dest_file}");
+                    // 이미지 이동 실패는 무시하고 계속 진행 (빈 Blob 전송 등)
+                }
             }
         }
     }
@@ -309,7 +312,7 @@ if(isset($_FILES['bf_file']['name'])){
         $filename  = $_FILES['bf_file']['name'][$i];
         $filename  = get_safe_filename($filename);
 
-        if (is_uploaded_file($tmp_file)) {
+        if (is_uploaded_file($tmp_file) && $filesize > 0 && $filename != 'blob') {
             $timg = @getimagesize($tmp_file);
 
             if ( preg_match("/\.({$config['cf_image_extension']})$/i", $filename) || preg_match("/\.({$config['cf_flash_extension']})$/i", $filename) ) {
@@ -335,7 +338,9 @@ if(isset($_FILES['bf_file']['name'])){
 
             $dest_file = $file_path2.'/'.$upload_pdf[$i]['file'];
 
-            $error_code = move_uploaded_file($tmp_file, $dest_file) or die(result_data(false, $_FILES['bf_file']['error'][$i], []));
+            if(!move_uploaded_file($tmp_file, $dest_file)){
+                error_log("[bbs_form_update] pdf move failed: idx={$i}, error=" . $_FILES['bf_file']['error'][$i] . ", tmp={$tmp_file}, dest={$dest_file}");
+            }
         }
     }
 }

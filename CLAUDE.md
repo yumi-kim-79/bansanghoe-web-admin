@@ -163,6 +163,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **adm/bbs_form_update.php alert("0") 근본 원인 수정** (2026-04-13)
+  - 원인: `move_uploaded_file() or die(result_data(false, 0))` — 빈 Blob 파일 이동 실패 시 에러코드 0 반환
+  - 수정: `or die` 제거 → `if(!move_uploaded_file)` + error_log로 변경 (실패해도 계속 진행)
+  - 빈 파일 방어: `$filesize > 0 && $filename != 'blob'` 조건 추가
 - [x] **adm/bbs_form.php AJAX 성공/에러 콜백 안전화** (2026-04-13)
   - `data.msg` undefined 시 "저장되었습니다." 폴백 메시지
   - error 콜백에 사용자 알림 추가 + btn_submit 재활성화
