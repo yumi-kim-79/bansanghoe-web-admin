@@ -45,8 +45,9 @@ if($w == "u"){
         $push_content = $category_name." 게시판에 게시글이 등록되었습니다.";
 
         if($mng_row['mb_token'] != "" && $mng_row['noti2']){ //토큰이 있는경우 푸시 발송
-            
-            fcm_send($mng_row['mb_token'], $push_title, $push_content, 'bbs', $bbs_idx);
+            try {
+                fcm_send($mng_row['mb_token'], $push_title, $push_content, 'bbs', $bbs_idx);
+            } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET

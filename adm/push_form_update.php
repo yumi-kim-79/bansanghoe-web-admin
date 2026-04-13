@@ -24,7 +24,7 @@ if($push_mem_type == 'user'){
     while($ho_row = sql_fetch_array($ho_res)){
 
         if($ho_row['mb_token'] != "" && $ho_row['noti7']){ //토큰이 있는경우 푸시 발송
-            fcm_send($ho_row['mb_token'], $push_title, $push_content);
+            try { fcm_send($ho_row['mb_token'], $push_title, $push_content); } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET
@@ -68,7 +68,7 @@ if($push_mem_type == 'user'){
      while($mng_row = sql_fetch_array($mng_res)){
 
         if($mng_row['mb_token'] != ""){ //토큰이 있는경우 푸시 발송
-            fcm_send($mng_row['mb_token'], $push_title, $push_content);
+            try { fcm_send($mng_row['mb_token'], $push_title, $push_content); } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET

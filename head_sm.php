@@ -193,7 +193,6 @@ if($pages != "login_sm.php" && $pages != "find_info.php" && $pages != "find_id.p
                 ?>
                 <button type="button" class="hd_btn home_btn"><img src="/images/head_option_icons.svg" alt=""></button>
                 <div class="tooltip_box">
-                    <a href="/<?php echo $edit_page; ?>?w=u&cal_idx=<?php echo $cal_idx;?>&cal_code=<?php echo $cal_code; ?><?php echo $basename == 'schedule_add2.php' && $cal_date ? '&cal_date='.$cal_date : ''; ?>" class="tooltip_btn">수정하기</a>
                     <button type="button" onclick="popOpen('schedule_del_pop')" class="tooltip_btn">삭제하기</button>
                 </div>
             <?php }?>
@@ -329,4 +328,22 @@ function token_save(id, apptoken, app, type){
 
     });
 }
+
+// 점세개(⋮) 버튼 클릭 시 tooltip_box 토글
+$(document).on("click", ".hd_btn.home_btn", function(e){
+    e.stopPropagation();
+    var $box = $(this).siblings(".tooltip_box");
+    $(".tooltip_box").not($box).hide();
+    $box.toggle();
+});
+
+// 외부 클릭 시 tooltip_box 닫기
+$(document).on("click", function(){
+    $(".tooltip_box").hide();
+});
+
+// tooltip_box 내부 클릭 시 버블링 방지
+$(document).on("click", ".tooltip_box", function(e){
+    e.stopPropagation();
+});
 </script>

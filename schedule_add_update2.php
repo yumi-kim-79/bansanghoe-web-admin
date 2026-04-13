@@ -17,8 +17,8 @@ $ip_info = $_SERVER['REMOTE_ADDR'];
 
 if($w == "u"){
 
-    $cal_info = "SELECT * FROM a_calendar WHERE cal_idx = '{$cal_idx}'";
-    $cal_info_row = sql_fetch($cal_info);
+    $cal_info_sql = "SELECT * FROM a_calendar WHERE cal_idx = '{$cal_idx}'";
+    $cal_info_row = sql_fetch($cal_info_sql);
 
      //반복설정이 되어있을 때 수정하면
     if($cal_info_row['noti_repeat'] != 'N'){
@@ -90,9 +90,11 @@ if($w == "u"){
 
     }else{
 
+        $post_row_nr = sql_fetch("SELECT * FROM a_building WHERE building_id = '{$building_id}'");
+
         $update_query = "UPDATE a_calendar SET
-                            cal_code = '{$cal_code}',
-                            post_id = '{$post_row['post_id']}',
+                            cal_code = '{$calcode}',
+                            post_id = '{$post_row_nr['post_id']}',
                             building_id = '{$building_id}',
                             mng_department = '{$mng_department}',
                             mng_id = '{$mng_id}',
@@ -112,18 +114,21 @@ if($w == "u"){
     // $cal_info = sql_fetch("SELECT * FROM a_calendar WHERE cal_idx = '{$cal_idx}'");
 
     //담당자 배정되거나 변경되었을 때
-    if($mng_id != $cal_info['mng_id']){
+    if($mng_id != '' && $mng_id != $cal_info_row['mng_id']){
         $mng_sql = "SELECT * FROM g5_member WHERE mb_id = '{$mng_id}'";
         $mng_row = sql_fetch($mng_sql);
 
         $push_title = '[일정] 일정 담당자로 배정되었습니다.';
         $push_content = '일정 담당자로 배정되었습니다. 일정 확인 후 처리 부탁드립니다.';
 
-        if($mng_row['mb_token'] != "" && $mng_row['noti3']){ //토큰이 있는경우 푸시 발송
-           
-            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+        if($mng_row['mb_token'] != "" && $mng_row['noti3']){
+            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP){
+                try {
+                    try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx="); } catch(Exception $e) {}
+                } catch(Exception $e) {}
+            }
         }
-    
+
         $insert_push = "INSERT INTO a_push SET
                         recv_id_type = 'sm',
                         recv_id = '{$mng_id}',
@@ -201,7 +206,7 @@ if($w == "u"){
 
         if($mng_row['mb_token'] != "" && $mng_row['noti3']){ //토큰이 있는경우 푸시 발송
             
-            fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+            try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx="); } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET
@@ -227,7 +232,7 @@ if($w == "u"){
 
         if($mng_row['mb_token'] != "" && $mng_row['noti3']){ //토큰이 있는경우 푸시 발송
            
-            fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx=");
+            try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'schedule', "{$cal_idx}", "/schedule_add.php?w=i&cal_idx="); } catch(Exception $e) {}
         }
     
         $insert_push = "INSERT INTO a_push SET

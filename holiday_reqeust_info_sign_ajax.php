@@ -128,7 +128,7 @@ if ($sum_sign === 0) {
    
 
        if($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']){ //토큰이 있는경우 푸시 발송
-           fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+           try { fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
        }
 
        $insert_push = "INSERT INTO a_push SET
@@ -156,7 +156,7 @@ if ($sum_sign === 0) {
 
 
         if($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']){ //토큰이 있는경우 푸시 발송
-            fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+            try { fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET

@@ -36,7 +36,7 @@ if($complain_id != "" && $complain_status == "CD"){
 
     if($mem_row['mb_token'] != "" && $mem_row['noti3']){ //토큰이 있는경우 푸시 발송
            
-        fcm_send($mem_row['mb_token'], $push_title, $push_content, 'complain_end', "{$complain_idx}", "/online_complain_info.php?complain_status=CD&complain_idx=");
+        try { fcm_send($mem_row['mb_token'], $push_title, $push_content, 'complain_end', "{$complain_idx}", "/online_complain_info.php?complain_status=CD&complain_idx="); } catch(Exception $e) {}
     }
 
     $insert_push = "INSERT INTO a_push SET

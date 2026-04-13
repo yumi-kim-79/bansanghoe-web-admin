@@ -62,7 +62,7 @@ if($w == "u"){
 
             if($mng_row['mb_token'] != "" && $mng_row['noti6']){ //토큰이 있는경우 푸시 발송
             
-                fcm_send($mng_row['mb_token'], $push_title, $push_content, 'complain', "{$complain_idx}", "/sm_complain_info.php?complain_status=CD&complain_idx=");
+                try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'complain', "{$complain_idx}", "/sm_complain_info.php?complain_status=CD&complain_idx="); } catch(Exception $e) {}
             }
 
             

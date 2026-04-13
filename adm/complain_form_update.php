@@ -80,7 +80,7 @@ if($w == "u"){
         //noti3 민원 알림 수신여부 1 수신 0 안함
         if($mem_info['mb_token'] != "" && $mem_info['noti3']){ //토큰이 있는경우 푸시 발송
             
-            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) fcm_send($mem_info['mb_token'], $push_title, $push_content, 'complain', "{$complain_idx}", "/online_complain_info.php?cstatus=CD&complain_idx=");
+            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) try { fcm_send($mem_info['mb_token'], $push_title, $push_content, 'complain', "{$complain_idx}", "/online_complain_info.php?cstatus=CD&complain_idx="); } catch(Exception $e) {}
            
         }
 
@@ -150,7 +150,7 @@ if($w == "u"){
 
         if($mng_row['mb_token'] != "" && $mng_row['noti6']){ //토큰이 있는경우 푸시 발송
            
-            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) fcm_send($mng_row['mb_token'], $push_title, $push_content, 'complain', "{$complain_idx}", "/sm_complain_info.php?complain_status=CD&complain_idx=");
+            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'complain', "{$complain_idx}", "/sm_complain_info.php?complain_status=CD&complain_idx="); } catch(Exception $e) {}
         }
     }
 

@@ -25,20 +25,27 @@
 - 단지 동기화: 반상회 API → Firestore complexes 컬렉션
 
 ### API 엔드포인트
+> API 파일(`api/building_settings_api.php`)은 PDO 직접 연결 — Gnuboard 세션/인증 불필요
 
 | 메서드 | 엔드포인트 | 설명 |
 |--------|-----------|------|
-| GET | `/api/building_settings_api.php?action=building_settings&building_id=N` | 단지별 담당자/연체요율 조회 |
-| GET | `/api/building_settings_api.php?action=building_settings_all` | 전체 단지 담당자/연체요율 목록 |
-| POST | `/api/building_settings_api.php?action=update_building_settings` | 단지 담당자/연체요율 수정 |
+| GET | `/api/building_settings_api.php?action=building_managers&building_id=N` | 단지별 담당자 목록 (a_mng_building 활용) |
+| GET | `/api/building_settings_api.php?action=building_managers_all` | 전체 단지 담당자 목록 |
+| GET | `/api/building_settings_api.php?action=building_settings&building_id=N` | 단지별 연체요율 조회 |
+| GET | `/api/building_settings_api.php?action=building_settings_all` | 전체 단지 연체요율 목록 |
+| POST | `/api/building_settings_api.php?action=update_building_settings` | 단지 연체요율 수정 |
 
 ### 주요 테이블 (sinbansang DB)
 
 | 테이블 | 역할 |
 |--------|------|
-| `a_building` | 단지 정보 (담당자, 연체요율 포함) |
+| `a_building` | 단지 정보 (연체요율 포함) |
 | `a_building_ho` | 세대(호수) 정보 |
 | `a_building_dong` | 동 정보 |
+| `a_mng` | 담당자(매니저) 정보 |
+| `a_mng_building` | 단지-담당자 매핑 (N:N, 단지 폼에서 일괄 배정) |
+| `a_mng_department` | 부서 |
+| `a_mng_grade` | 직급 |
 | `a_member` | 입주민 회원 |
 | `a_billing_card` | 자동결제 카드 (토스페이먼츠) |
 
@@ -61,8 +68,7 @@ main 브랜치 push → GitHub Actions → SSH → git pull → smtm2017.com (�
 
 ### 배포 스크립트 (.github/workflows/deploy.yml)
 
-- 방식: `git reset --hard HEAD` → `git pull origin $BRANCH` (전체 동기화)
+- 방식: `git pull origin $BRANCH` (전체 동기화)
 - 백업: 변경 파일을 `_backups/YYYYMMDD_HHMMSS/` 에 사전 복사
 - 30일 이상 백업 자동 삭제
 - 배포 후 `systemctl restart httpd`
-- **서버에서 직접 파일 수정 금지** (`git reset --hard`로 덮어씌워짐)

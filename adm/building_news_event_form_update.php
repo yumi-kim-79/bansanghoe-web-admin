@@ -76,7 +76,7 @@ if($w == "u"){
             //noti2 공문 알림 수신여부 1 수신 0 안함
             if($ho_row['mb_token'] != "" && $ho_row['noti2']){ //토큰이 있는경우 푸시 발송
                 
-                fcm_send($ho_row['mb_token'], $push_title, $push_content, 'event', "{$bb_id}", "/building_new_info.php?bb_id=");
+                try { fcm_send($ho_row['mb_token'], $push_title, $push_content, 'event', "{$bb_id}", "/building_new_info.php?bb_id="); } catch(Exception $e) {}
             }
 
             $insert_push = "INSERT INTO a_push SET

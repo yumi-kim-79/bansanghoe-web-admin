@@ -45,7 +45,7 @@ sql_query($insert_push);
 
 //토큰이 있는 경우 푸시발송
 if($mng_info['mb_token'] != '' && $mng_info['noti1']){
-    fcm_send($mng_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+    try { fcm_send($mng_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
 }
 
 echo result_data(true, "결재가 반려되었습니다.", []);

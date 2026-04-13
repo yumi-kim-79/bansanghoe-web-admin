@@ -63,7 +63,7 @@ if($w == "u"){
 
             if($mng_building_row['mb_token'] != "" && $mng_building_row['noti4']){
                 try {
-                    fcm_send($mng_building_row['mb_token'], $push_title, $push_content, 'move', "{$mv_idx}", "/sm_move.php?mv_idx=");
+                    try { fcm_send($mng_building_row['mb_token'], $push_title, $push_content, 'move', "{$mv_idx}", "/sm_move.php?mv_idx="); } catch(Exception $e) {}
                 } catch (Exception $e) {
                     error_log("FCM Send Error: " . $e->getMessage());
                 }

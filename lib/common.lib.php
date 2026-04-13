@@ -291,6 +291,10 @@ function oauth_firebase(){
 }
 
 function fcm_send($token, $title = '푸시테스트 제목', $content = '푸시테스트 내용입니다.', $screen = '', $idx = '', $data3 = ''){
+    if(empty($token)) return ['error' => true, 'msg' => 'empty token'];
+
+    try {
+
     // require_once ($_SERVER['DOCUMENT_ROOT'].'/vendor/autoload.php');
     require_once ('/var/www/html/vendor/autoload.php');
     $url = 'https://fcm.googleapis.com/v1/projects/sinbansang/messages:send';
@@ -352,19 +356,18 @@ function fcm_send($token, $title = '푸시테스트 제목', $content = '푸시�
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS,json_encode($last_msg)); 
     $result = curl_exec($ch);
+    curl_close($ch);
+
     if($result === FALSE){
-        printf("cUrl error (#%d): %s<br>\n",
-        curl_errno($ch),
-        htmlspecialchars(curl_error($ch)));
+        return ['error' => true];
     }
 
-    curl_close($ch);
     $obj = json_decode($result, true);
-
-    // print_r2($result);
-
     return $obj;
-    
+
+    } catch(Exception $e) {
+        return ['error' => true, 'msg' => $e->getMessage()];
+    }
 }
 
 //문자발송 sms

@@ -42,7 +42,7 @@ if($mng_id != ""){
 
     if($mng_row['mb_token'] != "" && $mng_row['noti6']){ //토큰이 있는경우 푸시 발송
            
-        fcm_send($mng_row['mb_token'], $push_title, $push_content, 'complain_mng', "{$complain_idx}", "/sm_complain_info.php?complain_status=CC&complain_idx=");
+        try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'complain_mng', "{$complain_idx}", "/sm_complain_info.php?complain_status=CC&complain_idx="); } catch(Exception $e) {}
     }
 
     $insert_push = "INSERT INTO a_push SET

@@ -1,15 +1,20 @@
 # Changelog
 
 ## 2026-04-13
-### Docs
-- CLAUDE.md에 서버 배포 방식/주의사항 섹션 추가
-- docs/CONTEXT.md 배포 스크립트 상세 설명 추가
+### Changed
+- building_settings_api.php DB 연결: Gnuboard `_common.php` → PDO 직접 연결 + prepared statement
+
+### Added (단지 관리)
+- 단지 추가/수정 폼에 담당자 일괄 선택 기능 (`adm/building_mng_add.php`)
+- 미배정↔배정 이동 UI, 이름/부서 검색, a_mng_building 일괄 저장
+
+### Added
+- 단지 담당자 조회 API — 기존 `a_mng_building` 활용 (`api/building_settings_api.php`)
+- 연체요율 조회/수정 API (`building_settings`, `update_building_settings`)
+- 점검일지 누락업체 조회 (`adm/inspection_missing.php`)
 
 ### Fixed
 - 배포 스크립트(deploy.yml) git pull 방식으로 변경 — 머지 커밋 시 신규 파일 누락 해결
-
-### Added
-- 점검일지 누락업체 조회 (`adm/inspection_missing.php`)
 - 결재관리 '내결재' 탭 (`approval_document.php`)
 - 단지 담당자/연체요율 API (`api/building_settings_api.php`)
 - 서버/인프라 컨텍스트 문서 (`docs/CONTEXT.md`)

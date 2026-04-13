@@ -22,12 +22,24 @@ if($code == "reject"){
 }else if($code == "success"){
     $sql_where = "and sign_off.sign_status = 'E'";
     $empty_msg = "결재 승인된 서류가 없습니다.";
+}else if($code == "my_approval"){
+    // 내 결재: 내가 1~3차 결재자이고 아직 미처리인 문서
+    $sql_where = "and sign_off.sign_status IN ('N', 'P')
+        and (
+            (sign_off.sign_off_mng_id1 = '{$mb_id}' and (sign_off.sign_off_status = '' OR sign_off.sign_off_status = '0' OR sign_off.sign_off_status IS NULL))
+            OR (sign_off.sign_off_mng_id2 = '{$mb_id}' and sign_off.sign_off_status = '1' and (sign_off.sign_off_status2 = '' OR sign_off.sign_off_status2 = '0' OR sign_off.sign_off_status2 IS NULL))
+            OR (sign_off.sign_off_mng_id3 = '{$mb_id}' and sign_off.sign_off_status2 = '1' and (sign_off.sign_off_status3 = '' OR sign_off.sign_off_status3 = '0' OR sign_off.sign_off_status3 IS NULL))
+        )";
+    $empty_msg = "처리 대기 중인 결재 서류가 없습니다.";
 }else{
     $sql_where = "and sign_off.sign_status IN ('N', 'P')";
     $empty_msg = "결재 서류가 없습니다.";
 }
 
-if($mng_certi != 'D'){
+if($code == "my_approval"){
+    // 내 결재: mng_certi 무관하게 결재자 조건으로만 필터
+    $sql_sign = "";
+}else if($mng_certi != 'D'){
     $sql_sign = "";
 }else{
     $sql_sign = " and sign_off.mng_id = '{$mb_id}' ";

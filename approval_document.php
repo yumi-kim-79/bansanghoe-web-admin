@@ -12,9 +12,10 @@ $depart_res = sql_query($depart_sql);
     <div class="wrap_container">
         <div class="inner">
             <ul class="tab_lnb ver4">
-                <li class="tab01 on" onclick="tab_handler('1', 'all')">결재 관리</li>
-                <li class="tab02" onclick="tab_handler('2', 'success')">결재 승인건</li>
-                <li class="tab03" onclick="tab_handler('3', 'reject')">결재 반려건</li>
+                <li class="tab01 on" onclick="tab_handler('1', 'all')">결재관리</li>
+                <li class="tab02" onclick="tab_handler('2', 'success')">승인건</li>
+                <li class="tab03" onclick="tab_handler('3', 'reject')">반려건</li>
+                <li class="tab04" onclick="tab_handler('4', 'my_approval')">내결재</li>
             </ul>
             <div class="ipt_box ipt_flex ipt_box_ver2 mgt20">
                 <div class="date_form_box date_form_box_ipt">
