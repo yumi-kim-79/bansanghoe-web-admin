@@ -163,6 +163,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **배포 스크립트 git pull 방식으로 수정** (2026-04-13)
+  - `.github/workflows/deploy.yml`: curl 개별 파일 다운로드 → `git pull origin $BRANCH`
+  - 문제: 머지 커밋 시 신규 파일 누락 (git diff에 있어도 curl로 받을 때 실패)
+  - 수정: `git reset --hard HEAD` → `git pull origin $BRANCH` 한 번으로 전체 동기화
+  - 백업 기능 유지 (변경 파일 사전 백업)
 - [x] **토스페이먼츠 카드 등록 화면 추가 (테스트 모드)** (2026-04-02)
   - `card_register.php`: 카드 등록/관리 화면 (등록카드 표시, 변경, 삭제)
   - `card_register_callback.php`: 토스페이먼츠 빌링키 발급 콜백 (curl로 API 확정)
