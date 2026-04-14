@@ -202,6 +202,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **복구 이미지 ↔ DB 첨부파일 매칭 스크립트** (2026-04-14)
+  - `adm/file_recover_match.php`: /mnt/recover/ 파일의 sha1 ↔ DB bf_file의 sha1 매칭 → 복원
+  - CLI/브라우저 양쪽 실행 가능, 사용 후 삭제 권장
 - [x] **사내용 게시판 목록 일괄 삭제 기능 추가** (2026-04-14)
   - `adm/bbs_list.php`: 관리자만 체크박스 + "선택 삭제" 버튼
   - `adm/bbs_del_update.php`: 신규 — 이미지(bbs_img) + PDF(bbs_pdf) 서버파일/DB 삭제 + soft delete
