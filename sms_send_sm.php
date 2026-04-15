@@ -17,6 +17,21 @@ if($member['mb_level'] >= 10){
                      ORDER BY p.post_name ASC, b.building_name ASC";
 }
 $building_res = sql_query($building_sql);
+
+// 단지 목록을 JSON으로 변환 (검색용)
+$building_list = [];
+while($br = sql_fetch_array($building_res)){
+    $building_list[] = [
+        'id' => $br['building_id'],
+        'name' => $br['building_name'],
+        'post' => $br['post_name'],
+        'label' => $br['post_name'] . ' ' . $br['building_name']
+    ];
+}
+$building_json = json_encode($building_list, JSON_UNESCAPED_UNICODE);
+
+// URL 파라미터로 전달된 building_id
+$param_building_id = isset($_GET['building_id']) ? intval($_GET['building_id']) : 0;
 ?>
 
 <style>
@@ -38,6 +53,20 @@ $building_res = sql_query($building_sql);
 .sms_ind_btn.sent { background:#999; }
 
 .sms_progress { font-size:12px; color:#388FCD; font-weight:600; text-align:center; padding:10px; }
+
+/* 단지 검색 자동완성 */
+.sm_sch_wrap { position:relative; }
+.sm_sch_input { width:100%; box-sizing:border-box; }
+.sm_sch_clear { position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:18px; color:#999; cursor:pointer; display:none; padding:4px; }
+.sm_sch_dropdown { position:absolute; left:0; right:0; top:100%; z-index:100; background:#fff; border:1px solid #e4e4e4; border-top:none; border-radius:0 0 8px 8px; max-height:200px; overflow-y:auto; display:none; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+.sm_sch_item { padding:10px 12px; font-size:13px; cursor:pointer; border-bottom:1px solid #f5f5f5; }
+.sm_sch_item:last-child { border-bottom:none; }
+.sm_sch_item:hover, .sm_sch_item.active { background:#f0f7ff; }
+.sm_sch_item .sch_post { color:#388FCD; font-size:11px; margin-right:4px; }
+.sm_sch_item .sch_name { font-weight:600; }
+.sm_sch_empty { padding:15px; text-align:center; color:#999; font-size:13px; }
+.sm_selected_badge { display:inline-flex; align-items:center; gap:6px; background:#388FCD; color:#fff; padding:6px 10px; border-radius:6px; font-size:13px; font-weight:600; margin-top:6px; }
+.sm_selected_badge button { background:none; border:none; color:#fff; font-size:16px; cursor:pointer; padding:0 2px; opacity:0.8; }
 </style>
 
 <div id="wrappers">
@@ -48,12 +77,13 @@ $building_res = sql_query($building_sql);
                 <li>
                     <p class="regi_list_title">단지 선택</p>
                     <div class="ipt_box">
-                        <select id="sm_building" class="bansang_sel" onchange="smBuildingChange();">
-                            <option value="">단지를 선택하세요</option>
-                            <?php while($br = sql_fetch_array($building_res)){?>
-                            <option value="<?php echo $br['building_id'];?>"><?php echo $br['post_name'].' '.$br['building_name'];?></option>
-                            <?php }?>
-                        </select>
+                        <div class="sm_sch_wrap">
+                            <input type="text" id="sm_building_search" class="bansang_ipt ver2 sm_sch_input" placeholder="단지명 또는 지역명을 입력하세요" autocomplete="off">
+                            <button type="button" class="sm_sch_clear" id="sm_sch_clear" onclick="smClearBuilding();">&times;</button>
+                            <div class="sm_sch_dropdown" id="sm_sch_dropdown"></div>
+                        </div>
+                        <input type="hidden" id="sm_building" value="">
+                        <div id="sm_selected_building"></div>
                     </div>
                 </li>
                 <li>
@@ -136,12 +166,110 @@ $building_res = sql_query($building_sql);
 var smRecipients = [];
 var smSentCount = 0;
 var smCurrentMode = 'copy';
+var smBuildingData = <?php echo $building_json; ?>;
+var smSelectedBuildingId = '';
 
-function smBuildingChange(){
-    var bid = $("#sm_building").val();
+/* ===== 단지 검색 자동완성 ===== */
+var smSchActiveIdx = -1;
+
+$("#sm_building_search").on("input", function(){
+    var keyword = $(this).val().trim();
+    smSchActiveIdx = -1;
+
+    if(keyword.length == 0){
+        $("#sm_sch_dropdown").hide();
+        $("#sm_sch_clear").hide();
+        return;
+    }
+    $("#sm_sch_clear").show();
+
+    var filtered = smBuildingData.filter(function(b){
+        return b.label.indexOf(keyword) > -1 || b.name.indexOf(keyword) > -1 || b.post.indexOf(keyword) > -1;
+    });
+
+    var html = '';
+    if(filtered.length > 0){
+        filtered.forEach(function(b, idx){
+            html += '<div class="sm_sch_item" data-idx="' + idx + '" data-id="' + b.id + '" data-label="' + b.label + '">'
+                + '<span class="sch_post">' + b.post + '</span>'
+                + '<span class="sch_name">' + b.name + '</span>'
+                + '</div>';
+        });
+    } else {
+        html = '<div class="sm_sch_empty">검색 결과가 없습니다.</div>';
+    }
+    $("#sm_sch_dropdown").html(html).show();
+});
+
+// 키보드 네비게이션
+$("#sm_building_search").on("keydown", function(e){
+    var $items = $("#sm_sch_dropdown .sm_sch_item");
+    if($items.length == 0) return;
+
+    if(e.keyCode == 40){ // down
+        e.preventDefault();
+        smSchActiveIdx = Math.min(smSchActiveIdx + 1, $items.length - 1);
+        $items.removeClass("active").eq(smSchActiveIdx).addClass("active");
+    } else if(e.keyCode == 38){ // up
+        e.preventDefault();
+        smSchActiveIdx = Math.max(smSchActiveIdx - 1, 0);
+        $items.removeClass("active").eq(smSchActiveIdx).addClass("active");
+    } else if(e.keyCode == 13){ // enter
+        e.preventDefault();
+        if(smSchActiveIdx >= 0){
+            $items.eq(smSchActiveIdx).click();
+        }
+    }
+});
+
+// 항목 클릭
+$(document).on("click", ".sm_sch_item", function(){
+    var bid = $(this).data("id");
+    var label = $(this).data("label");
+    smSelectBuilding(bid, label);
+});
+
+// 외부 클릭 시 드롭다운 닫기
+$(document).on("click", function(e){
+    if(!$(e.target).closest(".sm_sch_wrap").length){
+        $("#sm_sch_dropdown").hide();
+    }
+});
+
+// 포커스 시 이미 입력값이 있으면 드롭다운 다시 표시
+$("#sm_building_search").on("focus", function(){
+    if($(this).val().trim().length > 0 && !smSelectedBuildingId){
+        $(this).trigger("input");
+    }
+});
+
+function smSelectBuilding(bid, label){
+    smSelectedBuildingId = bid;
+    $("#sm_building").val(bid);
+    $("#sm_building_search").val("").hide();
+    $("#sm_sch_clear").hide();
+    $("#sm_sch_dropdown").hide();
+
+    // 선택된 단지 뱃지 표시
+    $("#sm_selected_building").html(
+        '<div class="sm_selected_badge">' + label + ' <button type="button" onclick="smClearBuilding();">&times;</button></div>'
+    );
+
+    // 동 목록 로드
     $("#sm_dong").html('<option value="">전체</option>');
-    if(!bid) return;
     $.ajax({ url:"/adm/building_dong_ajax.php", type:"POST", data:{building_id:bid, all:'Y'}, success:function(msg){ $("#sm_dong").html(msg); } });
+}
+
+function smClearBuilding(){
+    smSelectedBuildingId = '';
+    $("#sm_building").val('');
+    $("#sm_building_search").val("").show().focus();
+    $("#sm_sch_clear").hide();
+    $("#sm_sch_dropdown").hide();
+    $("#sm_selected_building").html('');
+    $("#sm_dong").html('<option value="">전체</option>');
+    $("#sm_recipient_list").html('<div style="padding:30px;text-align:center;color:#999;font-size:13px;">단지를 선택하고 조회해주세요.</div>');
+    $("#sm_total").text('');
 }
 
 function smLoadRecipients(){
@@ -215,7 +343,6 @@ function getSmCheckedRecipients(){
             name: $(this).data('name')
         });
     });
-    // 전화번호 중복 제거
     var seen = {};
     return list.filter(function(r){
         if(seen[r.phone]) return false;
@@ -251,7 +378,6 @@ function smCopyAndSend(){
     var phones = checked.map(function(r){ return r.phone; });
     var phoneText = phones.join(', ');
 
-    // 클립보드에 전화번호 복사
     if(navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(phoneText).then(function(){
             alert(phones.length + '명의 전화번호가 복사되었습니다.\n\n문자 앱이 열리면 받는 사람란에 붙여넣기 하세요.');
@@ -310,6 +436,17 @@ function smUpdateProgress(total){
         $("#sms_ind_progress").hide();
     }
 }
+
+/* ===== URL 파라미터로 단지 자동 선택 ===== */
+$(function(){
+    var paramBid = <?php echo $param_building_id; ?>;
+    if(paramBid){
+        var found = smBuildingData.filter(function(b){ return b.id == paramBid; });
+        if(found.length > 0){
+            smSelectBuilding(found[0].id, found[0].label);
+        }
+    }
+});
 </script>
 
 <?php include_once(G5_PATH.'/tail.php'); ?>

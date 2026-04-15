@@ -72,6 +72,11 @@ $building_row = sql_fetch($building_sql);
                         온라인 투표
                     </a>
                 </li>
+                <li>
+                    <a href="/sms_send_sm.php?building_id=<?php echo $building_id; ?>">
+                        SMS 단체문자
+                    </a>
+                </li>
                 
             </ul>
         </div>
