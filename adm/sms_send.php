@@ -114,12 +114,20 @@ function smsLoadRecipients(){
     if(!bid){ alert('단지를 선택해주세요.'); return; }
     var did = $("#sms_dong_id").val();
     var url = '/api/sms_recipient_api.php?action=recipients&building_id=' + bid;
-    if(did && did != '-1') url += '&dong_id=' + did;
+    if(did && did != '-1' && did != '') url += '&dong_id=' + did;
 
-    $.getJSON(url, function(data){
-        if(data.error){ alert(data.msg); return; }
-        recipientData = data.list;
-        renderRecipients();
+    $.ajax({
+        url: url,
+        dataType: 'json',
+        success: function(data){
+            if(data.error){ alert(data.msg); return; }
+            recipientData = data.list;
+            renderRecipients();
+        },
+        error: function(xhr){
+            console.log('API error:', xhr.status, xhr.responseText);
+            alert('조회 중 오류가 발생했습니다. (코드: ' + xhr.status + ')');
+        }
     });
 }
 

@@ -96,7 +96,7 @@ function smLoadRecipients(){
     var url = '/api/sms_recipient_api.php?action=recipients&building_id=' + bid;
     if(did && did != '-1') url += '&dong_id=' + did;
 
-    $.getJSON(url, function(data){
+    $.ajax({ url: url, dataType: 'json', success: function(data){
         if(data.error){ showToast(data.msg); return; }
         smRecipients = data.list;
         var html = '';
@@ -112,6 +112,7 @@ function smLoadRecipients(){
         $("#sm_recipient_list").html(html);
         $("#sm_chkall").prop("checked", true);
         $("#sm_total").text(data.list.length + "명");
+    }, error: function(xhr){ showToast('조회 오류 (코드: ' + xhr.status + ')'); }
     });
 }
 

@@ -10,6 +10,8 @@ require_once "../_common.php";
 
 header('Content-Type: application/json; charset=utf-8');
 
+try {
+
 $action = $_REQUEST['action'] ?? '';
 
 switch($action){
@@ -90,4 +92,8 @@ switch($action){
     default:
         echo json_encode(['error' => true, 'msg' => '알 수 없는 action']);
         break;
+}
+
+} catch(Exception $e) {
+    echo json_encode(['error' => true, 'msg' => 'Error: ' . $e->getMessage()]);
 }
