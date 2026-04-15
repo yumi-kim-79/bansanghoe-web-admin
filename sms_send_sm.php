@@ -138,10 +138,21 @@ function smOpenSmsApp(){
     if(phones.length == 0){ showToast('대상을 선택해주세요.'); return; }
     if(!msg){ showToast('문자 내용을 입력해주세요.'); return; }
 
+    console.log('[SMS] phones array:', phones);
+    console.log('[SMS] phones.length:', phones.length);
+
     // iOS: sms:번호&body=내용, Android: sms:번호?body=내용
+    // 다중 수신자: 쉼표(,) 또는 세미콜론(;) 구분
     var ua = navigator.userAgent.toLowerCase();
-    var sep = (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1) ? '&' : '?';
-    window.location.href = 'sms:' + phones.join(',') + sep + 'body=' + encodeURIComponent(msg);
+    var isIOS = (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1);
+    var phoneSep = isIOS ? ',' : ',';
+    var bodySep = isIOS ? '&' : '?';
+    var smsUri = 'sms:' + phones.join(phoneSep) + bodySep + 'body=' + encodeURIComponent(msg);
+
+    console.log('[SMS] final URI:', smsUri);
+    alert('발송 대상: ' + phones.length + '명\n' + phones.join(', '));
+
+    window.location.href = smsUri;
 }
 </script>
 
