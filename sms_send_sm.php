@@ -67,6 +67,14 @@ $param_building_id = isset($_GET['building_id']) ? intval($_GET['building_id']) 
 .sm_sch_empty { padding:15px; text-align:center; color:#999; font-size:13px; }
 .sm_selected_badge { display:inline-flex; align-items:center; gap:6px; background:#388FCD; color:#fff; padding:6px 10px; border-radius:6px; font-size:13px; font-weight:600; margin-top:6px; }
 .sm_selected_badge button { background:none; border:none; color:#fff; font-size:16px; cursor:pointer; padding:0 2px; opacity:0.8; }
+
+/* 그룹 복사 */
+.sms_group_box { border:1px solid #e4e4e4; border-radius:8px; margin-bottom:10px; overflow:hidden; }
+.sms_group_header { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#f8f9fa; }
+.sms_group_title { font-size:13px; font-weight:600; color:#333; }
+.sms_group_copy_btn { padding:6px 14px; font-size:12px; font-weight:600; color:#fff; background:#388FCD; border:none; border-radius:6px; cursor:pointer; }
+.sms_group_copy_btn.copied { background:#4caf50; }
+.sms_group_phones { padding:8px 12px; font-size:12px; color:#666; line-height:1.5; max-height:80px; overflow-y:auto; word-break:break-all; }
 </style>
 
 <div id="wrappers">
@@ -125,7 +133,7 @@ $param_building_id = isset($_GET['building_id']) ? intval($_GET['building_id']) 
             <div style="margin-top:20px;">
                 <p class="regi_list_title">발송 방식</p>
                 <div class="sms_mode_tabs">
-                    <button type="button" class="sms_mode_tab on" onclick="smSwitchMode('copy');">번호 복사 후 발송</button>
+                    <button type="button" class="sms_mode_tab on" onclick="smSwitchMode('copy');">번호 복사 발송</button>
                     <button type="button" class="sms_mode_tab" onclick="smSwitchMode('individual');">한 명씩 개별 발송</button>
                 </div>
 
@@ -133,10 +141,11 @@ $param_building_id = isset($_GET['building_id']) ? intval($_GET['building_id']) 
                 <div id="sms_mode_copy">
                     <div class="sms_info_box">
                         <b>사용 방법:</b><br>
-                        1. 아래 버튼을 누르면 선택한 대상의 전화번호가 복사됩니다.<br>
-                        2. 문자 앱이 열리면 받는 사람란에 붙여넣기 하세요.<br>
-                        3. 문자 내용은 자동으로 입력됩니다.
+                        1. 아래 버튼으로 전화번호를 복사하세요.<br>
+                        2. 문자 앱을 열고 받는 사람란에 붙여넣기 하세요.<br>
+                        3. 30명 초과 시 자동으로 그룹이 나뉩니다. 그룹별로 복사 후 발송하세요.
                     </div>
+                    <div id="sms_group_area"></div>
                 </div>
 
                 <!-- 옵션2: 개별 발송 방식 -->
@@ -157,7 +166,7 @@ $param_building_id = isset($_GET['building_id']) ? intval($_GET['building_id']) 
         <!-- 하단 버튼 (옵션1 전용) -->
         <div class="fix_btn_back_box" id="sms_fix_btns_back"></div>
         <div class="fix_btn_box ver3" id="sms_fix_btns">
-            <button type="button" class="fix_btn on" onclick="smCopyAndSend();">전화번호 복사 + 문자앱 열기</button>
+            <button type="button" class="fix_btn on" onclick="smCopyAllPhones();">전체 번호 복사</button>
         </div>
     </div>
 </div>
@@ -168,6 +177,7 @@ var smSentCount = 0;
 var smCurrentMode = 'copy';
 var smBuildingData = <?php echo $building_json; ?>;
 var smSelectedBuildingId = '';
+var SM_GROUP_SIZE = 30;
 
 /* ===== 단지 검색 자동완성 ===== */
 var smSchActiveIdx = -1;
@@ -201,46 +211,34 @@ $("#sm_building_search").on("input", function(){
     $("#sm_sch_dropdown").html(html).show();
 });
 
-// 키보드 네비게이션
 $("#sm_building_search").on("keydown", function(e){
     var $items = $("#sm_sch_dropdown .sm_sch_item");
     if($items.length == 0) return;
 
-    if(e.keyCode == 40){ // down
+    if(e.keyCode == 40){
         e.preventDefault();
         smSchActiveIdx = Math.min(smSchActiveIdx + 1, $items.length - 1);
         $items.removeClass("active").eq(smSchActiveIdx).addClass("active");
-    } else if(e.keyCode == 38){ // up
+    } else if(e.keyCode == 38){
         e.preventDefault();
         smSchActiveIdx = Math.max(smSchActiveIdx - 1, 0);
         $items.removeClass("active").eq(smSchActiveIdx).addClass("active");
-    } else if(e.keyCode == 13){ // enter
+    } else if(e.keyCode == 13){
         e.preventDefault();
-        if(smSchActiveIdx >= 0){
-            $items.eq(smSchActiveIdx).click();
-        }
+        if(smSchActiveIdx >= 0) $items.eq(smSchActiveIdx).click();
     }
 });
 
-// 항목 클릭
 $(document).on("click", ".sm_sch_item", function(){
-    var bid = $(this).data("id");
-    var label = $(this).data("label");
-    smSelectBuilding(bid, label);
+    smSelectBuilding($(this).data("id"), $(this).data("label"));
 });
 
-// 외부 클릭 시 드롭다운 닫기
 $(document).on("click", function(e){
-    if(!$(e.target).closest(".sm_sch_wrap").length){
-        $("#sm_sch_dropdown").hide();
-    }
+    if(!$(e.target).closest(".sm_sch_wrap").length) $("#sm_sch_dropdown").hide();
 });
 
-// 포커스 시 이미 입력값이 있으면 드롭다운 다시 표시
 $("#sm_building_search").on("focus", function(){
-    if($(this).val().trim().length > 0 && !smSelectedBuildingId){
-        $(this).trigger("input");
-    }
+    if($(this).val().trim().length > 0 && !smSelectedBuildingId) $(this).trigger("input");
 });
 
 function smSelectBuilding(bid, label){
@@ -249,13 +247,7 @@ function smSelectBuilding(bid, label){
     $("#sm_building_search").val("").hide();
     $("#sm_sch_clear").hide();
     $("#sm_sch_dropdown").hide();
-
-    // 선택된 단지 뱃지 표시
-    $("#sm_selected_building").html(
-        '<div class="sm_selected_badge">' + label + ' <button type="button" onclick="smClearBuilding();">&times;</button></div>'
-    );
-
-    // 동 목록 로드
+    $("#sm_selected_building").html('<div class="sm_selected_badge">' + label + ' <button type="button" onclick="smClearBuilding();">&times;</button></div>');
     $("#sm_dong").html('<option value="">전체</option>');
     $.ajax({ url:"/adm/building_dong_ajax.php", type:"POST", data:{building_id:bid, all:'Y'}, success:function(msg){ $("#sm_dong").html(msg); } });
 }
@@ -270,6 +262,7 @@ function smClearBuilding(){
     $("#sm_dong").html('<option value="">전체</option>');
     $("#sm_recipient_list").html('<div style="padding:30px;text-align:center;color:#999;font-size:13px;">단지를 선택하고 조회해주세요.</div>');
     $("#sm_total").text('');
+    $("#sms_group_area").html('');
 }
 
 function smLoadRecipients(){
@@ -284,7 +277,6 @@ function smLoadRecipients(){
         smRecipients = data.detail_list;
         smSentCount = 0;
 
-        // 체크박스 목록
         var html = '';
         data.detail_list.forEach(function(r){
             html += '<label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;">'
@@ -298,12 +290,114 @@ function smLoadRecipients(){
         $("#sm_chkall").prop("checked", true);
         $("#sm_total").text(data.detail_list.length + "명");
 
-        // 개별 발송 목록 업데이트
+        smRenderGroups();
         smRenderIndividualList();
     }, error: function(xhr){ showToast('조회 오류 (코드: ' + xhr.status + ')'); }
     });
 }
 
+/* ===== 그룹 분할 복사 UI ===== */
+function smRenderGroups(){
+    var checked = getSmCheckedRecipients();
+    var phones = checked.map(function(r){ return r.phone; });
+
+    if(phones.length == 0){
+        $("#sms_group_area").html('');
+        return;
+    }
+
+    // 30명 이하면 그룹 분할 없이 단일 표시
+    if(phones.length <= SM_GROUP_SIZE){
+        $("#sms_group_area").html(
+            '<div class="sms_group_box">'
+            + '<div class="sms_group_header">'
+            + '<span class="sms_group_title">전체 ' + phones.length + '명</span>'
+            + '<button type="button" class="sms_group_copy_btn" onclick="smCopyGroup(0);">번호 복사</button>'
+            + '</div>'
+            + '<div class="sms_group_phones" id="sms_gphones_0">' + phones.join(', ') + '</div>'
+            + '</div>'
+        );
+        return;
+    }
+
+    // 30명 초과: 그룹 분할
+    var groups = [];
+    for(var i = 0; i < phones.length; i += SM_GROUP_SIZE){
+        groups.push(phones.slice(i, i + SM_GROUP_SIZE));
+    }
+
+    var html = '<div style="font-size:12px;color:#e65100;font-weight:600;margin-bottom:8px;">'
+        + phones.length + '명 = ' + groups.length + '개 그룹 (그룹당 최대 ' + SM_GROUP_SIZE + '명). 그룹별로 복사 후 발송하세요.'
+        + '</div>';
+
+    groups.forEach(function(g, idx){
+        var start = idx * SM_GROUP_SIZE + 1;
+        var end = start + g.length - 1;
+        html += '<div class="sms_group_box">'
+            + '<div class="sms_group_header">'
+            + '<span class="sms_group_title">그룹 ' + (idx+1) + ' (' + g.length + '명, ' + start + '~' + end + '번)</span>'
+            + '<button type="button" class="sms_group_copy_btn" id="sms_gbtn_' + idx + '" onclick="smCopyGroup(' + idx + ');">번호 복사</button>'
+            + '</div>'
+            + '<div class="sms_group_phones" id="sms_gphones_' + idx + '">' + g.join(', ') + '</div>'
+            + '</div>';
+    });
+
+    $("#sms_group_area").html(html);
+}
+
+function smCopyGroup(groupIdx){
+    var text = $("#sms_gphones_" + groupIdx).text();
+    if(!text){ showToast('복사할 번호가 없습니다.'); return; }
+
+    smDoCopy(text, function(){
+        var $btn = $("#sms_gbtn_" + groupIdx);
+        if($btn.length == 0) $btn = $(".sms_group_copy_btn").eq(groupIdx);
+        $btn.addClass('copied').text('복사됨');
+        setTimeout(function(){ $btn.removeClass('copied').text('번호 복사'); }, 2000);
+        showToast('전화번호가 복사되었습니다. 문자 앱에서 붙여넣기 하세요.');
+    });
+}
+
+function smCopyAllPhones(){
+    var checked = getSmCheckedRecipients();
+    if(checked.length == 0){ showToast('대상을 선택해주세요.'); return; }
+
+    var phones = checked.map(function(r){ return r.phone; });
+
+    if(phones.length > SM_GROUP_SIZE){
+        showToast('30명 초과입니다. 위 그룹별 복사 버튼을 이용해주세요.');
+        return;
+    }
+
+    smDoCopy(phones.join(', '), function(){
+        showToast(phones.length + '명 전화번호가 복사되었습니다.');
+    });
+}
+
+function smDoCopy(text, onSuccess){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(onSuccess).catch(function(){
+            smFallbackCopy(text);
+            onSuccess();
+        });
+    } else {
+        smFallbackCopy(text);
+        onSuccess();
+    }
+}
+
+function smFallbackCopy(text){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+}
+
+/* ===== 공통 ===== */
 function smRenderIndividualList(){
     var checked = getSmCheckedRecipients();
     if(checked.length == 0){
@@ -329,6 +423,7 @@ function smRenderIndividualList(){
 
 function smCheckAll(src){
     $(".sm_chk").prop("checked", src.checked);
+    smRenderGroups();
     if(smCurrentMode == 'individual') smRenderIndividualList();
 }
 
@@ -337,11 +432,7 @@ function smCountChar(){ $("#sm_char_count").text($("#sm_message").val().length);
 function getSmCheckedRecipients(){
     var list = [];
     $(".sm_chk:checked").each(function(){
-        list.push({
-            phone: $(this).val(),
-            ho_name: $(this).data('ho'),
-            name: $(this).data('name')
-        });
+        list.push({ phone: $(this).val(), ho_name: $(this).data('ho'), name: $(this).data('name') });
     });
     var seen = {};
     return list.filter(function(r){
@@ -359,6 +450,7 @@ function smSwitchMode(mode){
         $("#sms_mode_copy").show();
         $("#sms_mode_individual").hide();
         $("#sms_fix_btns, #sms_fix_btns_back").show();
+        smRenderGroups();
     } else {
         $(".sms_mode_tab").eq(1).addClass("on");
         $("#sms_mode_copy").hide();
@@ -366,48 +458,6 @@ function smSwitchMode(mode){
         $("#sms_fix_btns, #sms_fix_btns_back").hide();
         smRenderIndividualList();
     }
-}
-
-/* ===== 옵션1: 번호 복사 + 문자앱 열기 ===== */
-function smCopyAndSend(){
-    var checked = getSmCheckedRecipients();
-    var msg = $("#sm_message").val();
-    if(checked.length == 0){ showToast('대상을 선택해주세요.'); return; }
-    if(!msg){ showToast('문자 내용을 입력해주세요.'); return; }
-
-    var phones = checked.map(function(r){ return r.phone; });
-    var phoneText = phones.join(', ');
-
-    if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(phoneText).then(function(){
-            alert(phones.length + '명의 전화번호가 복사되었습니다.\n\n문자 앱이 열리면 받는 사람란에 붙여넣기 하세요.');
-            smOpenSmsWithBody(msg);
-        }).catch(function(){
-            smFallbackCopy(phoneText, phones.length, msg);
-        });
-    } else {
-        smFallbackCopy(phoneText, phones.length, msg);
-    }
-}
-
-function smFallbackCopy(text, count, msg){
-    var ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.left = '-9999px';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    alert(count + '명의 전화번호가 복사되었습니다.\n\n문자 앱이 열리면 받는 사람란에 붙여넣기 하세요.');
-    smOpenSmsWithBody(msg);
-}
-
-function smOpenSmsWithBody(msg){
-    var ua = navigator.userAgent.toLowerCase();
-    var isIOS = (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1);
-    var bodySep = isIOS ? '&' : '?';
-    window.location.href = 'sms:' + bodySep + 'body=' + encodeURIComponent(msg);
 }
 
 /* ===== 옵션2: 개별 발송 ===== */
@@ -420,8 +470,7 @@ function smSendIndividual(idx, phone){
 
     $btn.addClass('sent').text('발송됨');
     smSentCount++;
-    var total = getSmCheckedRecipients().length;
-    smUpdateProgress(total);
+    smUpdateProgress(getSmCheckedRecipients().length);
 
     var ua = navigator.userAgent.toLowerCase();
     var isIOS = (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1);
@@ -442,9 +491,7 @@ $(function(){
     var paramBid = <?php echo $param_building_id; ?>;
     if(paramBid){
         var found = smBuildingData.filter(function(b){ return b.id == paramBid; });
-        if(found.length > 0){
-            smSelectBuilding(found[0].id, found[0].label);
-        }
+        if(found.length > 0) smSelectBuilding(found[0].id, found[0].label);
     }
 });
 </script>

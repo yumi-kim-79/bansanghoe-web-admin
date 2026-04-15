@@ -206,6 +206,27 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **SMS 단체문자 기능 개발 완료** (2026-04-15)
+  - 전체 구성: `api/sms_recipient_api.php`(API) + `sms_send_sm.php`(매니저앱) + `adm/sms_send.php`(어드민) + `head_sm.php`/`building_mng.php`(메뉴 진입점)
+  - 매니저앱 UI: 단지 검색 자동완성 → 동 선택 → 조회 → 대상 체크 → 번호 복사 or 개별 발송
+  - 30명 초과 시 30명씩 자동 그룹 분할 + 그룹별 복사 버튼
+  - 사용법: 그룹별 "번호 복사" → 문자앱 열기 → 받는 사람에 붙여넣기 → 내용 입력 발송 → 다음 그룹 반복
+  - 테스트 서버: 2026-04-15 배포 완료 / 운영 서버: 2026-04-15 배포 완료
+- [x] **SM매니저앱 환경별 서버 URL 자동 분기** (2026-04-15)
+  - `bansanghoe-manager-app` 저장소 develop 브랜치
+  - `src/utils/APIConstant.js`: `__DEV__` 기반 test/운영 URL 자동 분기
+  - `src/screen/Home.js`: mainURL도 동일하게 자동 분기
+  - 개발/테스트 빌드 → `test.smtm2017.com`, 운영 Release → `smtm2017.com`
+  - main/develop 브랜치 코드 동일, 수동 URL 변경 불필요
+- [x] **테스트 서버 board_info.php URL 수정** (2026-04-15)
+  - 문제: 테스트 서버 `board_info.php`가 운영 URL(`https://smtm2017.com`)을 참조 → 모바일 앱이 운영 DB에 연결
+  - 해결: 서버에서 `sed -i 's|https://smtm2017.com|https://test.smtm2017.com|g' /var/www/html_test/board_info.php`
+  - 영향: 사용자앱/SM매니저앱(테스트)이 `test.smtm2017.com` → `sinbansang_test` DB 정상 연결
+  - 주의: 서버 직접 수정 (git 관리 외), 운영 서버는 수정 안 함
+- [x] **SMS 번호복사 개선: 문자앱 자동실행 제거 + 30명 초과 그룹 분할** (2026-04-15)
+  - `sms_send_sm.php`: 번호 복사 시 sms: URI 자동실행 제거 (복사만 수행)
+  - 30명 초과 시 30명씩 자동 그룹 분할 UI + 그룹별 복사 버튼
+  - 30명 이하는 단일 그룹 표시, 하단 "전체 번호 복사" 버튼
 - [x] **결재서류함 관리자 일괄 삭제 기능 추가** (2026-04-15)
   - `adm/approval_document_list.php`: 관리자(mb_level>=10) 전용 체크박스 + "선택 삭제" 버튼
   - `adm/approval_del_update.php`: 신규 — AJAX 일괄 삭제 (soft delete is_del=1 + 첨부파일 서버삭제)
