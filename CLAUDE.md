@@ -206,6 +206,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **결재서류함 관리자 일괄 삭제 기능 추가** (2026-04-15)
+  - `adm/approval_document_list.php`: 관리자(mb_level>=10) 전용 체크박스 + "선택 삭제" 버튼
+  - `adm/approval_del_update.php`: 신규 — AJAX 일괄 삭제 (soft delete is_del=1 + 첨부파일 서버삭제)
 - [x] **결재 등록 시 1/2/3차 결재자 전체에게 FCM 푸시 발송** (2026-04-15)
   - 기존: 1차 결재자에게만 푸시 발송 → 수정: 모든 결재자에게 발송
   - `holiday_reqeust_form_update.php`: 매니저앱 결재 등록 (+ `$_SERVER['REMOTE']` 오타 수정)
