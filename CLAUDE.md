@@ -202,6 +202,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **SMS 단지검색 자동완성 + 단지관리 메뉴 SMS 추가** (2026-04-15)
+  - `sms_send_sm.php`: select 드롭다운 → 검색 가능한 자동완성 입력창 (단지명/지역명 필터링, 키보드 네비게이션, 선택 뱃지)
+  - `sms_send_sm.php`: `building_id` URL 파라미터로 단지 자동 선택 지원
+  - `building_mng.php`: 단지 상세 메뉴에 "SMS 단체문자" 항목 추가 → `sms_send_sm.php?building_id=N`
 - [x] **SMS 매니저앱 2가지 발송 옵션으로 재작성** (2026-04-15)
   - 문제: 다중 수신자 sms: URI가 iOS/Android에서 첫 번째 번호만 전달됨
   - 옵션1(번호 복사): 전화번호 클립보드 복사 → alert 안내 → 문자앱 열기 (body만 전달)
