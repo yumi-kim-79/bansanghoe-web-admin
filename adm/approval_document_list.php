@@ -119,7 +119,7 @@ $grade_res = sql_query($grade_sql);
 $sql = " SELECT sign_off.*, cate.sign_cate_name, mng.mng_name {$sql_common} {$sql_search} {$sql_search2} {$sql_order} limit {$from_record}, {$rows} ";
 $result = sql_query($sql);
 
-$colspan = 7;
+$colspan = ($is_admin == 'super' || $member['mb_level'] >= 10) ? 8 : 7;
 
 if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     echo $sql.'<br>';
@@ -209,19 +209,22 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
 
 </form>
 
-<form name="fstudentlist" id="fstudentlist" action="./student_list_update.php" onsubmit="return fstudentlist_submit(this);" method="post">
-    <input type="hidden" name="sst" value="<?php echo $sst ?>">
-    <input type="hidden" name="sod" value="<?php echo $sod ?>">
-    <input type="hidden" name="sfl" value="<?php echo $sfl ?>">
-    <input type="hidden" name="stx" value="<?php echo $stx ?>">
-    <input type="hidden" name="page" value="<?php echo $page ?>">
-    <input type="hidden" name="token" value="">
+<?php if($is_admin == 'super' || $member['mb_level'] >= 10){ ?>
+<div class="btn_fixed_top">
+    <button type="button" onclick="approvalBulkDelete();" class="btn btn_01">선택 삭제</button>
+</div>
+<?php } ?>
+
+<form name="fapprovallist" id="fapprovallist" method="post">
 
     <div class="tbl_head01 tbl_head03 tbl_wrap">
         <table>
             <caption><?php echo $g5['title']; ?> 목록</caption>
             <thead>
                 <tr>
+                    <?php if($is_admin == 'super' || $member['mb_level'] >= 10){ ?>
+                    <th style="width:40px;"><input type="checkbox" id="approval_chkall" onclick="approvalCheckAll(this);"></th>
+                    <?php } ?>
                     <th>번호</th>
                     <th>결재종류</th>
                     <th>등록일</th>
@@ -238,6 +241,9 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                     $class_res = sql_query($class_sql);
                 ?>
                     <tr class="<?php echo $row['mng_id'] == $mb_ids ? 'status_n' : ''; ?>">
+                        <?php if($is_admin == 'super' || $member['mb_level'] >= 10){ ?>
+                        <td><input type="checkbox" class="approval_chk" value="<?php echo $row['sign_id']; ?>"></td>
+                        <?php } ?>
                         <td>
                             <?php
                             $startNumber = $total_count - (($page - 1) * $rows);
@@ -300,22 +306,35 @@ $(function(){
     $(".ipt_date").datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd", showButtonPanel: true, yearRange: "c-99:c+99", maxDate: "+365d" });
 });
 
-function fstudentlist_submit(f) {
-    if (!is_checked("chk[]")) {
-        alert(document.pressed + " 하실 항목을 하나 이상 선택하세요.");
-        return false;
+function approvalCheckAll(source){
+    $(".approval_chk").prop("checked", source.checked);
+}
+
+function approvalBulkDelete(){
+    var idxList = [];
+    $(".approval_chk:checked").each(function(){ idxList.push($(this).val()); });
+
+    if(idxList.length === 0){
+        alert("삭제할 결재서류를 하나 이상 선택해주세요.");
+        return;
     }
-    if (document.pressed == "선택삭제") {
-        if (!confirm("선택한 회원을 정말 삭제하시겠습니까?")) {
-            return false;
+    if(!confirm("선택한 " + idxList.length + "건의 결재서류를 삭제하시겠습니까?")){
+        return;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "./approval_del_update.php",
+        data: { idx_list: idxList.join(",") },
+        dataType: "json",
+        success: function(data){
+            alert(data.msg || "삭제되었습니다.");
+            location.reload();
+        },
+        error: function(){
+            alert("삭제 중 오류가 발생했습니다.");
         }
-    }
-    if (document.pressed == "선택승인") {
-        if (!confirm("선택한 회원을 승인하시겠습니까?")) {
-            return false;
-        }
-    }
-    return true;
+    });
 }
 </script>
 
