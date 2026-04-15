@@ -206,6 +206,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **테스트 서버 board_info.php URL 수정** (2026-04-15)
+  - 문제: 테스트 서버 `board_info.php`가 운영 URL(`https://smtm2017.com`)을 참조 → 모바일 앱이 운영 DB에 연결
+  - 해결: 서버에서 `sed -i 's|https://smtm2017.com|https://test.smtm2017.com|g' /var/www/html_test/board_info.php`
+  - 영향: 사용자앱/SM매니저앱(테스트)이 `test.smtm2017.com` → `sinbansang_test` DB 정상 연결
+  - 주의: 서버 직접 수정 (git 관리 외), 운영 서버는 수정 안 함
 - [x] **SMS 번호복사 개선: 문자앱 자동실행 제거 + 30명 초과 그룹 분할** (2026-04-15)
   - `sms_send_sm.php`: 번호 복사 시 sms: URI 자동실행 제거 (복사만 수행)
   - 30명 초과 시 30명씩 자동 그룹 분할 UI + 그룹별 복사 버튼
