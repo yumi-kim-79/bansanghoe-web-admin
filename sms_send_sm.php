@@ -317,7 +317,7 @@ function smStartAutoSend(){
         window.location.href = 'sms:' + r.phone + bodySep + 'body=' + encodeURIComponent(msg);
 
         index++;
-        setTimeout(sendNext, 3000);
+        setTimeout(sendNext, 4000);
     }
 
     sendNext();
