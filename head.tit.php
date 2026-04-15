@@ -275,6 +275,11 @@ switch($basename){
         $headerTitle = "점검일지 작성";
         $tab_on1 = "on";
     break;
+    case "sms_send_sm.php":
+        $headerType = "ver2";
+        $headerTitle = "SMS 단체문자";
+        $footerType = "ver_sm";
+    break;
     case "meter_reading.php":
         $headerType = "ver2";
         $headerTitle = "검침";

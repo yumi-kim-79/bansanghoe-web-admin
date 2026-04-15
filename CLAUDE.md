@@ -202,6 +202,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **SMS 단체문자 발송 기능 추가** (2026-04-15)
+  - `api/sms_recipient_api.php`: 단지별/동별 입주민 전화번호 조회 (ho_tenant_hp 우선, ho_owner_hp 폴백)
+  - `adm/sms_send.php`: 어드민 웹 UI (단지/동 필터, 체크박스, 문자내용, 번호복사, 문자앱 호출)
+  - `sms_send_sm.php`: 매니저앱 UI (모바일 최적화, 담당 단지만/관리자 전체)
+  - `adm/admin.head.php`: 단지관리 메뉴에 "SMS 단체문자" 추가 (sub_menu=200900)
+  - `head.tit.php`: 매니저앱 타이틀 등록
 - [x] **사내용 게시판 목록 일괄 삭제 기능 추가** (2026-04-14)
   - `adm/bbs_list.php`: 관리자만 체크박스 + "선택 삭제" 버튼
   - `adm/bbs_del_update.php`: 신규 — 이미지(bbs_img) + PDF(bbs_pdf) 서버파일/DB 삭제 + soft delete
