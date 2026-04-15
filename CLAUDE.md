@@ -200,6 +200,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 ### 진행 중 / 예정 작업
 - [ ] 토스페이먼츠 실제 키 교체 (test_ck_placeholder / test_sk_placeholder → 운영키)
 - [ ] a_billing_card 테이블 생성 (서버 DB)
+- [ ] 운영 서버 서명 이미지 복원 필요 (`/data/file/approval/` 파일 없음, 테스트 서버에는 존재)
+  - 원인: 2026-04-14 data/ 소실 사고로 추정
+  - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
+- [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
 - [x] **SMS 단지검색 자동완성 + 단지관리 메뉴 SMS 추가** (2026-04-15)
