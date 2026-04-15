@@ -206,6 +206,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **SM매니저 테스트앱 서버 URL 변경** (2026-04-15)
+  - `bansanghoe-manager-app` 저장소 develop 브랜치
+  - `src/utils/APIConstant.js`: BASE_URL → `https://test.smtm2017.com`
+  - `src/screen/Home.js`: mainURL → `test.smtm2017.com`
+  - 운영 배포(main) 시 반드시 `smtm2017.com`으로 원복 필요
 - [x] **테스트 서버 board_info.php URL 수정** (2026-04-15)
   - 문제: 테스트 서버 `board_info.php`가 운영 URL(`https://smtm2017.com`)을 참조 → 모바일 앱이 운영 DB에 연결
   - 해결: 서버에서 `sed -i 's|https://smtm2017.com|https://test.smtm2017.com|g' /var/www/html_test/board_info.php`
