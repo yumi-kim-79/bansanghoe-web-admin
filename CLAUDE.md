@@ -200,11 +200,37 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 ### 진행 중 / 예정 작업
 - [ ] 토스페이먼츠 실제 키 교체 (test_ck_placeholder / test_sk_placeholder → 운영키)
 - [ ] a_billing_card 테이블 생성 (서버 DB)
+- [ ] 운영 서버 서명 이미지 복원 필요 (`/data/file/approval/` 파일 없음, 테스트 서버에는 존재)
+  - 원인: 2026-04-14 data/ 소실 사고로 추정
+  - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
+- [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
-- [x] **복구 이미지 ↔ DB 첨부파일 매칭 스크립트** (2026-04-14)
-  - `adm/file_recover_match.php`: /mnt/recover/ 파일의 sha1 ↔ DB bf_file의 sha1 매칭 → 복원
-  - CLI/브라우저 양쪽 실행 가능, 사용 후 삭제 권장
+- [x] **SMS 단지검색 자동완성 + 단지관리 메뉴 SMS 추가** (2026-04-15)
+  - `sms_send_sm.php`: select 드롭다운 → 검색 가능한 자동완성 입력창 (단지명/지역명 필터링, 키보드 네비게이션, 선택 뱃지)
+  - `sms_send_sm.php`: `building_id` URL 파라미터로 단지 자동 선택 지원
+  - `building_mng.php`: 단지 상세 메뉴에 "SMS 단체문자" 항목 추가 → `sms_send_sm.php?building_id=N`
+- [x] **SMS 매니저앱 2가지 발송 옵션으로 재작성** (2026-04-15)
+  - 문제: 다중 수신자 sms: URI가 iOS/Android에서 첫 번째 번호만 전달됨
+  - 옵션1(번호 복사): 전화번호 클립보드 복사 → alert 안내 → 문자앱 열기 (body만 전달)
+  - 옵션2(개별 발송): 체크된 대상 리스트에서 한 명씩 "문자 보내기" 버튼으로 개별 sms: URI 호출
+  - `sms_send_sm.php`: 모바일 전용 UI 완전 재작성
+  - `head_sm.php`: SM매니저 홈 헤더에 SMS 메뉴 아이콘 추가
+  - `adm/sms_send.php`: 세미콜론 구분자 변경
+- [x] **SMS URI iOS/Android 호환 + 버그 수정** (2026-04-15)
+  - iOS `sms:번호&body=내용`, Android `sms:번호?body=내용` 자동 분기
+  - `adm/sms_send.php`, `sms_send_sm.php` 양쪽 적용
+- [x] **SMS 단체문자 발송 기능 완료** (2026-04-15)
+  - `api/sms_recipient_api.php`: mysqli 직접 연결, 환경별 DB 자동 선택 (test→bansanghoe, 운영→sinbansang)
+  - `adm/sms_send.php`: 어드민 웹 UI (단지/동 필터, 체크박스, 번호복사, 문자앱 호출)
+  - `sms_send_sm.php`: 매니저앱 UI (담당 단지만/관리자 전체)
+  - `adm/admin.head.php`: 단지관리 > SMS 단체문자 메뉴 추가
+- [x] **SMS 단체문자 발송 기능 추가** (2026-04-15)
+  - `api/sms_recipient_api.php`: 단지별/동별 입주민 전화번호 조회 (ho_tenant_hp 우선, ho_owner_hp 폴백)
+  - `adm/sms_send.php`: 어드민 웹 UI (단지/동 필터, 체크박스, 문자내용, 번호복사, 문자앱 호출)
+  - `sms_send_sm.php`: 매니저앱 UI (모바일 최적화, 담당 단지만/관리자 전체)
+  - `adm/admin.head.php`: 단지관리 메뉴에 "SMS 단체문자" 추가 (sub_menu=200900)
+  - `head.tit.php`: 매니저앱 타이틀 등록
 - [x] **사내용 게시판 목록 일괄 삭제 기능 추가** (2026-04-14)
   - `adm/bbs_list.php`: 관리자만 체크박스 + "선택 삭제" 버튼
   - `adm/bbs_del_update.php`: 신규 — 이미지(bbs_img) + PDF(bbs_pdf) 서버파일/DB 삭제 + soft delete

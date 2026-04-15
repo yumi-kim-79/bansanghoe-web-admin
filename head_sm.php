@@ -96,6 +96,11 @@ if($pages != "login_sm.php" && $pages != "find_info.php" && $pages != "find_id.p
             <ul class="hd_lnb">
                 <?php if($basename == 'sm_index.php'){?>
                     <li class="sm_hd_lnb">
+                        <a href="/sms_send_sm.php">
+                            <img src="/images/setting_icons.svg" alt="">SMS
+                        </a>
+                    </li>
+                    <li class="sm_hd_lnb">
                         <a href="/meter_reading.php">
                             <img src="/images/setting_icons.svg" alt="">검침
                         </a>

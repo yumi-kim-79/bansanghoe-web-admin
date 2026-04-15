@@ -219,6 +219,7 @@ if (!empty($_COOKIE['g5_admin_btn_gnb'])) {
             <a href="./building_news_public.php?type=progress" class="<?php echo $sub_menu == "200600" ? "active" : "";?>">공문(관공서)</a>
             <a href="./building_news_public_bf.php" class="<?php echo $sub_menu == "200700" ? "active" : "";?>">공문(이전자료)</a>
             <a href="./building_news_event.php" class="<?php echo $sub_menu == "200800" ? "active" : "";?>">이벤트</a>
+            <a href="./sms_send.php" class="<?php echo $sub_menu == "200900" ? "active" : "";?>">SMS 단체문자</a>
           </div>
         </li>
       
