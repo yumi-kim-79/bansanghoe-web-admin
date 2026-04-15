@@ -202,6 +202,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **SMS API 테이블 구조 맞춤 전면 수정** (2026-04-15)
+  - `api/sms_recipient_api.php`: JOIN 제거, a_building_ho만 사용, ho_status='Y'
+  - 응답: `{success, count, phone_list[], detail_list[]}`
+  - `adm/sms_send.php`, `sms_send_sm.php`: 새 응답 형식 대응
 - [x] **SMS API 500 에러 수정** (2026-04-15)
   - `api/sms_recipient_api.php`: try-catch 추가
   - `adm/sms_send.php`, `sms_send_sm.php`: AJAX error 핸들러 추가, dong_id=-1 처리

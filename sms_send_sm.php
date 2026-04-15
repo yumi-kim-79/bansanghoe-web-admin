@@ -97,21 +97,20 @@ function smLoadRecipients(){
     if(did && did != '-1') url += '&dong_id=' + did;
 
     $.ajax({ url: url, dataType: 'json', success: function(data){
-        if(data.error){ showToast(data.msg); return; }
-        smRecipients = data.list;
+        if(!data.success){ showToast(data.msg || '조회 실패'); return; }
+        smRecipients = data.detail_list;
         var html = '';
-        data.list.forEach(function(r){
+        data.detail_list.forEach(function(r){
             html += '<label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;">'
                 + '<input type="checkbox" class="sm_chk" value="' + r.phone + '" checked>'
-                + '<span style="color:#666;min-width:35px;">' + r.dong + '동</span>'
-                + '<span style="min-width:35px;">' + r.ho + '호</span>'
+                + '<span style="min-width:35px;">' + r.ho_name + '호</span>'
                 + '<span style="font-weight:600;min-width:45px;">' + r.name + '</span>'
                 + '<span style="color:#388FCD;">' + r.phone + '</span></label>';
         });
         if(!html) html = '<div style="padding:30px;text-align:center;color:#999;">대상이 없습니다.</div>';
         $("#sm_recipient_list").html(html);
         $("#sm_chkall").prop("checked", true);
-        $("#sm_total").text(data.list.length + "명");
+        $("#sm_total").text(data.detail_list.length + "명");
     }, error: function(xhr){ showToast('조회 오류 (코드: ' + xhr.status + ')'); }
     });
 }

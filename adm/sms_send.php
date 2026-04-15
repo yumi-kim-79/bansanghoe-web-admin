@@ -120,8 +120,8 @@ function smsLoadRecipients(){
         url: url,
         dataType: 'json',
         success: function(data){
-            if(data.error){ alert(data.msg); return; }
-            recipientData = data.list;
+            if(!data.success){ alert(data.msg || '조회 실패'); return; }
+            recipientData = data.detail_list;
             renderRecipients();
         },
         error: function(xhr){
@@ -135,8 +135,8 @@ function renderRecipients(){
     var html = '';
     recipientData.forEach(function(r){
         html += '<label class="recipient_item"><input type="checkbox" class="sms_chk" value="' + r.phone + '" checked>'
-            + '<span class="r_dong">' + r.dong + '동</span>'
-            + '<span class="r_ho">' + r.ho + '호</span>'
+            + '<span class="r_dong">' + r.dong_id + '</span>'
+            + '<span class="r_ho">' + r.ho_name + '호</span>'
             + '<span class="r_name">' + r.name + '</span>'
             + '<span class="r_phone">' + r.phone + '</span></label>';
     });
