@@ -206,6 +206,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **SM매니저앱 applicationId 기반 서버 분기로 전환** (2026-04-15)
+  - `bansanghoe-manager-app`: `__DEV__` 제거 → `react-native-device-info` bundleId 기반 분기
+  - `.test` 접미사 → `test.smtm2017.com`, 그 외 → `smtm2017.com`
+  - Release 빌드에서도 테스트앱이면 테스트 서버 사용
+  - develop → main 머지 완료, GitHub Actions 빌드 트리거됨
 - [x] **SMS visibilitychange 롤백 → setTimeout 3초 복구** (2026-04-15)
   - visibilitychange 방식 제거 (WebView 환경에서 불안정)
   - setTimeout 3초 간격 안정적 방식으로 복구
