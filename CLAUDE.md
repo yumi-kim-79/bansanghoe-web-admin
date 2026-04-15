@@ -202,13 +202,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
-- [x] **SMS API 완전 재작성** (2026-04-15)
-  - `api/sms_recipient_api.php`: _common.php 사용, a_building_ho 단독 쿼리, try-catch
-  - WHERE: `is_del=0 AND building_id=?` (dong_id 선택)
-  - 응답: `{success, count, phone_list[], detail_list[]}`
-- [x] **SMS API 500 에러 수정** (2026-04-15)
-  - `api/sms_recipient_api.php`: try-catch 추가
-  - `adm/sms_send.php`, `sms_send_sm.php`: AJAX error 핸들러 추가, dong_id=-1 처리
+- [x] **SMS 단체문자 발송 기능 완료** (2026-04-15)
+  - `api/sms_recipient_api.php`: mysqli 직접 연결, 환경별 DB 자동 선택 (test→bansanghoe, 운영→sinbansang)
+  - `adm/sms_send.php`: 어드민 웹 UI (단지/동 필터, 체크박스, 번호복사, 문자앱 호출)
+  - `sms_send_sm.php`: 매니저앱 UI (담당 단지만/관리자 전체)
+  - `adm/admin.head.php`: 단지관리 > SMS 단체문자 메뉴 추가
 - [x] **SMS 단체문자 발송 기능 추가** (2026-04-15)
   - `api/sms_recipient_api.php`: 단지별/동별 입주민 전화번호 조회 (ho_tenant_hp 우선, ho_owner_hp 폴백)
   - `adm/sms_send.php`: 어드민 웹 UI (단지/동 필터, 체크박스, 문자내용, 번호복사, 문자앱 호출)
