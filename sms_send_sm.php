@@ -131,7 +131,7 @@ $param_building_id = isset($_GET['building_id']) ? intval($_GET['building_id']) 
                     - 선택된 입주민들에게 <b>개별 SMS</b>로 발송됩니다<br>
                     - 수신자끼리 서로 보이지 않습니다 (그룹 메시지 아님)<br>
                     - 문자앱이 자동으로 열리면 <b>발송 버튼만 눌러주세요</b><br>
-                    - 문자 발송 후 돌아오면 자동으로 다음 대상이 열립니다
+                    - 3초 간격으로 자동 순차 발송됩니다
                 </div>
             </div>
 
@@ -165,12 +165,7 @@ var smRecipients = [];
 var smBuildingData = <?php echo $building_json; ?>;
 var smSelectedBuildingId = '';
 
-/* ===== 순차 발송 상태 ===== */
 var smSending = false;
-var smSendIndex = 0;
-var smSendList = [];
-var smSendMsg = '';
-var smBodySep = '?';
 
 /* ===== 단지 검색 자동완성 ===== */
 var smSchActiveIdx = -1;
@@ -280,7 +275,6 @@ function getSmCheckedRecipients(){
 
 function smResetUI(){
     smSending = false;
-    smSendIndex = 0;
     $("#sms_progress_area").hide();
     $("#sms_info_section").show();
     $("#sms_start_btn").text("자동 순차 발송 시작").prop("disabled", false).css("opacity", 1);
@@ -288,26 +282,27 @@ function smResetUI(){
     $(".sm_chk").each(function(){ $(this).closest("label").removeClass("sm_highlight"); });
 }
 
-/* ===== 자동 순차 발송 (visibilitychange 기반) ===== */
+/* ===== 자동 순차 발송 (setTimeout 방식) ===== */
 function smStartAutoSend(){
     if(smSending) return;
 
-    smSendList = getSmCheckedRecipients();
-    smSendMsg = $("#sm_message").val().trim();
+    var recipients = getSmCheckedRecipients();
+    var msg = $("#sm_message").val().trim();
 
-    if(smSendList.length == 0){ showToast('발송 대상을 선택해주세요.'); return; }
-    if(!smSendMsg){ showToast('문자 내용을 입력해주세요.'); return; }
+    if(recipients.length == 0){ showToast('발송 대상을 선택해주세요.'); return; }
+    if(!msg){ showToast('문자 내용을 입력해주세요.'); return; }
 
-    if(!confirm('선택된 ' + smSendList.length + '명에게 개별 SMS를 순차 발송합니다.\n\n문자앱이 열리면 [발송] 버튼만 눌러주세요.\n돌아오면 자동으로 다음 대상이 열립니다.\n\n계속하시겠습니까?')){
+    if(!confirm('선택된 ' + recipients.length + '명에게 개별 SMS를 순차 발송합니다.\n\n각 문자앱이 열릴 때마다 [발송] 버튼을 눌러주세요.\n\n계속하시겠습니까?')){
         return;
     }
 
     smSending = true;
-    smSendIndex = 0;
+    var total = recipients.length;
+    var index = 0;
 
     var ua = navigator.userAgent.toLowerCase();
     var isIOS = (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1);
-    smBodySep = isIOS ? '&' : '?';
+    var bodySep = isIOS ? '&' : '?';
 
     // UI 전환
     $("#sms_info_section").hide();
@@ -316,74 +311,62 @@ function smStartAutoSend(){
     $("#sms_sending_guide").show();
     $("#sms_start_btn").text("발송 중...").prop("disabled", true).css("opacity", 0.5);
 
-    // 첫 발송
-    smSendCurrent();
+    function sendNext(){
+        if(!smSending || index >= total){
+            // 완료 또는 중단
+            if(index >= total){
+                smSending = false;
+                $("#sms_sending_guide").hide();
+                $("#sms_stop_btn").hide();
+                $("#sms_current_target").css("background", "#d4edda").html('<b>발송 완료!</b><br>총 ' + total + '명에게 발송함').show();
+                $("#sms_progress_text").text(total + " / " + total);
+                $("#sms_progress_fill").css("width", "100%");
+                $("#sms_start_btn").text("발송 완료").css("opacity", 1);
+                alert('모든 발송이 완료되었습니다!\n총 ' + total + '명에게 발송함');
+            }
+            return;
+        }
+
+        var r = recipients[index];
+        var pct = Math.round(((index + 1) / total) * 100);
+
+        // 프로그레스 업데이트
+        $("#sms_progress_text").text((index + 1) + " / " + total);
+        $("#sms_progress_fill").css("width", pct + "%");
+        $("#sms_current_target").css("background", "#d4edda").html('<b>' + (index + 1) + '번째 발송</b><br>' + r.ho_name + '호 ' + r.name + '<br>' + r.phone).show();
+
+        // 목록 하이라이트
+        $(".sm_chk").each(function(){
+            var $label = $(this).closest("label");
+            $label.removeClass("sm_highlight");
+            if($(this).val() == r.phone) $label.addClass("sm_highlight");
+        });
+
+        // 스크롤
+        var $highlighted = $(".sm_highlight");
+        if($highlighted.length){
+            var $container = $("#sm_recipient_list");
+            $container.scrollTop($container.scrollTop() + $highlighted.offset().top - $container.offset().top - 50);
+        }
+
+        // SMS URI 호출
+        window.location.href = 'sms:' + r.phone + bodySep + 'body=' + encodeURIComponent(msg);
+
+        index++;
+        setTimeout(sendNext, 3000);
+    }
+
+    sendNext();
 }
-
-function smSendCurrent(){
-    if(!smSending) return;
-
-    if(smSendIndex >= smSendList.length){
-        // 완료
-        smSending = false;
-        $("#sms_sending_guide").hide();
-        $("#sms_stop_btn").hide();
-        $("#sms_current_target").css("background", "#d4edda").html('<b>발송 완료!</b><br>총 ' + smSendList.length + '명에게 발송함').show();
-        $("#sms_progress_text").text(smSendList.length + " / " + smSendList.length);
-        $("#sms_progress_fill").css("width", "100%");
-        $("#sms_start_btn").text("발송 완료").css("opacity", 1);
-        alert('모든 발송이 완료되었습니다!\n총 ' + smSendList.length + '명에게 발송함');
-        return;
-    }
-
-    var r = smSendList[smSendIndex];
-    var total = smSendList.length;
-    var pct = Math.round(((smSendIndex + 1) / total) * 100);
-
-    // 프로그레스 업데이트
-    $("#sms_progress_text").text((smSendIndex + 1) + " / " + total);
-    $("#sms_progress_fill").css("width", pct + "%");
-    $("#sms_current_target").css("background", "#d4edda").html('<b>' + (smSendIndex + 1) + '번째 발송</b><br>' + r.ho_name + '호 ' + r.name + '<br>' + r.phone).show();
-
-    // 목록 하이라이트
-    $(".sm_chk").each(function(){
-        var $label = $(this).closest("label");
-        $label.removeClass("sm_highlight");
-        if($(this).val() == r.phone) $label.addClass("sm_highlight");
-    });
-
-    // 스크롤
-    var $highlighted = $(".sm_highlight");
-    if($highlighted.length){
-        var $container = $("#sm_recipient_list");
-        var scrollTop = $container.scrollTop();
-        var containerTop = $container.offset().top;
-        var itemTop = $highlighted.offset().top;
-        $container.scrollTop(scrollTop + itemTop - containerTop - 50);
-    }
-
-    smSendIndex++;
-
-    // SMS URI 호출
-    window.location.href = 'sms:' + r.phone + smBodySep + 'body=' + encodeURIComponent(smSendMsg);
-}
-
-/* ===== 앱 복귀 감지 (visibilitychange) ===== */
-document.addEventListener('visibilitychange', function(){
-    if(!document.hidden && smSending){
-        // 문자앱에서 돌아옴 → 0.5초 후 다음 발송
-        setTimeout(smSendCurrent, 500);
-    }
-});
 
 /* ===== 발송 중단 ===== */
 function smStopSending(){
     if(!smSending) return;
-    if(confirm((smSendIndex) + '/' + smSendList.length + '명 발송 완료.\n발송을 중단하시겠습니까?')){
+    if(confirm('발송을 중단하시겠습니까?')){
         smSending = false;
         $("#sms_sending_guide").hide();
         $("#sms_stop_btn").hide();
-        $("#sms_current_target").css("background", "#f8d7da").html('<b>발송 중단됨</b><br>' + (smSendIndex) + '/' + smSendList.length + '명 발송 완료').show();
+        $("#sms_current_target").css("background", "#f8d7da").html('<b>발송 중단됨</b>').show();
         $("#sms_start_btn").text("발송 중단됨").css("opacity", 1);
     }
 }
