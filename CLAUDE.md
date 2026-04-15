@@ -206,10 +206,19 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **SM매니저앱 applicationId 기반 서버 분기로 전환** (2026-04-15)
+  - `bansanghoe-manager-app`: `__DEV__` 제거 → `react-native-device-info` bundleId 기반 분기
+  - `.test` 접미사 → `test.smtm2017.com`, 그 외 → `smtm2017.com`
+  - Release 빌드에서도 테스트앱이면 테스트 서버 사용
+  - develop → main 머지 완료, GitHub Actions 빌드 트리거됨
+- [x] **SMS visibilitychange 롤백 → setTimeout 3초 복구** (2026-04-15)
+  - visibilitychange 방식 제거 (WebView 환경에서 불안정)
+  - setTimeout 3초 간격 안정적 방식으로 복구
+  - 발송 중단 버튼, 프로그레스바, 하이라이트, 자동 스크롤 유지
 - [x] **SMS 단체문자 전면 개편: 자동 순차 개별 발송** (2026-04-15)
   - 개편 배경: 기존 그룹 분할 방식에서 수신자끼리 전화번호 노출 문제 (개인정보 보호 위반)
   - 제거: 30명 그룹 분할 UI, 번호 복사 버튼, 발송 모드 탭 전체 제거
-  - 신규: "자동 순차 발송 시작" 버튼 1개, 3초 간격 sms: URI 개별 순차 호출
+  - 신규: "자동 순차 발송 시작" 버튼 1개, 개별 sms: URI 순차 호출
   - UX: 실시간 프로그레스바(N/M명+퍼센트) + 현재 발송 대상 표시 + 목록 하이라이트
   - 개인정보: 완전한 개별 SMS 발송, 수신자 비노출, 그룹 메시지 아님
   - 사용법: 대상 체크 → 문자 입력 → "자동 순차 발송 시작" → 문자앱에서 발송만 클릭 → 자동 반복
