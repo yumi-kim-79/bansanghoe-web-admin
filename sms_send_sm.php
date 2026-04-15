@@ -145,12 +145,9 @@ function smOpenSmsApp(){
     // 다중 수신자: 쉼표(,) 또는 세미콜론(;) 구분
     var ua = navigator.userAgent.toLowerCase();
     var isIOS = (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1);
-    var phoneSep = isIOS ? ',' : ',';
+    var phoneSep = ';';
     var bodySep = isIOS ? '&' : '?';
     var smsUri = 'sms:' + phones.join(phoneSep) + bodySep + 'body=' + encodeURIComponent(msg);
-
-    console.log('[SMS] final URI:', smsUri);
-    alert('발송 대상: ' + phones.length + '명\n' + phones.join(', '));
 
     window.location.href = smsUri;
 }

@@ -183,8 +183,8 @@ function smsOpenApp(){
     if(phones.length == 0){ alert('발송 대상을 선택해주세요.'); return; }
     if(!msg){ alert('문자 내용을 입력해주세요.'); return; }
     var ua = navigator.userAgent.toLowerCase();
-    var sep = (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1) ? '&' : '?';
-    window.location.href = 'sms:' + phones.join(',') + sep + 'body=' + encodeURIComponent(msg);
+    var bodySep = (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1) ? '&' : '?';
+    window.location.href = 'sms:' + phones.join(';') + bodySep + 'body=' + encodeURIComponent(msg);
 }
 </script>
 
