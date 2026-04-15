@@ -202,6 +202,13 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **SMS 매니저앱 2가지 발송 옵션으로 재작성** (2026-04-15)
+  - 문제: 다중 수신자 sms: URI가 iOS/Android에서 첫 번째 번호만 전달됨
+  - 옵션1(번호 복사): 전화번호 클립보드 복사 → alert 안내 → 문자앱 열기 (body만 전달)
+  - 옵션2(개별 발송): 체크된 대상 리스트에서 한 명씩 "문자 보내기" 버튼으로 개별 sms: URI 호출
+  - `sms_send_sm.php`: 모바일 전용 UI 완전 재작성
+  - `head_sm.php`: SM매니저 홈 헤더에 SMS 메뉴 아이콘 추가
+  - `adm/sms_send.php`: 세미콜론 구분자 변경
 - [x] **SMS URI iOS/Android 호환 + 버그 수정** (2026-04-15)
   - iOS `sms:번호&body=내용`, Android `sms:번호?body=내용` 자동 분기
   - `adm/sms_send.php`, `sms_send_sm.php` 양쪽 적용
