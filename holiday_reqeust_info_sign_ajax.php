@@ -119,16 +119,26 @@ if ($sum_sign === 0) {
      //1차 결재자 승인 후 2차 결재자에게 푸시발송
      if($sign_chk == 'sign_off_status'){
         //2차 결재권자 푸시발송
-       $sign_off_id_info = get_member($sign_info['sign_off_mng_id2']); //1차 결재자 정보
+       $sign_off_id_info = get_member($sign_info['sign_off_mng_id2']);
 
-       $sign_off_id = $sign_off_id_info['mb_id']; //1차 결재자 아이디
+       $sign_off_id = $sign_off_id_info['mb_id'];
 
        $push_title = '[결재요청] '.$approval_name." 결재 요청이 있습니다.";
        $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
-   
 
-       if($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']){ //토큰이 있는경우 푸시 발송
-           try { fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
+       // [DEBUG] 2차 결재자 FCM 디버깅
+       error_log("[SIGN_FCM] sign_id={$sign_id} 1차→2차 푸시 시도");
+       error_log("[SIGN_FCM] next_mng_id={$sign_info['sign_off_mng_id2']}, mb_id={$sign_off_id_info['mb_id']}, mb_token=" . ($sign_off_id_info['mb_token'] ? substr($sign_off_id_info['mb_token'], 0, 20) . '...' : '(empty)') . ", noti1={$sign_off_id_info['noti1']}");
+
+       if($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']){
+           try {
+               $fcm_result = fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+               error_log("[SIGN_FCM] 2차 fcm_send 결과: " . json_encode($fcm_result, JSON_UNESCAPED_UNICODE));
+           } catch(Exception $e) {
+               error_log("[SIGN_FCM] 2차 fcm_send 예외: " . $e->getMessage());
+           }
+       } else {
+           error_log("[SIGN_FCM] 2차 푸시 스킵 - token_empty=" . ($sign_off_id_info['mb_token'] == "" ? "Y" : "N") . ", noti1=" . ($sign_off_id_info['noti1'] ? "Y" : "N"));
        }
 
        $insert_push = "INSERT INTO a_push SET
@@ -146,17 +156,26 @@ if ($sum_sign === 0) {
 
    //2차 결재자 승인 후 3차 결재자에게 푸시발송
    if($sign_chk == 'sign_off_status2'){
-        //3차 결재권자 푸시발송
-        $sign_off_id_info = get_member($sign_info['sign_off_mng_id3']); //1차 결재자 정보
+        $sign_off_id_info = get_member($sign_info['sign_off_mng_id3']);
 
-        $sign_off_id = $sign_off_id_info['mb_id']; //1차 결재자 아이디
+        $sign_off_id = $sign_off_id_info['mb_id'];
 
         $push_title = '[결재요청] '.$approval_name." 결재 요청이 있습니다.";
         $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
 
+        // [DEBUG] 3차 결재자 FCM 디버깅
+        error_log("[SIGN_FCM] sign_id={$sign_id} 2차→3차 푸시 시도");
+        error_log("[SIGN_FCM] next_mng_id={$sign_info['sign_off_mng_id3']}, mb_id={$sign_off_id_info['mb_id']}, mb_token=" . ($sign_off_id_info['mb_token'] ? substr($sign_off_id_info['mb_token'], 0, 20) . '...' : '(empty)') . ", noti1={$sign_off_id_info['noti1']}");
 
-        if($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']){ //토큰이 있는경우 푸시 발송
-            try { fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
+        if($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']){
+            try {
+                $fcm_result = fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id=");
+                error_log("[SIGN_FCM] 3차 fcm_send 결과: " . json_encode($fcm_result, JSON_UNESCAPED_UNICODE));
+            } catch(Exception $e) {
+                error_log("[SIGN_FCM] 3차 fcm_send 예외: " . $e->getMessage());
+            }
+        } else {
+            error_log("[SIGN_FCM] 3차 푸시 스킵 - token_empty=" . ($sign_off_id_info['mb_token'] == "" ? "Y" : "N") . ", noti1=" . ($sign_off_id_info['noti1'] ? "Y" : "N"));
         }
 
         $insert_push = "INSERT INTO a_push SET
