@@ -129,9 +129,11 @@ $param_building_id = isset($_GET['building_id']) ? intval($_GET['building_id']) 
                 <div class="sms_info_box">
                     <b>자동 순차 발송 안내</b><br>
                     - 선택된 입주민들에게 <b>개별 SMS</b>로 발송됩니다<br>
-                    - 수신자끼리 서로 보이지 않습니다 (그룹 메시지 아님)<br>
-                    - 문자앱이 자동으로 열리면 <b>발송 버튼만 눌러주세요</b><br>
-                    - 3초 간격으로 자동 순차 발송됩니다
+                    - 그룹 메시지가 아니므로 수신자끼리 서로 보이지 않습니다<br>
+                    - <b>3초 간격</b>으로 자동으로 다음 발신자로 넘어갑니다<br>
+                    - 발송 버튼을 못 누른 발신자는 임시저장됩니다<br>
+                    - 자동 발송 이후 다시 보내시면 됩니다<br>
+                    - 인원수 제한 없음 (30명 이상도 가능)
                 </div>
             </div>
 
@@ -292,7 +294,7 @@ function smStartAutoSend(){
     if(recipients.length == 0){ showToast('발송 대상을 선택해주세요.'); return; }
     if(!msg){ showToast('문자 내용을 입력해주세요.'); return; }
 
-    if(!confirm('선택된 ' + recipients.length + '명에게 개별 SMS를 순차 발송합니다.\n\n각 문자앱이 열릴 때마다 [발송] 버튼을 눌러주세요.\n\n계속하시겠습니까?')){
+    if(!confirm('선택된 ' + recipients.length + '명에게 개별 SMS를 순차 발송합니다.\n\n3초마다 자동으로 다음 발신자로 변경됩니다\n각 발신자마다 3초 안에 [발송] 버튼을 눌러주세요\n못 누른 문자는 임시저장되며 나중에 다시 보낼 수 있습니다\n\n계속하시겠습니까?')){
         return;
     }
 
