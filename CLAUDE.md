@@ -206,6 +206,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **SMS 단체문자 기능 개발 완료** (2026-04-15)
+  - 전체 구성: `api/sms_recipient_api.php`(API) + `sms_send_sm.php`(매니저앱) + `adm/sms_send.php`(어드민) + `head_sm.php`/`building_mng.php`(메뉴 진입점)
+  - 매니저앱 UI: 단지 검색 자동완성 → 동 선택 → 조회 → 대상 체크 → 번호 복사 or 개별 발송
+  - 30명 초과 시 30명씩 자동 그룹 분할 + 그룹별 복사 버튼
+  - 사용법: 그룹별 "번호 복사" → 문자앱 열기 → 받는 사람에 붙여넣기 → 내용 입력 발송 → 다음 그룹 반복
+  - 테스트 서버: 2026-04-15 배포 완료 / 운영 서버: 2026-04-15 배포 완료
 - [x] **SM매니저앱 환경별 서버 URL 자동 분기** (2026-04-15)
   - `bansanghoe-manager-app` 저장소 develop 브랜치
   - `src/utils/APIConstant.js`: `__DEV__` 기반 test/운영 URL 자동 분기
