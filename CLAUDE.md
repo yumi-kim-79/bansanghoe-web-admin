@@ -206,6 +206,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **SMS 번호복사 개선: 문자앱 자동실행 제거 + 30명 초과 그룹 분할** (2026-04-15)
+  - `sms_send_sm.php`: 번호 복사 시 sms: URI 자동실행 제거 (복사만 수행)
+  - 30명 초과 시 30명씩 자동 그룹 분할 UI + 그룹별 복사 버튼
+  - 30명 이하는 단일 그룹 표시, 하단 "전체 번호 복사" 버튼
 - [x] **결재서류함 관리자 일괄 삭제 기능 추가** (2026-04-15)
   - `adm/approval_document_list.php`: 관리자(mb_level>=10) 전용 체크박스 + "선택 삭제" 버튼
   - `adm/approval_del_update.php`: 신규 — AJAX 일괄 삭제 (soft delete is_del=1 + 첨부파일 서버삭제)
