@@ -250,23 +250,23 @@ if($w == "u"){
         }
     }
 
-    //1차 결재권자 푸시발송
-    if($sign_off_mng_id1 != ""){
-        
-        $sign_off_id_info = get_member($sign_off_mng_id1); //1차 결재자 정보
+    //결재자 전체에게 푸시발송 (1차/2차/3차)
+    $push_title = '[결재요청] '.$approval_name." 결재 요청이 있습니다.";
+    $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
 
-        $sign_off_id = $sign_off_id_info['mb_id']; //1차 결재자 아이디
+    $approver_ids = array($sign_off_mng_id1, $sign_off_mng_id2, $sign_off_mng_id3);
+    foreach($approver_ids as $approver_id){
+        if($approver_id == "") continue;
 
-        $push_title = '[결재요청] '.$approval_name." 결재 요청이 있습니다.";
-        $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
-    
+        $approver_info = get_member($approver_id);
+        if(!$approver_info || !$approver_info['mb_id']) continue;
 
-        if($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']){ //토큰이 있는경우 푸시 발송
-            if($_SERVER['REMOTE_ADDR'] != ADMIN_IP) try { fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
+        if($approver_info['mb_token'] != "" && $approver_info['noti1']){
+            try { fcm_send($approver_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
         }
 
         $insert_push = "INSERT INTO a_push SET
-                        recv_id = '{$sign_off_id}',
+                        recv_id = '{$approver_info['mb_id']}',
                         recv_id_type = 'sm',
                         push_title = '{$push_title}',
                         push_content = '{$push_content}',

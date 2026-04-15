@@ -206,6 +206,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **결재 등록 시 1/2/3차 결재자 전체에게 FCM 푸시 발송** (2026-04-15)
+  - 기존: 1차 결재자에게만 푸시 발송 → 수정: 모든 결재자에게 발송
+  - `holiday_reqeust_form_update.php`: 매니저앱 결재 등록 (+ `$_SERVER['REMOTE']` 오타 수정)
+  - `adm/approval_form_update.php`: 어드민 결재 등록
+  - `adm/approval_form_update2.php`: 어드민 근무일지 등록
+  - 모든 파일에 `noti1` 알림 설정 체크 추가
 - [x] **SMS 단지검색 자동완성 + 단지관리 메뉴 SMS 추가** (2026-04-15)
   - `sms_send_sm.php`: select 드롭다운 → 검색 가능한 자동완성 입력창 (단지명/지역명 필터링, 키보드 네비게이션, 선택 뱃지)
   - `sms_send_sm.php`: `building_id` URL 파라미터로 단지 자동 선택 지원
