@@ -137,7 +137,11 @@ function smOpenSmsApp(){
     var msg = $("#sm_message").val();
     if(phones.length == 0){ showToast('대상을 선택해주세요.'); return; }
     if(!msg){ showToast('문자 내용을 입력해주세요.'); return; }
-    window.location.href = 'sms:' + phones.join(',') + '?body=' + encodeURIComponent(msg);
+
+    // iOS: sms:번호&body=내용, Android: sms:번호?body=내용
+    var ua = navigator.userAgent.toLowerCase();
+    var sep = (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1) ? '&' : '?';
+    window.location.href = 'sms:' + phones.join(',') + sep + 'body=' + encodeURIComponent(msg);
 }
 </script>
 

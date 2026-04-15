@@ -202,6 +202,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 
 ### 최근 완료
+- [x] **SMS URI iOS/Android 호환 + 버그 수정** (2026-04-15)
+  - iOS `sms:번호&body=내용`, Android `sms:번호?body=내용` 자동 분기
+  - `adm/sms_send.php`, `sms_send_sm.php` 양쪽 적용
 - [x] **SMS 단체문자 발송 기능 완료** (2026-04-15)
   - `api/sms_recipient_api.php`: mysqli 직접 연결, 환경별 DB 자동 선택 (test→bansanghoe, 운영→sinbansang)
   - `adm/sms_send.php`: 어드민 웹 UI (단지/동 필터, 체크박스, 번호복사, 문자앱 호출)
