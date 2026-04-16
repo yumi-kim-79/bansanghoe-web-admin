@@ -76,16 +76,19 @@ $post_res = sql_query($post_sql);
 
         <div class="sms_section">
             <h3>발송 방법</h3>
-            <p style="font-size:12px;color:#666;margin-bottom:10px;">
-                선택한 대상의 전화번호를 복사하여<br>문자 앱에서 직접 발송하세요.
-            </p>
-            <div class="sms_actions">
-                <button type="button" class="btn btn_03" onclick="smsCopyPhones();">전화번호 복사</button>
-                <button type="button" class="btn btn_03" onclick="smsCopyMessage();">문자내용 복사</button>
+            <div style="margin-bottom:15px;padding:10px;background:#e8f5e9;border-radius:6px;">
+                <b style="font-size:13px;">SMS API 단체 발송</b><br>
+                <span style="font-size:11px;color:#666;">버튼 1번 클릭으로 즉시 전체 발송 (건당 SMS 9원 / LMS 29원)</span>
             </div>
-            <div class="copy_result" id="copy_result">✅ 클립보드에 복사되었습니다!</div>
-            <div style="margin-top:15px;">
-                <button type="button" class="btn btn_02" style="width:100%;" onclick="smsOpenApp();">문자 앱으로 발송하기</button>
+            <button type="button" class="btn btn_02" style="width:100%;background:#28a745;border-color:#28a745;" onclick="admSendBulkAPI();">단체 발송</button>
+
+            <div style="margin-top:20px;padding-top:15px;border-top:1px solid #e4e4e4;">
+                <b style="font-size:12px;color:#666;">기존 방법 (수동)</b>
+                <div class="sms_actions" style="margin-top:8px;">
+                    <button type="button" class="btn btn_03" onclick="smsCopyPhones();">전화번호 복사</button>
+                    <button type="button" class="btn btn_03" onclick="smsCopyMessage();">문자내용 복사</button>
+                </div>
+                <div class="copy_result" id="copy_result">✅ 클립보드에 복사되었습니다!</div>
             </div>
         </div>
     </div>
@@ -177,14 +180,47 @@ function smsCopyMessage(){
     });
 }
 
-function smsOpenApp(){
+function admSendBulkAPI(){
     var phones = getSelectedPhones();
-    var msg = $("#sms_message").val();
+    var msg = $("#sms_message").val().trim();
     if(phones.length == 0){ alert('발송 대상을 선택해주세요.'); return; }
     if(!msg){ alert('문자 내용을 입력해주세요.'); return; }
-    var ua = navigator.userAgent.toLowerCase();
-    var bodySep = (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1) ? '&' : '?';
-    window.location.href = 'sms:' + phones.join(';') + bodySep + 'body=' + encodeURIComponent(msg);
+
+    var msgLen = msg.length;
+    var costPerMsg = (msgLen <= 45) ? 9 : 29;
+    var msgType = (msgLen <= 45) ? 'SMS' : 'LMS';
+    var totalCost = phones.length * costPerMsg;
+
+    if(!confirm(phones.length + '명에게 ' + msgType + ' 단체 발송합니다.\n\n예상 비용: ' + totalCost.toLocaleString() + '원\n(건당 ' + costPerMsg + '원 x ' + phones.length + '건)\n\n계속하시겠습니까?')){
+        return;
+    }
+
+    $("body").append('<div id="sms_api_loading" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;"><div style="background:#fff;padding:30px;border-radius:10px;text-align:center;"><div style="font-size:16px;margin-bottom:10px;font-weight:600;">발송 중...</div><div style="font-size:13px;color:#666;">잠시만 기다려주세요</div></div></div>');
+
+    $.ajax({
+        url: '/api/ncloud_sms_send.php',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            recipients: phones,
+            message: msg,
+            building_id: $("#sms_building_id").val() || 0
+        }),
+        dataType: 'json',
+        timeout: 30000,
+        success: function(data){
+            $("#sms_api_loading").remove();
+            if(data.success){
+                alert('발송 완료!\n\n성공: ' + data.success_count + '건\n실패: ' + data.fail_count + '건\n비용: ' + (data.cost || 0).toLocaleString() + '원\n유형: ' + (data.type || 'SMS'));
+            } else {
+                alert('발송 실패\n\n' + (data.message || '알 수 없는 오류'));
+            }
+        },
+        error: function(xhr){
+            $("#sms_api_loading").remove();
+            alert('발송 중 오류가 발생했습니다.\n(코드: ' + xhr.status + ')');
+        }
+    });
 }
 </script>
 
