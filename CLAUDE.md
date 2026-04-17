@@ -206,6 +206,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **어드민 SMS 발송 대상 실시간 검색 기능 추가** (2026-04-17)
+  - `adm/sms_send.php`: 이름/전화번호/동호수 통합 검색, debounce 200ms
+  - 검색어 하이라이트 표시, 검색 결과 카운트, 기존 필터와 함께 동작
 - [x] **네이버 클라우드 SENS SMS 단체 발송 기능 추가** (2026-04-16, 운영 배포 04-17)
   - `api/ncloud_sms_send.php`: SENS API 연동 (HMAC SHA256 서명, SMS/LMS 자동 구분, 발송 이력 DB 저장)
   - `sql/create_sms_history.sql`: `a_sms_history` 발송 이력 테이블 (서버에서 실행 필요)

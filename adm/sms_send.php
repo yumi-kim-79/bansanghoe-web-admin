@@ -28,6 +28,12 @@ $post_res = sql_query($post_sql);
 .sms_actions {display:flex;gap:8px;margin-top:10px;}
 .sms_actions .btn {flex:1;text-align:center;}
 .copy_result {display:none;color:#388FCD;font-size:12px;margin-top:5px;font-weight:600;}
+.sms_search_wrap {position:relative;margin-top:10px;}
+.sms_search_wrap input {width:100%;box-sizing:border-box;padding-left:32px;}
+.sms_search_wrap .sms_sch_icon {position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#999;font-size:14px;pointer-events:none;}
+.sms_search_wrap .sms_sch_clear {position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#999;font-size:16px;cursor:pointer;display:none;padding:2px 4px;}
+.sms_sch_highlight {background:#fff3cd;padding:0 1px;border-radius:2px;}
+.sms_filter_info {font-size:11px;color:#388FCD;font-weight:600;margin-top:4px;display:none;}
 </style>
 
 <div class="sms_wrap">
@@ -49,6 +55,12 @@ $post_res = sql_query($post_sql);
                 </select>
                 <button type="button" class="bansang_btns ver1" onclick="smsLoadRecipients();">조회</button>
             </div>
+            <div class="sms_search_wrap">
+                <span class="sms_sch_icon">&#128269;</span>
+                <input type="text" id="sms_search" class="bansang_ipt ver2" placeholder="이름, 전화번호, 동호수 검색..." oninput="smsFilterList();">
+                <button type="button" class="sms_sch_clear" id="sms_sch_clear" onclick="smsClearSearch();">&times;</button>
+            </div>
+            <div class="sms_filter_info" id="sms_filter_info"></div>
         </div>
 
         <div class="sms_section">
@@ -125,6 +137,8 @@ function smsLoadRecipients(){
         success: function(data){
             if(!data.success){ alert(data.msg || '조회 실패'); return; }
             recipientData = data.detail_list;
+            $("#sms_search").val('');
+            $("#sms_sch_clear").hide();
             renderRecipients();
         },
         error: function(xhr){
@@ -134,23 +148,72 @@ function smsLoadRecipients(){
     });
 }
 
-function renderRecipients(){
+function renderRecipients(keyword){
+    keyword = (keyword || '').trim().toLowerCase();
+    var filtered = recipientData;
+    if(keyword){
+        filtered = recipientData.filter(function(r){
+            return (r.name && r.name.toLowerCase().indexOf(keyword) > -1)
+                || (r.phone && r.phone.indexOf(keyword) > -1)
+                || (String(r.dong_id).indexOf(keyword) > -1)
+                || (r.ho_name && r.ho_name.indexOf(keyword) > -1);
+        });
+    }
+
     var html = '';
-    recipientData.forEach(function(r){
+    filtered.forEach(function(r){
+        var dong = String(r.dong_id);
+        var ho = r.ho_name;
+        var name = r.name;
+        var phone = r.phone;
+        if(keyword){
+            dong = smsHighlight(dong, keyword);
+            ho = smsHighlight(ho, keyword);
+            name = smsHighlight(name, keyword);
+            phone = smsHighlight(phone, keyword);
+        }
         html += '<label class="recipient_item"><input type="checkbox" class="sms_chk" value="' + r.phone + '" checked>'
-            + '<span class="r_dong">' + r.dong_id + '</span>'
-            + '<span class="r_ho">' + r.ho_name + '호</span>'
-            + '<span class="r_name">' + r.name + '</span>'
-            + '<span class="r_phone">' + r.phone + '</span></label>';
+            + '<span class="r_dong">' + dong + '</span>'
+            + '<span class="r_ho">' + ho + '호</span>'
+            + '<span class="r_name">' + name + '</span>'
+            + '<span class="r_phone">' + phone + '</span></label>';
     });
-    if(!html) html = '<div style="padding:30px;text-align:center;color:#999;">조회된 대상이 없습니다.</div>';
+    if(!html) html = '<div style="padding:30px;text-align:center;color:#999;">' + (keyword ? '검색 결과가 없습니다.' : '조회된 대상이 없습니다.') + '</div>';
     $("#recipient_list").html(html);
     $("#sms_chkall").prop("checked", true);
-    $("#sms_total").text("(" + recipientData.length + "명)");
+
+    if(keyword){
+        $("#sms_total").text("(" + filtered.length + "/" + recipientData.length + "명)");
+        $("#sms_filter_info").text("검색 결과: " + filtered.length + "명 표시 중").show();
+    } else {
+        $("#sms_total").text("(" + recipientData.length + "명)");
+        $("#sms_filter_info").hide();
+    }
+}
+
+function smsHighlight(text, keyword){
+    if(!text || !keyword) return text;
+    var idx = text.toLowerCase().indexOf(keyword.toLowerCase());
+    if(idx === -1) return text;
+    return text.substring(0, idx) + '<span class="sms_sch_highlight">' + text.substring(idx, idx + keyword.length) + '</span>' + text.substring(idx + keyword.length);
+}
+
+var smsFilterTimer = null;
+function smsFilterList(){
+    var keyword = $("#sms_search").val();
+    $("#sms_sch_clear").toggle(keyword.length > 0);
+    clearTimeout(smsFilterTimer);
+    smsFilterTimer = setTimeout(function(){ renderRecipients(keyword); }, 200);
+}
+
+function smsClearSearch(){
+    $("#sms_search").val('');
+    $("#sms_sch_clear").hide();
+    renderRecipients();
 }
 
 function smsCheckAll(src){
-    $(".sms_chk").prop("checked", src.checked);
+    $(".sms_chk:visible").prop("checked", src.checked);
 }
 
 function smsCountChar(){
