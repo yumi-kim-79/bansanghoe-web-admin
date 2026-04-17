@@ -206,7 +206,7 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
-- [x] **네이버 클라우드 SENS SMS 단체 발송 기능 추가** (2026-04-16)
+- [x] **네이버 클라우드 SENS SMS 단체 발송 기능 추가** (2026-04-16, 운영 배포 04-17)
   - `api/ncloud_sms_send.php`: SENS API 연동 (HMAC SHA256 서명, SMS/LMS 자동 구분, 발송 이력 DB 저장)
   - `sql/create_sms_history.sql`: `a_sms_history` 발송 이력 테이블 (서버에서 실행 필요)
   - `sms_send_sm.php`: 발송 방식 선택 UI (개별 순차 발송 / SMS API 단체 발송)
