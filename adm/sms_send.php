@@ -150,10 +150,13 @@ function smsLoadRecipients(){
     });
 }
 
+var smsSearchMode = false; // true: API 검색 결과, false: 필터 조회 결과
+
 function renderRecipients(keyword){
     keyword = (keyword || '').trim().toLowerCase();
     var filtered = recipientData;
-    if(keyword){
+    // 필터 조회 모드에서만 클라이언트 필터링 (API 검색은 서버에서 이미 필터됨)
+    if(keyword && !smsSearchMode){
         filtered = recipientData.filter(function(r){
             return (r.name && r.name.toLowerCase().indexOf(keyword) > -1)
                 || (r.phone && r.phone.indexOf(keyword) > -1)
@@ -163,30 +166,35 @@ function renderRecipients(keyword){
         });
     }
 
+    var displayKw = smsSearchMode ? $("#sms_search").val().trim().toLowerCase() : keyword;
     var html = '';
     filtered.forEach(function(r){
+        var bname = r.building_name || '';
         var dong = String(r.dong_id);
         var ho = r.ho_name;
         var name = r.name;
         var phone = r.phone;
-        if(keyword){
-            dong = smsHighlight(dong, keyword);
-            ho = smsHighlight(ho, keyword);
-            name = smsHighlight(name, keyword);
-            phone = smsHighlight(phone, keyword);
+        if(displayKw){
+            bname = smsHighlight(bname, displayKw);
+            dong = smsHighlight(dong, displayKw);
+            ho = smsHighlight(ho, displayKw);
+            name = smsHighlight(name, displayKw);
+            phone = smsHighlight(phone, displayKw);
         }
-        html += '<label class="recipient_item"><input type="checkbox" class="sms_chk" value="' + r.phone + '" checked>'
-            + '<span class="r_dong">' + dong + '</span>'
+        html += '<label class="recipient_item"><input type="checkbox" class="sms_chk" value="' + r.phone + '" checked>';
+        if(r.building_name) html += '<span class="r_dong" style="color:#388FCD;font-weight:600;">' + bname + '</span>';
+        html += '<span class="r_dong">' + dong + '</span>'
             + '<span class="r_ho">' + ho + '호</span>'
             + '<span class="r_name">' + name + '</span>'
             + '<span class="r_phone">' + phone + '</span></label>';
     });
-    if(!html) html = '<div style="padding:30px;text-align:center;color:#999;">' + (keyword ? '검색 결과가 없습니다.' : '조회된 대상이 없습니다.') + '</div>';
+    if(!html) html = '<div style="padding:30px;text-align:center;color:#999;">' + (displayKw ? '검색 결과가 없습니다.' : '조회된 대상이 없습니다.') + '</div>';
     $("#recipient_list").html(html);
     $("#sms_chkall").prop("checked", true);
 
-    if(keyword){
-        $("#sms_total").text("(" + filtered.length + "/" + recipientData.length + "명)");
+    if(displayKw || smsSearchMode){
+        var totalLabel = smsSearchMode ? filtered.length + '명' : filtered.length + "/" + recipientData.length + "명";
+        $("#sms_total").text("(" + totalLabel + ")");
         $("#sms_filter_info").text("검색 결과: " + filtered.length + "명 표시 중").show();
     } else {
         $("#sms_total").text("(" + recipientData.length + "명)");
@@ -203,16 +211,76 @@ function smsHighlight(text, keyword){
 
 var smsFilterTimer = null;
 function smsFilterList(){
-    var keyword = $("#sms_search").val();
+    var keyword = $("#sms_search").val().trim();
     $("#sms_sch_clear").toggle(keyword.length > 0);
     clearTimeout(smsFilterTimer);
-    smsFilterTimer = setTimeout(function(){ renderRecipients(keyword); }, 200);
+
+    if(keyword.length === 0){
+        // 검색어 비움 → 기존 필터 조회 결과로 복귀
+        smsSearchMode = false;
+        if(recipientData.length > 0){
+            renderRecipients();
+        } else {
+            $("#recipient_list").html('<div style="padding:30px;text-align:center;color:#999;">단지를 선택하고 조회해주세요.</div>');
+            $("#sms_total").text('');
+            $("#sms_filter_info").hide();
+        }
+        return;
+    }
+
+    smsFilterTimer = setTimeout(function(){
+        // 이미 데이터가 로드된 상태면 클라이언트 필터링
+        if(recipientData.length > 0 && !smsSearchMode){
+            renderRecipients(keyword);
+            return;
+        }
+        // 데이터 없으면 API 검색
+        smsSearchFromAPI(keyword);
+    }, 300);
+}
+
+function smsSearchFromAPI(keyword){
+    var url = '/api/sms_recipient_api.php?action=search&keyword=' + encodeURIComponent(keyword);
+    var bid = $("#sms_building_id").val();
+    var did = $("#sms_dong_id").val();
+    if(bid) url += '&building_id=' + bid;
+    if(did && did != '-1' && did != '') url += '&dong_id=' + did;
+
+    $.ajax({
+        url: url,
+        dataType: 'json',
+        success: function(data){
+            if(!data.success){ return; }
+            smsSearchMode = true;
+            recipientData = data.detail_list;
+            recipientBuildingName = data.building_name || '';
+            renderRecipients();
+        }
+    });
 }
 
 function smsClearSearch(){
     $("#sms_search").val('');
     $("#sms_sch_clear").hide();
-    renderRecipients();
+    smsSearchMode = false;
+    // 필터 조회 결과가 있으면 복귀, 없으면 초기 상태
+    if(recipientData.length > 0 && !smsSearchMode){
+        // 원래 필터 데이터 다시 로드
+        var bid = $("#sms_building_id").val();
+        if(bid){
+            smsLoadRecipients();
+        } else {
+            recipientData = [];
+            $("#recipient_list").html('<div style="padding:30px;text-align:center;color:#999;">단지를 선택하고 조회해주세요.</div>');
+            $("#sms_total").text('');
+            $("#sms_filter_info").hide();
+        }
+    } else {
+        recipientData = [];
+        $("#recipient_list").html('<div style="padding:30px;text-align:center;color:#999;">단지를 선택하고 조회해주세요.</div>');
+        $("#sms_total").text('');
+        $("#sms_filter_info").hide();
+    }
 }
 
 function smsCheckAll(src){
