@@ -28,8 +28,39 @@ try {
 
     $action = $_GET['action'] ?? '';
 
-    if(!in_array($action, ['recipients', 'search'])){
+    if(!in_array($action, ['recipients', 'search', 'buildings'])){
         echo json_encode(['success' => false, 'msg' => '알 수 없는 action'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // action=buildings: 단지 목록 검색
+    if($action == 'buildings'){
+        $keyword = $conn->real_escape_string(trim($_GET['keyword'] ?? ''));
+        $where = "b.is_del = 0 AND b.is_use = 1";
+        if($keyword) $where .= " AND (b.building_name LIKE '%{$keyword}%' OR p.post_name LIKE '%{$keyword}%')";
+
+        $sql = "SELECT b.building_id, b.building_name, p.post_name,
+                       (SELECT COUNT(*) FROM a_building_ho h WHERE h.building_id = b.building_id AND h.is_del = 0
+                        AND (h.ho_tenant_hp != '' OR h.ho_owner_hp != '')) as ho_count
+                FROM a_building b
+                LEFT JOIN a_post_addr p ON b.post_id = p.post_idx
+                WHERE {$where}
+                ORDER BY p.post_name ASC, b.building_name ASC
+                LIMIT 50";
+        $res = $conn->query($sql);
+        $list = [];
+        if($res){
+            while($row = $res->fetch_assoc()){
+                $list[] = [
+                    'building_id' => (int)$row['building_id'],
+                    'building_name' => $row['building_name'],
+                    'post_name' => $row['post_name'],
+                    'ho_count' => (int)$row['ho_count'],
+                ];
+            }
+        }
+        $conn->close();
+        echo json_encode(['success' => true, 'buildings' => $list], JSON_UNESCAPED_UNICODE);
         exit;
     }
 

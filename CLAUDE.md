@@ -206,12 +206,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
-- [x] **어드민 SMS 발송 대상 실시간 검색 기능 추가** (2026-04-17)
-  - `adm/sms_send.php`: 이름/전화번호/동호수/단지명 통합 검색, debounce 300ms
-  - `api/sms_recipient_api.php`: `action=search` 추가 — 전체 DB 통합 검색 (LIMIT 200)
-  - 필터 미선택 시 검색어만으로 전체 DB 검색 가능 (서버 API 호출)
-  - 필터 선택 후 조회된 상태에서는 클라이언트 필터링 (기존 방식)
-  - 검색 결과에 단지명 컬럼 표시, 검색어 하이라이트
+- [x] **어드민 SMS 2단계 UI로 전면 개편** (2026-04-17)
+  - `adm/sms_send.php`: 1단계(단지 검색/선택) → 2단계(입주민 목록) 2단계 UI
+  - 1단계: 단지명 검색 + 카드형 목록 (단지명, 지역, 입주민 수), 클릭 시 2단계 전환
+  - 2단계: 선택 단지 표시 + "단지 다시 선택" 버튼 + 동 필터 + 입주민 검색 + 체크박스 목록
+  - `api/sms_recipient_api.php`: `action=buildings` 추가 (단지 목록 검색, 입주민 수 포함)
 - [x] **네이버 클라우드 SENS SMS 단체 발송 기능 추가** (2026-04-16, 운영 배포 04-17)
   - `api/ncloud_sms_send.php`: SENS API 연동 (HMAC SHA256 서명, SMS/LMS 자동 구분, 발송 이력 DB 저장)
   - `sql/create_sms_history.sql`: `a_sms_history` 발송 이력 테이블 (서버에서 실행 필요)
