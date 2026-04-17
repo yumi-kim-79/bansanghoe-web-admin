@@ -124,16 +124,40 @@ $param_building_id = isset($_GET['building_id']) ? intval($_GET['building_id']) 
                 </div>
             </div>
 
-            <!-- 안내 -->
-            <div style="margin-top:20px;" id="sms_info_section">
+            <!-- 발송 방식 선택 -->
+            <div style="margin-top:20px;">
+                <p class="regi_list_title">발송 방식</p>
+                <label style="display:block;margin-bottom:8px;padding:10px;background:#fff;border:2px solid #ddd;border-radius:8px;cursor:pointer;" id="sm_method_manual_label">
+                    <input type="radio" name="sm_send_method" value="manual" checked onchange="smSwitchMethod(this.value);">
+                    <b>개별 순차 발송 (무료)</b><br>
+                    <span style="font-size:11px;color:#666;">3초 간격 자동 순차 발송, 각 문자앱에서 직접 발송</span>
+                </label>
+                <label style="display:block;padding:10px;background:#fff;border:2px solid #ddd;border-radius:8px;cursor:pointer;" id="sm_method_api_label">
+                    <input type="radio" name="sm_send_method" value="api" onchange="smSwitchMethod(this.value);">
+                    <b>단체 발송 (SMS API)</b><br>
+                    <span style="font-size:11px;color:#666;">버튼 1번 클릭으로 즉시 완료, 비용: 건당 9원</span>
+                </label>
+            </div>
+
+            <!-- 안내 (개별 발송) -->
+            <div style="margin-top:15px;" id="sms_info_manual">
                 <div class="sms_info_box">
                     <b>자동 순차 발송 안내</b><br>
                     - 선택된 입주민들에게 <b>개별 SMS</b>로 발송됩니다<br>
-                    - 그룹 메시지가 아니므로 수신자끼리 서로 보이지 않습니다<br>
+                    - 수신자끼리 서로 보이지 않습니다<br>
                     - <b>3초 간격</b>으로 자동으로 다음 발신자로 넘어갑니다<br>
-                    - 발송 버튼을 못 누른 발신자는 임시저장됩니다<br>
-                    - 자동 발송 이후 다시 보내시면 됩니다<br>
-                    - 인원수 제한 없음 (30명 이상도 가능)
+                    - 발송 버튼을 못 누른 발신자는 임시저장됩니다
+                </div>
+            </div>
+
+            <!-- 안내 (API 발송) -->
+            <div style="margin-top:15px;display:none;" id="sms_info_api">
+                <div class="sms_info_box" style="background:#e8f5e9;">
+                    <b>SMS API 단체 발송 안내</b><br>
+                    - 버튼 1번 클릭으로 <b>즉시 전체 발송</b> 완료<br>
+                    - 수신자끼리 서로 보이지 않습니다 (개별 발송)<br>
+                    - 비용: SMS 건당 9원 / LMS(90자 초과) 건당 29원<br>
+                    - 발송 이력이 자동 저장됩니다
                 </div>
             </div>
 
@@ -158,6 +182,7 @@ $param_building_id = isset($_GET['building_id']) ? intval($_GET['building_id']) 
         <div class="fix_btn_back_box"></div>
         <div class="fix_btn_box ver3" id="sms_fix_btns">
             <button type="button" class="fix_btn on" id="sms_start_btn" onclick="smStartAutoSend();">자동 순차 발송 시작</button>
+            <button type="button" class="fix_btn on" id="sms_api_btn" onclick="smSendBulkAPI();" style="display:none;background:#28a745;">단체 발송</button>
         </div>
     </div>
 </div>
@@ -371,6 +396,72 @@ function smStopSending(){
         $("#sms_current_target").css("background", "#f8d7da").html('<b>발송 중단됨</b>').show();
         $("#sms_start_btn").text("발송 중단됨").css("opacity", 1);
     }
+}
+
+/* ===== 발송 방식 전환 ===== */
+function smSwitchMethod(method){
+    if(method == 'manual'){
+        $("#sms_info_manual").show();
+        $("#sms_info_api").hide();
+        $("#sms_start_btn").show();
+        $("#sms_api_btn").hide();
+        $("#sm_method_manual_label").css("border-color", "#388FCD");
+        $("#sm_method_api_label").css("border-color", "#ddd");
+    } else {
+        $("#sms_info_manual").hide();
+        $("#sms_info_api").show();
+        $("#sms_start_btn").hide();
+        $("#sms_api_btn").show();
+        $("#sm_method_manual_label").css("border-color", "#ddd");
+        $("#sm_method_api_label").css("border-color", "#28a745");
+    }
+}
+
+/* ===== API 단체 발송 ===== */
+function smSendBulkAPI(){
+    var recipients = getSmCheckedRecipients();
+    var msg = $("#sm_message").val().trim();
+
+    if(recipients.length == 0){ showToast('발송 대상을 선택해주세요.'); return; }
+    if(!msg){ showToast('문자 내용을 입력해주세요.'); return; }
+
+    var phones = recipients.map(function(r){ return r.phone; });
+    var msgLen = msg.length;
+    var costPerMsg = (msgLen <= 45) ? 9 : 29;
+    var msgType = (msgLen <= 45) ? 'SMS' : 'LMS';
+    var totalCost = phones.length * costPerMsg;
+
+    if(!confirm(phones.length + '명에게 ' + msgType + ' 단체 발송합니다.\n\n예상 비용: ' + totalCost.toLocaleString() + '원\n(건당 ' + costPerMsg + '원 x ' + phones.length + '건)\n\n계속하시겠습니까?')){
+        return;
+    }
+
+    // 로딩 표시
+    $("body").append('<div id="sms_api_loading" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;"><div style="background:#fff;padding:30px;border-radius:10px;text-align:center;"><div style="font-size:16px;margin-bottom:10px;font-weight:600;">발송 중...</div><div style="font-size:13px;color:#666;">잠시만 기다려주세요</div></div></div>');
+
+    $.ajax({
+        url: '/api/ncloud_sms_send.php',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            recipients: phones,
+            message: msg,
+            building_id: $("#sm_building").val() || 0
+        }),
+        dataType: 'json',
+        timeout: 30000,
+        success: function(data){
+            $("#sms_api_loading").remove();
+            if(data.success){
+                alert('발송 완료!\n\n성공: ' + data.success_count + '건\n실패: ' + data.fail_count + '건\n비용: ' + (data.cost || 0).toLocaleString() + '원\n유형: ' + (data.type || 'SMS'));
+            } else {
+                alert('발송 실패\n\n' + (data.message || '알 수 없는 오류'));
+            }
+        },
+        error: function(xhr){
+            $("#sms_api_loading").remove();
+            alert('발송 중 오류가 발생했습니다.\n(코드: ' + xhr.status + ')');
+        }
+    });
 }
 
 /* ===== URL 파라미터로 단지 자동 선택 ===== */

@@ -206,6 +206,15 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **네이버 클라우드 SENS SMS 단체 발송 기능 추가** (2026-04-16)
+  - `api/ncloud_sms_send.php`: SENS API 연동 (HMAC SHA256 서명, SMS/LMS 자동 구분, 발송 이력 DB 저장)
+  - `sql/create_sms_history.sql`: `a_sms_history` 발송 이력 테이블 (서버에서 실행 필요)
+  - `sms_send_sm.php`: 발송 방식 선택 UI (개별 순차 발송 / SMS API 단체 발송)
+  - `adm/sms_send.php`: 어드민에도 API 단체 발송 버튼 추가
+  - `config/ncloud_config.example.php`: 설정 예시 파일 (실제 키는 ncloud_config.php에 별도 생성)
+  - `docs/NCLOUD_SENS_SETUP.md`: 설정 가이드
+  - `.gitignore`: `config/ncloud_config.php` 추가 (API 키 보호)
+  - 사용 전 필요: NCloud SENS 가입 + API 키 발급 + config 파일 생성 + DB 테이블 생성
 - [x] **SM매니저앱 applicationId 기반 서버 분기로 전환** (2026-04-15)
   - `bansanghoe-manager-app`: `__DEV__` 제거 → `react-native-device-info` bundleId 기반 분기
   - `.test` 접미사 → `test.smtm2017.com`, 그 외 → `smtm2017.com`
