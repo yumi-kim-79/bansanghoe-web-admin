@@ -39,6 +39,10 @@ try {
         exit;
     }
 
+    // 단지명 조회
+    $brow = $conn->query("SELECT building_name FROM a_building WHERE building_id = '{$building_id}'")->fetch_assoc();
+    $building_name = $brow['building_name'] ?? '';
+
     $where = "is_del = 0 AND building_id = '{$building_id}'";
 
     $dong_id = $conn->real_escape_string($_GET['dong_id'] ?? '');
@@ -79,6 +83,7 @@ try {
     echo json_encode([
         'success' => true,
         'db' => $dbname,
+        'building_name' => $building_name,
         'count' => count($detail_list),
         'phone_list' => array_values(array_unique($phone_list)),
         'detail_list' => $detail_list,

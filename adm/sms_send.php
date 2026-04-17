@@ -57,7 +57,7 @@ $post_res = sql_query($post_sql);
             </div>
             <div class="sms_search_wrap">
                 <span class="sms_sch_icon">&#128269;</span>
-                <input type="text" id="sms_search" class="bansang_ipt ver2" placeholder="이름, 전화번호, 동호수 검색..." oninput="smsFilterList();">
+                <input type="text" id="sms_search" class="bansang_ipt ver2" placeholder="이름, 전화번호, 동호수, 단지명 검색..." oninput="smsFilterList();">
                 <button type="button" class="sms_sch_clear" id="sms_sch_clear" onclick="smsClearSearch();">&times;</button>
             </div>
             <div class="sms_filter_info" id="sms_filter_info"></div>
@@ -108,6 +108,7 @@ $post_res = sql_query($post_sql);
 
 <script>
 var recipientData = [];
+var recipientBuildingName = '';
 
 function smsPostChange(){
     var postId = $("#sms_post_id").val();
@@ -137,6 +138,7 @@ function smsLoadRecipients(){
         success: function(data){
             if(!data.success){ alert(data.msg || '조회 실패'); return; }
             recipientData = data.detail_list;
+            recipientBuildingName = data.building_name || '';
             $("#sms_search").val('');
             $("#sms_sch_clear").hide();
             renderRecipients();
@@ -156,7 +158,8 @@ function renderRecipients(keyword){
             return (r.name && r.name.toLowerCase().indexOf(keyword) > -1)
                 || (r.phone && r.phone.indexOf(keyword) > -1)
                 || (String(r.dong_id).indexOf(keyword) > -1)
-                || (r.ho_name && r.ho_name.indexOf(keyword) > -1);
+                || (r.ho_name && r.ho_name.indexOf(keyword) > -1)
+                || (recipientBuildingName && recipientBuildingName.toLowerCase().indexOf(keyword) > -1);
         });
     }
 
