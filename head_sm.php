@@ -97,17 +97,17 @@ if($pages != "login_sm.php" && $pages != "find_info.php" && $pages != "find_id.p
                 <?php if($basename == 'sm_index.php'){?>
                     <li class="sm_hd_lnb">
                         <a href="/sms_send_sm.php">
-                            <img src="/images/setting_icons.svg" alt="">SMS
+                            <span class="sm_hd_emoji">💬</span>SMS
                         </a>
                     </li>
                     <li class="sm_hd_lnb">
                         <a href="/meter_reading.php">
-                            <img src="/images/setting_icons.svg" alt="">검침
+                            <span class="sm_hd_emoji">📊</span>검침
                         </a>
                     </li>
                     <li class="sm_hd_lnb">
                         <a href="/inspection_log_list.php">
-                            <img src="/images/setting_icons.svg" alt="">점검일지
+                            <span class="sm_hd_emoji">📋</span>점검
                         </a>
                     </li>
                 <?php }?>
