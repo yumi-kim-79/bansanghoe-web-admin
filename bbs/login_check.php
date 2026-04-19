@@ -81,9 +81,6 @@ set_session('ss_mb_id', $mb['mb_id']);
 // FLASH XSS 공격에 대응하기 위하여 회원의 고유키를 생성해 놓는다. 관리자에서 검사함
 generate_mb_key($mb);
 
-// [DEBUG] 로그인 세션 디버깅
-error_log("[LOGIN_DEBUG] login_check.php | mb_id={$mb['mb_id']} | session_id=" . session_id() . " | ss_mb_id=" . ($_SESSION['ss_mb_id'] ?? '(empty)'));
-
 // 회원의 토큰키를 세션에 저장한다. /common.php 에서 해당 회원의 토큰값을 검사한다.
 if(function_exists('update_auth_session_token')) update_auth_session_token($mb['mb_datetime']);
 
@@ -187,24 +184,6 @@ if( is_admin($mb['mb_id']) && is_dir(G5_DATA_PATH.'/tmp/') ){
     if(! $tmp_data_check){
         alert("data 폴더에 쓰기권한이 없거나 또는 웹하드 용량이 없는 경우\\n로그인을 못할수도 있으니, 용량 체크 및 쓰기 권한을 확인해 주세요.", $link);
     }
-}
-
-// [DEBUG] 화면 디버깅 (임시)
-if(isset($_POST['_debug']) || isset($_GET['_debug'])){
-    echo '<div style="padding:20px;font-family:monospace;font-size:13px;background:#f8f9fa;border:2px solid #388FCD;border-radius:8px;margin:20px;">';
-    echo '<h3 style="color:#388FCD;">Login Debug</h3>';
-    echo '<b>mb_id:</b> ' . htmlspecialchars($mb['mb_id']) . '<br>';
-    echo '<b>session_id:</b> ' . session_id() . '<br>';
-    echo '<b>ss_mb_id:</b> ' . htmlspecialchars($_SESSION['ss_mb_id'] ?? '(empty)') . '<br>';
-    echo '<b>session_status:</b> ' . session_status() . ' (1=none, 2=active)<br>';
-    echo '<b>session_save_path:</b> ' . session_save_path() . '<br>';
-    echo '<b>cookie_params:</b> <pre>' . print_r(session_get_cookie_params(), true) . '</pre>';
-    echo '<b>redirect_to:</b> ' . htmlspecialchars($link) . '<br>';
-    echo '<b>$_SESSION:</b> <pre>' . print_r($_SESSION, true) . '</pre>';
-    echo '<b>$_COOKIE:</b> <pre>' . print_r($_COOKIE, true) . '</pre>';
-    echo '<hr><a href="' . htmlspecialchars($link) . '" style="color:#388FCD;font-weight:bold;">계속 진행 →</a>';
-    echo '</div>';
-    exit;
 }
 
 goto_url($link);

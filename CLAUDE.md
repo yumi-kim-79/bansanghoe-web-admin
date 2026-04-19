@@ -203,7 +203,6 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 운영 서버 서명 이미지 복원 필요 (`/data/file/approval/` 파일 없음, 테스트 서버에는 존재)
   - 원인: 2026-04-14 data/ 소실 사고로 추정
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
-- [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
 - [x] **로그인 세션 유지 문제 근본 원인 수정** (2026-04-20)
@@ -213,7 +212,7 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - `head_sm.php`: SQL 문법 오류 수정 (`left join a_mng on mng` → `as mng on`)
   - `head_sm.php`: `$is_member`/`$member` 재로드 추가
   - `lib/common.lib.php`: `goto_url()`에 `session_write_close()` 추가
-  - 디버깅 로그 추가 (확인 후 제거 필요): `[LOGIN_DEBUG]`, `[SESSION_DEBUG]`, `[SM_DEBUG]`
+  - 디버깅 로그 전체 제거 완료 (`[LOGIN_DEBUG]`, `[SESSION_DEBUG]`, `[SM_DEBUG]`, `[SIGN_FCM]`)
 - [x] **매니저앱 헤더 반응형 개선 + 아이콘 이모지 변경** (2026-04-20)
   - `head_sm.php`: SMS/검침/점검 버튼 아이콘을 SVG → 이모지(💬📊📋)로 변경, "점검일지" → "점검" 축약
   - `css/default.css`: sm_hd_lnb 패딩/갭 축소, 이모지 스타일 추가, 작은 화면 대응

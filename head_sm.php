@@ -36,9 +36,6 @@ if(preg_match($mobile_agent, $_SERVER['HTTP_USER_AGENT']) || $is_webview){
     }
 }
 
-// [DEBUG] 매니저앱 세션 확인 (임시)
-error_log("[SM_DEBUG] head_sm.php | is_member=" . ($is_member ? 'Y' : 'N') . " | mb_id=" . ($member['mb_id'] ?? '(none)') . " | session_id=" . session_id() . " | chk_app=" . ($chk_app ?? '') . " | app_token=" . substr($app_token ?? '', 0, 20));
-
 //매니저 계정 로그인이 아닐 때
 if(!$is_member){
 
