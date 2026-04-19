@@ -206,13 +206,14 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
-- [x] **로그인 세션 유지 문제 수정 + 디버깅** (2026-04-20)
-  - `lib/common.lib.php`: `goto_url()`에 `session_write_close()` 추가 (리다이렉트 전 세션 강제 저장)
-  - `head_sm.php`: SQL 문법 오류 수정 (`left join a_mng on mng` → `left join a_mng as mng on`), `$is_member` 재로드
-  - `bbs/login_check.php`: `[LOGIN_DEBUG]` 로그 추가 (로그인 시 세션 ID/mb_id 기록)
-  - `common.php`: `[SESSION_DEBUG]` 로그 추가 (`?_sdebug` 파라미터로 세션 상태 확인)
-  - `head_sm.php`: `[SM_DEBUG]` 로그 추가 (매니저앱 접근 시 세션/토큰 상태 기록)
-  - 디버깅 후 로그 확인: `tail -f /var/log/php-fpm/www-error.log | grep DEBUG`
+- [x] **로그인 세션 유지 문제 근본 원인 수정** (2026-04-20)
+  - **근본 원인**: `head_sm.php` 자동 로그인에서 `update_auth_session_token()` 미호출
+    → `ss_mb_token_key` 세션 미설정 → 다음 요청에서 `check_auth_session_token()` 실패 → 세션 초기화
+  - `head_sm.php`: `update_auth_session_token($sm_mb['mb_datetime'])` 추가
+  - `head_sm.php`: SQL 문법 오류 수정 (`left join a_mng on mng` → `as mng on`)
+  - `head_sm.php`: `$is_member`/`$member` 재로드 추가
+  - `lib/common.lib.php`: `goto_url()`에 `session_write_close()` 추가
+  - 디버깅 로그 추가 (확인 후 제거 필요): `[LOGIN_DEBUG]`, `[SESSION_DEBUG]`, `[SM_DEBUG]`
 - [x] **매니저앱 헤더 반응형 개선 + 아이콘 이모지 변경** (2026-04-20)
   - `head_sm.php`: SMS/검침/점검 버튼 아이콘을 SVG → 이모지(💬📊📋)로 변경, "점검일지" → "점검" 축약
   - `css/default.css`: sm_hd_lnb 패딩/갭 축소, 이모지 스타일 추가, 작은 화면 대응

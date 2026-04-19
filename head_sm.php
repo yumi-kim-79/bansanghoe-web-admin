@@ -67,6 +67,8 @@ if(!$is_member){
                 set_session('ss_mb_id', $sm_mb['mb_id']);
                 // FLASH XSS 공격에 대응하기 위하여 회원의 고유키를 생성해 놓는다. 관리자에서 검사함
                 generate_mb_key($sm_mb);
+                // 토큰키를 세션에 저장 (check_auth_session_token 통과 필수)
+                if(function_exists('update_auth_session_token')) update_auth_session_token($sm_mb['mb_datetime']);
 
                 // 세션 설정 후 회원 정보 재로드
                 $member = get_member($sm_mb['mb_id']);
