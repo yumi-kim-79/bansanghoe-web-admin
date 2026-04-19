@@ -528,6 +528,11 @@ if (isset($_REQUEST['gr_id'])) {
 
 
 // 자동로그인 부분에서 첫로그인에 포인트 부여하던것을 로그인중일때로 변경하면서 코드도 대폭 수정하였습니다.
+// [DEBUG] 세션 상태 확인 (임시)
+if(isset($_GET['_sdebug'])){
+    error_log("[SESSION_DEBUG] " . $_SERVER['REQUEST_URI'] . " | session_id=" . session_id() . " | ss_mb_id=" . ($_SESSION['ss_mb_id'] ?? '(none)') . " | session_status=" . session_status());
+}
+
 if (isset($_SESSION['ss_mb_id']) && $_SESSION['ss_mb_id']) { // 로그인중이라면
     $member = get_member($_SESSION['ss_mb_id']);
 

@@ -81,6 +81,9 @@ set_session('ss_mb_id', $mb['mb_id']);
 // FLASH XSS 공격에 대응하기 위하여 회원의 고유키를 생성해 놓는다. 관리자에서 검사함
 generate_mb_key($mb);
 
+// [DEBUG] 로그인 세션 디버깅
+error_log("[LOGIN_DEBUG] login_check.php | mb_id={$mb['mb_id']} | session_id=" . session_id() . " | ss_mb_id=" . ($_SESSION['ss_mb_id'] ?? '(empty)'));
+
 // 회원의 토큰키를 세션에 저장한다. /common.php 에서 해당 회원의 토큰값을 검사한다.
 if(function_exists('update_auth_session_token')) update_auth_session_token($mb['mb_datetime']);
 

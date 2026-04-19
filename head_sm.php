@@ -36,6 +36,9 @@ if(preg_match($mobile_agent, $_SERVER['HTTP_USER_AGENT']) || $is_webview){
     }
 }
 
+// [DEBUG] 매니저앱 세션 확인 (임시)
+error_log("[SM_DEBUG] head_sm.php | is_member=" . ($is_member ? 'Y' : 'N') . " | mb_id=" . ($member['mb_id'] ?? '(none)') . " | session_id=" . session_id() . " | chk_app=" . ($chk_app ?? '') . " | app_token=" . substr($app_token ?? '', 0, 20));
+
 //매니저 계정 로그인이 아닐 때
 if(!$is_member){
 
@@ -49,8 +52,8 @@ if(!$is_member){
     //앱에서 접속했을 때
     if($chk_app == 'Y' && $app_token){
 
-        $sql2 = " select count(*) cnt from g5_member as mem 
-                  left join a_mng on mng mem.mb_id = mng.mng_id
+        $sql2 = " select count(*) cnt from g5_member as mem
+                  left join a_mng as mng on mem.mb_id = mng.mng_id
                   where mem.mb_token = '{$app_token}' and mem.mb_auto = 1 and mng.mng_status = 1 ";
         $row2 = sql_fetch($sql2);
         
