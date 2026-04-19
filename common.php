@@ -528,9 +528,19 @@ if (isset($_REQUEST['gr_id'])) {
 
 
 // 자동로그인 부분에서 첫로그인에 포인트 부여하던것을 로그인중일때로 변경하면서 코드도 대폭 수정하였습니다.
-// [DEBUG] 세션 상태 확인 (임시)
+// [DEBUG] 세션 상태 확인 (임시) - ?_sdebug=1 로 접근
 if(isset($_GET['_sdebug'])){
-    error_log("[SESSION_DEBUG] " . $_SERVER['REQUEST_URI'] . " | session_id=" . session_id() . " | ss_mb_id=" . ($_SESSION['ss_mb_id'] ?? '(none)') . " | session_status=" . session_status());
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<div style="padding:20px;font-family:monospace;font-size:13px;background:#fff3cd;border:2px solid #ffc107;border-radius:8px;margin:20px;">';
+    echo '<h3>Session Debug - ' . htmlspecialchars($_SERVER['REQUEST_URI']) . '</h3>';
+    echo '<b>session_id:</b> ' . session_id() . '<br>';
+    echo '<b>session_status:</b> ' . session_status() . '<br>';
+    echo '<b>session_save_path:</b> ' . session_save_path() . '<br>';
+    echo '<b>ss_mb_id:</b> ' . htmlspecialchars($_SESSION['ss_mb_id'] ?? '(none)') . '<br>';
+    echo '<b>cookie_params:</b> <pre>' . print_r(session_get_cookie_params(), true) . '</pre>';
+    echo '<b>$_SESSION:</b> <pre>' . print_r($_SESSION, true) . '</pre>';
+    echo '<b>$_COOKIE:</b> <pre>' . print_r($_COOKIE, true) . '</pre>';
+    echo '</div>';
 }
 
 if (isset($_SESSION['ss_mb_id']) && $_SESSION['ss_mb_id']) { // 로그인중이라면
