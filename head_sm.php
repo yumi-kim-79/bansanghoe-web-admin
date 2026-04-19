@@ -58,12 +58,18 @@ if(!$is_member){
         if($row2['cnt'] > 0){
             $sql = " select * from g5_member where mb_token = '{$app_token}' ";
             $sm_mb = sql_fetch($sql);
-         
-            // 회원아이디 세션 생성
-            set_session('ss_mb_id', $sm_mb['mb_id']);
-            // FLASH XSS 공격에 대응하기 위하여 회원의 고유키를 생성해 놓는다. 관리자에서 검사함
-            generate_mb_key($sm_mb);
 
+            if($sm_mb['mb_id']){
+                // 회원아이디 세션 생성
+                set_session('ss_mb_id', $sm_mb['mb_id']);
+                // FLASH XSS 공격에 대응하기 위하여 회원의 고유키를 생성해 놓는다. 관리자에서 검사함
+                generate_mb_key($sm_mb);
+
+                // 세션 설정 후 회원 정보 재로드
+                $member = get_member($sm_mb['mb_id']);
+                $is_member = true;
+                $is_admin = is_admin($member['mb_id']);
+            }
         }
     }
     

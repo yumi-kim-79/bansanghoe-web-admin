@@ -206,10 +206,13 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 결재 FCM 디버깅 로그 확인 후 `holiday_reqeust_info_sign_ajax.php`의 `[SIGN_FCM]` error_log 제거
 
 ### 최근 완료
+- [x] **로그인 세션 유지 문제 수정** (2026-04-20)
+  - `lib/common.lib.php`: `goto_url()`에 `session_write_close()` 추가 (리다이렉트 전 세션 강제 저장)
+  - `head_sm.php`: 앱 자동 로그인 후 `$is_member`/`$member` 재로드 추가 (세션만 설정하고 변수 미갱신 버그)
+  - 원인: 세션 설정 후 `$is_member`가 false인 채 로그인 페이지로 리다이렉트
 - [x] **매니저앱 헤더 반응형 개선 + 아이콘 이모지 변경** (2026-04-20)
   - `head_sm.php`: SMS/검침/점검 버튼 아이콘을 SVG → 이모지(💬📊📋)로 변경, "점검일지" → "점검" 축약
   - `css/default.css`: sm_hd_lnb 패딩/갭 축소, 이모지 스타일 추가, 작은 화면 대응
-  - 로그인 세션 문제: Gnuboard 기본 세션 흐름 확인 → 코드 이상 없음, 서버 세션/쿠키 설정 확인 필요
 - [x] **어드민 SMS 발송 방법 카드형 UI 개선** (2026-04-17)
   - `adm/sms_send.php`: API 단체 발송(초록 카드) + 수동 복사 발송(회색 카드) 분리 배치
   - 각 카드에 제목/설명/비용/버튼 포함
