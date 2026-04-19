@@ -124,15 +124,22 @@ $post_res = sql_query($post_sql);
 
         <div class="sms_section">
             <h3>발송 방법</h3>
-            <div style="margin-bottom:15px;padding:10px;background:#e8f5e9;border-radius:6px;">
-                <b style="font-size:13px;">SMS API 단체 발송</b><br>
-                <span style="font-size:11px;color:#666;">버튼 1번 클릭으로 즉시 전체 발송 (건당 SMS 9원 / LMS 29원)</span>
+            <div style="padding:12px;background:#e8f5e9;border:1px solid #c8e6c9;border-radius:8px;margin-bottom:12px;">
+                <div style="font-size:14px;font-weight:700;color:#2e7d32;margin-bottom:6px;">SMS API 단체 발송</div>
+                <div style="font-size:12px;color:#555;line-height:1.6;">
+                    - 버튼 1번 클릭으로 <b>즉시 전체 발송</b> 완료<br>
+                    - 100명 이상 대량 발송 가능<br>
+                    - 비용: 건당 SMS 9원 / LMS(90자 초과) 29원
+                </div>
+                <button type="button" class="btn btn_02" style="width:100%;margin-top:10px;background:#28a745;border-color:#28a745;" onclick="admSendBulkAPI();">단체 발송</button>
             </div>
-            <button type="button" class="btn btn_02" style="width:100%;background:#28a745;border-color:#28a745;" onclick="admSendBulkAPI();">단체 발송</button>
-
-            <div style="margin-top:20px;padding-top:15px;border-top:1px solid #e4e4e4;">
-                <b style="font-size:12px;color:#666;">기존 방법 (수동)</b>
-                <div class="sms_actions" style="margin-top:8px;">
+            <div style="padding:12px;background:#f8f9fa;border:1px solid #e4e4e4;border-radius:8px;">
+                <div style="font-size:14px;font-weight:700;color:#555;margin-bottom:6px;">수동 복사 발송 (무료)</div>
+                <div style="font-size:12px;color:#888;line-height:1.6;">
+                    - 전화번호와 문자 내용을 복사하여 직접 발송<br>
+                    - 비용 무료, 소수 인원 발송 시 권장
+                </div>
+                <div class="sms_actions" style="margin-top:10px;">
                     <button type="button" class="btn btn_03" onclick="smsCopyPhones();">전화번호 복사</button>
                     <button type="button" class="btn btn_03" onclick="smsCopyMessage();">문자내용 복사</button>
                 </div>

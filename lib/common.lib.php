@@ -596,7 +596,11 @@ function goto_url($url)
     }
 
     $url = str_replace("&amp;", "&", $url);
-    //echo "<script> location.replace('$url'); </script>";
+
+    // 리다이렉트 전 세션 저장 (세션 유실 방지)
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
 
     if (!headers_sent())
         header('Location: '.$url);
