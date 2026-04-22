@@ -205,6 +205,8 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **전체 알림(noti_all) 토글 develop→main 배포** (2026-04-22)
+  - develop 커밋 후 main 머지, 양쪽 원격 push → 자동배포 트리거 (test/운영)
 - [x] **전체 알림(noti_all) 토글을 개별 noti와 독립시킴** (2026-04-22)
   - 기존: 전체 알림 ON/OFF 시 개별 noti1~7 값이 일괄 변경됨 → 사용자 개별 설정 덮어씀
   - 개편: noti_all 컬럼을 독립적으로 저장 (개별 noti 값은 건드리지 않음)
