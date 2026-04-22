@@ -13,11 +13,8 @@ $noti6 = "";
 $noti7 = "";
 
 if($types == "sm"){
-    if($member['noti1'] && $member['noti2'] && $member['noti3'] && $member['noti4'] && $member['noti5'] && $member['noti6']){
-        $all_chks = 'checked';
-    }else{
-        $all_chks = '';
-    }
+    // noti_all 은 독립 컬럼 (개별 noti와 별개). 값이 '0'이 아니면 ON 으로 표시 (기본 ON)
+    $all_chks = ($member['noti_all'] === '0' || $member['noti_all'] === 0) ? '' : 'checked';
     if($member['noti1'] == "1") $noti1 = "checked";
     if($member['noti2'] == "1") $noti2 = "checked";
     if($member['noti3'] == "1") $noti3 = "checked";
@@ -25,11 +22,7 @@ if($types == "sm"){
     if($member['noti5'] == "1") $noti5 = "checked";
     if($member['noti6'] == "1") $noti6 = "checked";
 }else{
-    if($user_info['noti1'] && $user_info['noti2'] && $user_info['noti3'] && $user_info['noti4'] && $user_info['noti5'] && $user_info['noti6'] && $user_info['noti7']){
-        $all_chks = 'checked';
-    }else{
-        $all_chks = '';
-    }
+    $all_chks = ($user_info['noti_all'] === '0' || $user_info['noti_all'] === 0) ? '' : 'checked';
     if($user_info['noti1'] == "1") $noti1 = "checked";
     if($user_info['noti2'] == "1") $noti2 = "checked";
     if($user_info['noti3'] == "1") $noti3 = "checked";
@@ -179,12 +172,31 @@ if($types == "sm"){
 </div>
 
 <script>
-//전체 선택
+// 알림 설정 저장 (공통)
+function saveNotiSetting(name, isChecked){
+    var mb_id = "<?php echo $types == "sm" ? $member['mb_id'] : $user_info['mb_id']; ?>";
+    var sendData = {'mb_id':mb_id, 'noti':name, 'noti_status':isChecked, 'types':"<?php echo $types; ?>"};
+    $.ajax({
+        type: "POST",
+        url: "/notification_setting_ajax.php",
+        data: sendData,
+        cache: false,
+        async: false,
+        dataType: "json",
+        success: function(data) {
+            if(data.result == false) {
+            }else{
+                showToast(data.msg);
+            }
+        }
+    });
+}
+
+// 전체 알림 토글 (noti_all 만 저장, 개별 noti 값 건드리지 않음)
 $("#switch_all").click(function () {
     if ($("#switch_all").is(":checked")) {
-        // 전체 켜기 - 바로 실행
-        $(".switch_chk2").prop("checked", true);
-        $(".switch_chk2").change();
+        // 전체 켜기 - noti_all만 1로 저장
+        saveNotiSetting('noti_all', true);
     } else {
         // 전체 끄기 - 확인 팝업 먼저
         $("#switch_all").prop("checked", true); // 일단 다시 켜놓고
@@ -198,54 +210,28 @@ function cancelAllOff(){
 }
 
 function confirmAllOff(){
-    // 확인 - 실제로 전체 끄기 실행
+    // 확인 - noti_all 만 0으로 저장 (개별 noti 값 유지)
     popClose('noti_all_off_pop');
     $("#switch_all").prop("checked", false);
-    $(".switch_chk2").prop("checked", false);
-    $(".switch_chk2").change();
+    saveNotiSetting('noti_all', false);
 }
 
-$(".switch_chk2").click(function () {
-    var total = $(".switch_chk2").length;
-    var checked = $(".switch_chk2:checked").length;
-    if (total != checked) $("#switch_all").prop("checked", false);
-    else $("#switch_all").prop("checked", true);
-});
-
 function switchCancle(){
-    $("#switch7").attr('checked', true);
+    $("#switch7").prop('checked', true);
     popClose('noification_pop');
 }
 
 $(document).ready(function () {
-    $(".switch_chk").change(function () {
+    // 개별 noti 토글만 처리 (switch_all 은 별도 click 핸들러에서 처리)
+    $(".switch_chk2").change(function () {
         let isChecked = $(this).prop("checked");
         let name = $(this).attr("name");
-        let mb_id = "<?php echo $types == "sm" ? $member['mb_id'] : $user_info['mb_id']; ?>";
-        console.log(name + " : " + isChecked);
 
         if(name == 'noti7' && !isChecked){
             popOpen('noification_pop');
         }
 
-        if(name != "noti_all"){
-            var sendData = {'mb_id':mb_id, 'noti':name, 'noti_status':isChecked, 'types':"<?php echo $types; ?>"};
-            $.ajax({
-                type: "POST",
-                url: "/notification_setting_ajax.php",
-                data: sendData,
-                cache: false,
-                async: false,
-                dataType: "json",
-                success: function(data) {
-                    console.log(data);
-                    if(data.result == false) { 
-                    }else{
-                        showToast(data.msg);
-                    }                       
-                }
-            });
-        }
+        saveNotiSetting(name, isChecked);
     });
 });
 </script>

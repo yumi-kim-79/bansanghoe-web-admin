@@ -205,6 +205,23 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **전체 알림(noti_all) 토글을 개별 noti와 독립시킴** (2026-04-22)
+  - 기존: 전체 알림 ON/OFF 시 개별 noti1~7 값이 일괄 변경됨 → 사용자 개별 설정 덮어씀
+  - 개편: noti_all 컬럼을 독립적으로 저장 (개별 noti 값은 건드리지 않음)
+  - `notification_setting.php`:
+    - `$all_chks` 판정을 `noti_all` 컬럼 기준으로 변경 (기본 ON, `'0'`일 때만 OFF)
+    - `switch_all` 클릭 시 `saveNotiSetting('noti_all', ...)` 로 서버 전송
+    - `confirmAllOff()`: 개별 `.switch_chk2.change()` 트리거 제거 → noti_all 만 0 저장
+    - 전체 알림 ON 시에도 noti_all만 1 저장 (개별 값 유지)
+    - `.switch_chk2` click 핸들러(switch_all UI 동기화) 제거 — noti_all 독립
+    - `.switch_chk` 광역 change 핸들러 → `.switch_chk2` change 로 한정
+    - `saveNotiSetting()` 공통 함수 추출, `switchCancle()` `.attr→.prop` 수정
+  - `notification_setting_ajax.php`:
+    - 허용 noti 컬럼 화이트리스트(`noti_all, noti1~7`) 추가 — SQL injection 방지 + noti_all 저장 허용
+    - 기존 동적 UPDATE 그대로 활용, noti_all 컬럼 추가 필요 (`a_member`, `g5_member`)
+  - FCM 발송 파일: 기존 코드가 이미 개별 `notiN` 만 체크하므로 수정 불필요 (검증 완료)
+  - ⚠️ 서버 DB 작업 필요: `ALTER TABLE a_member ADD COLUMN noti_all TINYINT(1) DEFAULT 1;`
+    `ALTER TABLE g5_member ADD COLUMN noti_all TINYINT(1) DEFAULT 1;`
 - [x] **로그인 세션 유지 문제 근본 원인 수정** (2026-04-20)
   - **근본 원인**: `head_sm.php` 자동 로그인에서 `update_auth_session_token()` 미호출
     → `ss_mb_token_key` 세션 미설정 → 다음 요청에서 `check_auth_session_token()` 실패 → 세션 초기화
@@ -531,4 +548,4 @@ curl https://raw.githubusercontent.com/yumi-kim-79/{저장소}/main/{경로}/{�
 
 ---
 
-*최종 업데이트: 2026-03-30*
+*최종 업데이트: 2026-04-22*
