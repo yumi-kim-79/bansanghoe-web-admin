@@ -274,31 +274,28 @@ if($w == "u"){
         }
     }
 
-    //결재자 전체에게 푸시발송 (1차/2차/3차)
-    $push_title = '[결재요청] '.$approval_name." 결재 요청이 있습니다.";
-    $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
+    //1차 결재자에게만 푸시발송 (이후 2차/3차는 서명 완료 시 holiday_reqeust_info_sign_ajax.php 에서 순차 발송)
+    if($sign_off_mng_id1 != ""){
+        $push_title = '[결재요청] '.$approval_name." 결재 요청이 있습니다.";
+        $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
 
-    $approver_ids = array($sign_off_mng_id1, $sign_off_mng_id2, $sign_off_mng_id3);
-    foreach($approver_ids as $approver_id){
-        if($approver_id == "") continue;
+        $approver_info = get_member($sign_off_mng_id1);
+        if($approver_info && $approver_info['mb_id']){
+            if($approver_info['mb_token'] != "" && $approver_info['noti1']){
+                try { fcm_send($approver_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
+            }
 
-        $approver_info = get_member($approver_id);
-        if(!$approver_info || !$approver_info['mb_id']) continue;
-
-        if($approver_info['mb_token'] != "" && $approver_info['noti1']){
-            try { fcm_send($approver_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
+            $insert_push = "INSERT INTO a_push SET
+                            recv_id = '{$approver_info['mb_id']}',
+                            recv_id_type = 'sm',
+                            push_title = '{$push_title}',
+                            push_content = '{$push_content}',
+                            wid = '{$wid}',
+                            push_type = 'sign_off',
+                            push_idx = '{$sign_id}',
+                            created_at = '{$today}'";
+            sql_query($insert_push);
         }
-
-        $insert_push = "INSERT INTO a_push SET
-                        recv_id = '{$approver_info['mb_id']}',
-                        recv_id_type = 'sm',
-                        push_title = '{$push_title}',
-                        push_content = '{$push_content}',
-                        wid = '{$wid}',
-                        push_type = 'sign_off',
-                        push_idx = '{$sign_id}',
-                        created_at = '{$today}'";
-        sql_query($insert_push);
     }
 }
 

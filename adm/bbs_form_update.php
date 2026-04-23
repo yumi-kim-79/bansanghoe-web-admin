@@ -50,7 +50,7 @@ if($w == "u"){
         }
     
         // and mng.mng_id != '{$member['mb_id']}'
-        $mng_sql = "SELECT mng.*, mb.mb_token, mb.noti2 FROM a_mng as mng
+        $mng_sql = "SELECT mng.*, mb.mb_token, mb.noti6 FROM a_mng as mng
                     LEFT JOIN g5_member as mb ON mng.mng_id = mb.mb_id
                     WHERE mng.is_del = 0 {$sql_w} ORDER BY mng.mng_idx desc";
         $mng_res = sql_query($mng_sql);
@@ -71,7 +71,7 @@ if($w == "u"){
           
             //is_send = 0,
             $send_sql = "";
-            if($mng_row['noti2']){
+            if($mng_row['noti6']){
                 $send_sql = " is_send = 0, ";
             }
             $insert_push = "INSERT INTO a_push SET
