@@ -205,6 +205,20 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **FCM 푸시 noti 매핑 정비 + 결재 순차 발송 통합 배포** (2026-04-23)
+  - `adm/bbs_form_update.php`: 게시판 등록 알림 체크 컬럼을 `noti2` → `noti6` 으로 변경 (SELECT 컬럼 + `is_send` 분기 조건 두 곳)
+  - `adm/complain_form_update.php` L81: 민원처리 완료 후 **사용자**에게 발송하는 푸시 수신 여부 체크를 `noti3` → `noti5` 로 변경 (매니저에게 발송하는 L151 `noti6` 은 유지)
+  - `holiday_reqeust_form_update.php` L277~: 등록 시 1차 결재자(`sign_off_mng_id1`)에게만 푸시 발송 (2026-04-15 의 전체 발송 복원)
+  - 순차 cascade(`holiday_reqeust_info_sign_ajax.php` L119-169)는 이미 구현되어 있어 변경 불필요
+  - develop → main 머지, 양쪽 원격 push → 운영 자동배포
+- [x] **결재 푸시 순차 발송으로 재변경 (매니저앱)** (2026-04-23)
+  - 배경: 2026-04-15 에 1/2/3차 전체 발송으로 변경했으나, 순차 결재 워크플로우 일관성을 위해 순차 발송으로 복원
+  - `holiday_reqeust_form_update.php` L277~: 등록 시 1차 결재자(`sign_off_mng_id1`)에게만 푸시 발송
+  - 2→3차 cascade 는 `holiday_reqeust_info_sign_ajax.php` L119-169 에 이미 구현되어 있음 (변경 불필요)
+    - 1차 서명(`sign_off_status=1`) 완료 시 → `sign_off_mng_id2` 에게 푸시
+    - 2차 서명(`sign_off_status2=1`) 완료 시 → `sign_off_mng_id3` 에게 푸시
+    - 2차/3차 결재자가 비어있으면 `sum_sign >= total_approver` 조건으로 cascade 스킵되어 status='E'(완료)
+  - 어드민(`adm/approval_form_update.php`, `adm/approval_form_update2.php`)은 이번 작업 범위 밖
 - [x] **전체 알림(noti_all) 토글 develop→main 배포** (2026-04-22)
   - develop 커밋 후 main 머지, 양쪽 원격 push → 자동배포 트리거 (test/운영)
 - [x] **전체 알림(noti_all) 토글을 개별 noti와 독립시킴** (2026-04-22)
