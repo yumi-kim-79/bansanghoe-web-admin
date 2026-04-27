@@ -315,12 +315,12 @@ function fcm_send($token, $title = '푸시테스트 제목', $content = '푸시�
         'Content-Type: application/json'
     );
 
-    curl_setopt($ch, CURLOPT_HEADER, true);
+    curl_setopt($ch, CURLOPT_HEADER, false);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 
     $notification_opt = array (
         'title' => $title,
@@ -354,18 +354,43 @@ function fcm_send($token, $title = '푸시테스트 제목', $content = '푸시�
     );
 
     curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS,json_encode($last_msg)); 
+    curl_setopt($ch, CURLOPT_POSTFIELDS,json_encode($last_msg));
     $result = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_err = curl_error($ch);
     curl_close($ch);
 
     if($result === FALSE){
-        return ['error' => true];
+        error_log("[FCM] curl_exec FAIL token=".substr($token,0,20)."... err={$curl_err}");
+        return ['error' => true, 'msg' => $curl_err];
     }
 
     $obj = json_decode($result, true);
+
+    // 실패 응답 처리: error_log 기록 + 무효 토큰 자동 삭제
+    if($http_code >= 400 || (is_array($obj) && isset($obj['error']))){
+        $err_status = isset($obj['error']['status']) ? $obj['error']['status'] : '';
+        $err_code   = '';
+        if(isset($obj['error']['details']) && is_array($obj['error']['details'])){
+            foreach($obj['error']['details'] as $d){
+                if(isset($d['errorCode'])){ $err_code = $d['errorCode']; break; }
+            }
+        }
+        error_log("[FCM] FAIL http={$http_code} status={$err_status} code={$err_code} token=".substr($token,0,20)."... resp=".substr($result,0,500));
+
+        // 무효 토큰이면 a_member / g5_member 양쪽에서 제거
+        if($err_code === 'UNREGISTERED' || $err_code === 'INVALID_ARGUMENT' || $err_status === 'NOT_FOUND'){
+            $safe_token = addslashes($token);
+            sql_query(" update a_member  set mb_token = '' where mb_token = '{$safe_token}' ");
+            sql_query(" update g5_member set mb_token = '' where mb_token = '{$safe_token}' ");
+            error_log("[FCM] token cleared from DB (".$err_code.") token=".substr($token,0,20)."...");
+        }
+    }
+
     return $obj;
 
     } catch(Exception $e) {
+        error_log("[FCM] Exception: ".$e->getMessage()." token=".substr($token,0,20)."...");
         return ['error' => true, 'msg' => $e->getMessage()];
     }
 }
