@@ -144,6 +144,18 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - **로그**: `/var/log/bansanghoe_backup.log`
 - **복구**: `rsync -a /var/backups/bansanghoe/data/YYYYMMDD/ /var/www/html/data/`
 
+## 🩺 디스크 모니터링 (매시간)
+- **스크립트**: `scripts/disk_monitor.sh` (저장소) → `/usr/local/bin/disk_monitor.sh` (서버)
+- **주기**: 매시간 (`0 * * * *`)
+- **임계치**: 디스크 80% 초과 시 `/var/log/disk_alert.log` 기록
+- **로그 정리**: `/var/log/httpd/ssl_request_log*`, `ssl_access_log*` 7일 이상 자동 삭제
+- **설치 (서버 root, 1회)**:
+  ```
+  cp /var/www/html/scripts/disk_monitor.sh /usr/local/bin/disk_monitor.sh
+  chmod 755 /usr/local/bin/disk_monitor.sh
+  (crontab -l 2>/dev/null; echo "0 * * * * /usr/local/bin/disk_monitor.sh >/dev/null 2>&1") | crontab -
+  ```
+
 ## ⚠️ 서버 실행 금지 명령어
 
 서버에서 절대 실행하지 말 것 (업로드 파일 손실 위험):
@@ -205,6 +217,17 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **FCM 무효 토큰 자동 정리 + 디스크 모니터링 크론** (2026-04-27)
+  - `lib/common.lib.php` `fcm_send()`:
+    - `CURLOPT_HEADER, true` → `false` 변경 (응답에 헤더가 섞여 `json_decode` 파싱 실패하던 문제 해결)
+    - 실패 시 `error_log()`로 HTTP code + status + errorCode + 응답 일부 기록
+    - 응답 `error.details[].errorCode == UNREGISTERED|INVALID_ARGUMENT` 또는 `error.status == NOT_FOUND` 이면 해당 토큰을 `a_member.mb_token`, `g5_member.mb_token` 양쪽에서 `''`로 자동 클리어
+    - `curl_getinfo` HTTP code 추적, `curl_error` 메시지 로깅
+  - `scripts/disk_monitor.sh` 신규:
+    - 매시간 실행, `df -PT` 기준 사용률 80% 초과 마운트 발견 시 `/var/log/disk_alert.log` 기록
+    - `/var/log/httpd/ssl_request_log*`, `ssl_access_log*` 중 mtime 7일 초과 파일 자동 삭제
+    - 설치: 스크립트를 `/usr/local/bin/`에 복사 후 `0 * * * *` 크론 등록 (CLAUDE.md 디스크 모니터링 섹션 참고)
+  - ⚠️ 서버 작업 필요: 크론 1회 등록 (CLAUDE.md "디스크 모니터링" 섹션의 설치 명령 참고)
 - [x] **FCM 푸시 noti 매핑 정비 + 결재 순차 발송 통합 배포** (2026-04-23)
   - `adm/bbs_form_update.php`: 게시판 등록 알림 체크 컬럼을 `noti2` → `noti6` 으로 변경 (SELECT 컬럼 + `is_send` 분기 조건 두 곳)
   - `adm/complain_form_update.php` L81: 민원처리 완료 후 **사용자**에게 발송하는 푸시 수신 여부 체크를 `noti3` → `noti5` 로 변경 (매니저에게 발송하는 L151 `noti6` 은 유지)
@@ -564,4 +587,4 @@ curl https://raw.githubusercontent.com/yumi-kim-79/{저장소}/main/{경로}/{�
 
 ---
 
-*최종 업데이트: 2026-04-22*
+*최종 업데이트: 2026-04-27*
