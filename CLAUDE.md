@@ -217,6 +217,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **서명 타임스탬프 오버레이 위치/색상 표준화** (2026-04-28)
+  - `holiday_reqeust_info.php` 세 결재자 영역(`.sign_boxs_img1/2/3`) 의 `<span class="sign_timestamp">` 인라인 스타일:
+    - `right:8px;bottom:4px;color:#ff0000;` → `bottom:5px;right:5px;color:red;`
+    - `font-size:14px;line-height:1;` 유지
+  - `addTimestampToSignature()` 함수 / saveSign·signLoad 의 호출은 직전 작업(2026-04-28)에서 이미 제거됨
 - [x] **서명 타임스탬프를 canvas 합성에서 HTML 오버레이로 전환** (2026-04-28)
   - 배경: 합성 방식은 (a) DB created_at 이 아닌 클라이언트 현재 시각이 박혀 일관성 부족, (b) 동일 서명을 재불러올 때 시간이 매번 갱신되어 변조 우려, (c) 합성/마스킹 시각적 부자연스러움
   - `holiday_reqeust_info.php`:
