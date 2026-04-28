@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-04-29
+### Added
+- 세대(Units) 조회 API 신규 (`api/units_api.php`)
+  - `GET ?action=units&building_id=N`
+  - 응답에 `move_in_date` (= `a_building_ho.ho_tenant_at`) 포함, 빈값/`0000-00-00` 은 `null` 변환
+  - 응답 필드: `ho_id, dong_id, dong_name, ho_name, ho_owner, ho_size, move_in_date`
+  - PDO 직접 연결 + prepared statement (`api/building_settings_api.php` 패턴 동일)
+
 ## 2026-04-13
 ### Changed
 - building_settings_api.php DB 연결: Gnuboard `_common.php` → PDO 직접 연결 + prepared statement

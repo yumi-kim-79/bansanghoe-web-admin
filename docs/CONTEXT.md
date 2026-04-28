@@ -34,6 +34,7 @@
 | GET | `/api/building_settings_api.php?action=building_settings&building_id=N` | 단지별 연체요율 조회 |
 | GET | `/api/building_settings_api.php?action=building_settings_all` | 전체 단지 연체요율 목록 |
 | POST | `/api/building_settings_api.php?action=update_building_settings` | 단지 연체요율 수정 |
+| GET | `/api/units_api.php?action=units&building_id=N` | 단지 내 세대 목록 (입주일 `move_in_date` 포함) |
 
 ### 주요 테이블 (sinbansang DB)
 
