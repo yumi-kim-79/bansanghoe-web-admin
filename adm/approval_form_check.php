@@ -183,7 +183,7 @@ if ($status === 'P') {
         $push_title = '[결재요청] '.$approval_name." 결재 요청이 있습니다.";
         $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
 
-        if ($sign_off_id_info['mb_token'] != "") {
+        if ($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']) {
             try {
                 // ✅ 수정: 매니저앱 화면으로 이동
                 try { fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}
@@ -211,7 +211,7 @@ if ($status === 'P') {
         $push_title = '[결재요청] '.$approval_name." 결재 요청이 있습니다.";
         $push_content = $wname.'님의 '.$approval_name." 결재 요청이 있습니다.";
 
-        if ($sign_off_id_info['mb_token'] != "") {
+        if ($sign_off_id_info['mb_token'] != "" && $sign_off_id_info['noti1']) {
             try {
                 // ✅ 수정: 매니저앱 화면으로 이동
                 try { fcm_send($sign_off_id_info['mb_token'], $push_title, $push_content, "sign_off", "{$sign_id}", "/holiday_reqeust_info.php?mng=Y&sign_id="); } catch(Exception $e) {}

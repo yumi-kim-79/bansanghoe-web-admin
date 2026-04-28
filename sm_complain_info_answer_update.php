@@ -34,7 +34,7 @@ if($complain_id != "" && $complain_status == "CD"){
     $push_title = '[민원 처리 완료] 민원 처리가 완료되었습니다.';
     $push_content = '민원 처리가 완료되었습니다. 확인 부탁드립니다.';
 
-    if($mem_row['mb_token'] != "" && $mem_row['noti3']){ //토큰이 있는경우 푸시 발송
+    if($mem_row['mb_token'] != "" && $mem_row['noti5']){ //토큰이 있는경우 푸시 발송 (민원 카테고리)
            
         try { fcm_send($mem_row['mb_token'], $push_title, $push_content, 'complain_end', "{$complain_idx}", "/online_complain_info.php?complain_status=CD&complain_idx="); } catch(Exception $e) {}
     }

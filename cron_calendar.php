@@ -55,8 +55,8 @@ while($row_calendar = sql_fetch_array($res_calendar)){
         // echo $insert_push.'<br>';
         sql_query($insert_push);
 
-        //토큰이 있다면
-        if($mem['mb_token'] != ""){
+        //토큰이 있다면 (캘린더 카테고리 noti3 체크)
+        if($mem['mb_token'] != "" && $mem['noti3']){
             fcm_send($mem['mb_token'], '[일정] '.$push_title, $push_content, 'schedule', "{$row_calendar['cal_idx']}", "/schedule_add.php?w=i&cal_idx=");
         }
 
