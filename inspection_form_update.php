@@ -57,7 +57,7 @@ if($w == "u"){
     $industry_info = get_industry_info($inspection_category); //업종 정보
     $industry_name = $industry_info['industry_name']; //업종명
 
-    $mng_builindg_sql = "SELECT mng.*, mb.mb_token FROM a_mng_building as mng
+    $mng_builindg_sql = "SELECT mng.*, mb.mb_token, mb.noti8 FROM a_mng_building as mng
                         LEFT JOIN g5_member as mb ON mng.mb_id = mb.mb_id
                         WHERE mng.building_id = '{$building_id}' and mng.is_del = 0 GROUP BY mng.mb_id ORDER BY mng.mng_id desc";
     $mng_building_res = sql_query($mng_builindg_sql);
@@ -66,7 +66,7 @@ if($w == "u"){
         $push_title = '[점검일지] '.$building_name." ".$industry_name." 점검일지가 작성되었습니다.";
         $push_content = $inspection_name.'님의 '.$building_name." ".$industry_name." 점검일지가 작성되었습니다.";
 
-        if($mng_row['mb_token'] != ""){ //토큰이 있는경우 푸시 발송
+        if($mng_row['mb_token'] != "" && $mng_row['noti8']){ //토큰이 있는경우 푸시 발송 (점검일지 카테고리)
             try { fcm_send($mng_row['mb_token'], $push_title, $push_content, 'inspection', $inspection_idx); } catch(Exception $e) {}
         }
 
