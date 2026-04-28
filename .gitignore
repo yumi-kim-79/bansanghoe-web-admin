@@ -3,3 +3,4 @@ config.php
 config/ncloud_config.php
 sinbansang_fcm_key.json
 *firebase-adminsdk*.json
+sinbansang-key.pem

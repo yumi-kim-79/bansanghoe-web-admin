@@ -217,6 +217,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **민감 키 파일 git 트래킹 제거 + main → develop 백머지** (2026-04-28)
+  - `.gitignore` (develop): `sinbansang_fcm_key.json`, `*firebase-adminsdk*.json`, `sinbansang-key.pem` 패턴 추가 (main 에는 앞 두 개만 있던 상태에서 동기화)
+  - `git rm --cached sinbansang_fcm_key.json sinbansang-key.pem` → develop 인덱스에서 제거 (로컬/서버 파일은 유지)
+  - main 단독 커밋 백머지: `a90e6abb` (FCM 키 트래킹 제거), `02120ff2` (FCM gitignore), `2d3eab27` (복구 이미지 매칭 스크립트 — `adm/file_recover_match.php` 신규 진입) 등이 develop 에 병합됨
+  - 머지 충돌은 `.gitignore` 한 곳 (develop 의 `sinbansang-key.pem` 라인 vs main 미보유) → develop superset 으로 해결
+  - ⚠️ **남은 보안 작업**: git 히스토리에는 키 파일이 그대로 남아있음. FCM 서비스 계정 키 + Apache SSL 키 즉시 로테이션 + (필요 시) `git filter-repo`/BFG 로 히스토리 재작성 권장
 - [x] **서명 타임스탬프 오버레이 위치/색상 표준화** (2026-04-28)
   - `holiday_reqeust_info.php` 세 결재자 영역(`.sign_boxs_img1/2/3`) 의 `<span class="sign_timestamp">` 인라인 스타일:
     - `right:8px;bottom:4px;color:#ff0000;` → `bottom:5px;right:5px;color:red;`
