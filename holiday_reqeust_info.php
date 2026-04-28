@@ -458,41 +458,44 @@ function signLoad(id, ele, approval_cont){
             }else{
                 // showToast(data.msg);
                 // $("#approval_signature").val(data.data.signature_data);
-    
+
                 let imgSRc = "/data/file/approval/" + data.data.fil_name;
-                let imgs = `<img src='${imgSRc}' />`;
-                $("." + ele).html(imgs);
 
-                let sign_id = "<?php echo $sign_id; ?>";
-                let sign_dataURL = "<?php echo $signature_check_row['signature_data']; ?>";
-                let sendData2 = {"mb_id":id, "sign_id":sign_id, "signdata": sign_dataURL, "data":approval_cont};
+                addTimestampToSignature(imgSRc, function(stampedDataURL) {
+                    let imgs = `<img src='${stampedDataURL}' />`;
+                    $("." + ele).html(imgs);
 
-                $.ajax({
-                    type: "POST",
-                    url: "/holiday_reqeust_info_sign_ajax.php",
-                    data: sendData2,
-                    cache: false,
-                    async: false,
-                    dataType: "json",
-                    success: function(data) {
-                        console.log('data:::', data);
+                    let sign_id = "<?php echo $sign_id; ?>";
+                    let sign_dataURL = stampedDataURL;
+                    let sendData2 = {"mb_id":id, "sign_id":sign_id, "signdata": sign_dataURL, "data":approval_cont};
 
-                        if(data.result == false) { 
-                            showToast(data.msg);
-                        
-                            return false;
-                        }else{
-                            showToast(data.msg);
+                    $.ajax({
+                        type: "POST",
+                        url: "/holiday_reqeust_info_sign_ajax.php",
+                        data: sendData2,
+                        cache: false,
+                        async: false,
+                        dataType: "json",
+                        success: function(data) {
+                            console.log('data:::', data);
 
-                            setTimeout(() => {
-                                // window.location.reload();
+                            if(data.result == false) {
+                                showToast(data.msg);
 
-                                location.replace("/holiday_request_sample.php?mem_type=sign_user2&sign_id=" + sign_id);
+                                return false;
+                            }else{
+                                showToast(data.msg);
 
-                            }, 700);
-                        
-                        }
-                    },
+                                setTimeout(() => {
+                                    // window.location.reload();
+
+                                    location.replace("/holiday_request_sample.php?mem_type=sign_user2&sign_id=" + sign_id);
+
+                                }, 700);
+
+                            }
+                        },
+                    });
                 });
             }
         },
