@@ -106,8 +106,8 @@ $sample_row = sql_fetch($sample_sql);
                         </div>
                         <?php
                         ?>
-                        <div class="sign_boxs_img sign_boxs_img1">
-                            <?php if($sign_row['sign_off_status']){ 
+                        <div class="sign_boxs_img sign_boxs_img1" style="position:relative;">
+                            <?php if($sign_row['sign_off_status']){
                                 //서명이미지
                                 $sql_sign_off_img = "SELECT soi.*, sig.fil_name FROM a_sign_off_mng_sign as soi
                                 LEFT JOIN a_signature as sig ON soi.sg_idx = sig.sg_idx
@@ -115,6 +115,9 @@ $sample_row = sql_fetch($sample_sql);
                                 $sign_img_row = sql_fetch($sql_sign_off_img);
                             ?>
                                 <img src="/data/file/approval/<?php echo $sign_img_row['fil_name']; ?>" alt="">
+                                <?php if(!empty($sign_img_row['created_at'])): ?>
+                                <span class="sign_timestamp" style="position:absolute;right:8px;bottom:4px;color:#ff0000;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row['created_at'])); ?></span>
+                                <?php endif; ?>
                             <?php }?>
                         </div>
                     </div>
@@ -154,8 +157,8 @@ $sample_row = sql_fetch($sample_sql);
                                 <?php }?>
                             <?php }?>
                         </div>
-                        <div class="sign_boxs_img sign_boxs_img2">
-                            <?php if($sign_row['sign_off_status2']){ 
+                        <div class="sign_boxs_img sign_boxs_img2" style="position:relative;">
+                            <?php if($sign_row['sign_off_status2']){
                                //서명이미지
                                $sql_sign_off_img2 = "SELECT soi.*, sig.fil_name FROM a_sign_off_mng_sign as soi
                                LEFT JOIN a_signature as sig ON soi.sg_idx = sig.sg_idx
@@ -163,6 +166,9 @@ $sample_row = sql_fetch($sample_sql);
                                $sign_img_row2 = sql_fetch($sql_sign_off_img2);
                             ?>
                                 <img src="/data/file/approval/<?php echo $sign_img_row2['fil_name']; ?>" alt="">
+                                <?php if(!empty($sign_img_row2['created_at'])): ?>
+                                <span class="sign_timestamp" style="position:absolute;right:8px;bottom:4px;color:#ff0000;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row2['created_at'])); ?></span>
+                                <?php endif; ?>
                             <?php }?>
                         </div>
                     </div>
@@ -203,8 +209,8 @@ $sample_row = sql_fetch($sample_sql);
                                 <?php }?>
                             <?php }?>
                         </div>
-                        <div class="sign_boxs_img sign_boxs_img3">
-                            <?php if($sign_row['sign_off_status3']){ 
+                        <div class="sign_boxs_img sign_boxs_img3" style="position:relative;">
+                            <?php if($sign_row['sign_off_status3']){
                                //서명이미지
                                $sql_sign_off_img3 = "SELECT soi.*, sig.fil_name FROM a_sign_off_mng_sign as soi
                                LEFT JOIN a_signature as sig ON soi.sg_idx = sig.sg_idx
@@ -212,6 +218,9 @@ $sample_row = sql_fetch($sample_sql);
                                $sign_img_row3 = sql_fetch($sql_sign_off_img3);
                             ?>
                                 <img src="/data/file/approval/<?php echo $sign_img_row3['fil_name']; ?>" alt="">
+                                <?php if(!empty($sign_img_row3['created_at'])): ?>
+                                <span class="sign_timestamp" style="position:absolute;right:8px;bottom:4px;color:#ff0000;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row3['created_at'])); ?></span>
+                                <?php endif; ?>
                             <?php }?>
                         </div>
                     </div>
@@ -332,8 +341,7 @@ function saveSign(){
         return false;
     } else {
         
-        const originalDataURL = signaturePad.toDataURL("image/png");
-        addTimestampToSignature(originalDataURL, function(dataURL) {
+        const dataURL = signaturePad.toDataURL("image/png");
         let sign_dataURL = "";
         resizeImage(dataURL, 200, function(resizedDataURL) {
             //$("#approval_signature").val(resizedDataURL);
@@ -390,45 +398,7 @@ function saveSign(){
                 },
             });
         });
-        });
     }
-}
-
-// 서명 이미지 하단에 30px 띠를 추가하여 날짜/시간 워터마크 합성
-function addTimestampToSignature(base64Str, callback) {
-    const img = new Image();
-    img.src = base64Str;
-    img.onload = function() {
-        const stampBandHeight = 30;
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = img.width;
-        canvas.height = img.height + stampBandHeight;
-
-        // 원본 서명은 상단에 그대로
-        ctx.drawImage(img, 0, 0);
-
-        // 하단 30px 띠는 흰색 배경
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, img.height, canvas.width, stampBandHeight);
-
-        const now = new Date();
-        const pad = (n) => String(n).padStart(2, "0");
-        const stamp = now.getFullYear() + "." + pad(now.getMonth() + 1) + "." + pad(now.getDate())
-                    + " " + pad(now.getHours()) + ":" + pad(now.getMinutes());
-
-        // 추가된 하단 영역에 우측 정렬로 타임스탬프
-        ctx.font = "24px sans-serif";
-        ctx.fillStyle = "#ff0000";
-        ctx.textAlign = "right";
-        ctx.textBaseline = "bottom";
-        ctx.fillText(stamp, canvas.width - 8, canvas.height - 4);
-
-        callback(canvas.toDataURL("image/png"));
-    };
-    img.onerror = function() {
-        callback(base64Str);
-    };
 }
 
 const ratio =  Math.max(window.devicePixelRatio || 1, 1);
@@ -468,42 +438,39 @@ function signLoad(id, ele, approval_cont){
                 // $("#approval_signature").val(data.data.signature_data);
 
                 let imgSRc = "/data/file/approval/" + data.data.fil_name;
+                let imgs = `<img src='${imgSRc}' />`;
+                $("." + ele).html(imgs);
 
-                addTimestampToSignature(imgSRc, function(stampedDataURL) {
-                    let imgs = `<img src='${stampedDataURL}' />`;
-                    $("." + ele).html(imgs);
+                let sign_id = "<?php echo $sign_id; ?>";
+                let sign_dataURL = data.data.signature_data;
+                let sendData2 = {"mb_id":id, "sign_id":sign_id, "signdata": sign_dataURL, "data":approval_cont};
 
-                    let sign_id = "<?php echo $sign_id; ?>";
-                    let sign_dataURL = stampedDataURL;
-                    let sendData2 = {"mb_id":id, "sign_id":sign_id, "signdata": sign_dataURL, "data":approval_cont};
+                $.ajax({
+                    type: "POST",
+                    url: "/holiday_reqeust_info_sign_ajax.php",
+                    data: sendData2,
+                    cache: false,
+                    async: false,
+                    dataType: "json",
+                    success: function(data) {
+                        console.log('data:::', data);
 
-                    $.ajax({
-                        type: "POST",
-                        url: "/holiday_reqeust_info_sign_ajax.php",
-                        data: sendData2,
-                        cache: false,
-                        async: false,
-                        dataType: "json",
-                        success: function(data) {
-                            console.log('data:::', data);
+                        if(data.result == false) {
+                            showToast(data.msg);
 
-                            if(data.result == false) {
-                                showToast(data.msg);
+                            return false;
+                        }else{
+                            showToast(data.msg);
 
-                                return false;
-                            }else{
-                                showToast(data.msg);
+                            setTimeout(() => {
+                                // window.location.reload();
 
-                                setTimeout(() => {
-                                    // window.location.reload();
+                                location.replace("/holiday_request_sample.php?mem_type=sign_user2&sign_id=" + sign_id);
 
-                                    location.replace("/holiday_request_sample.php?mem_type=sign_user2&sign_id=" + sign_id);
+                            }, 700);
 
-                                }, 700);
-
-                            }
-                        },
-                    });
+                        }
+                    },
                 });
             }
         },

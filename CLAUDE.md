@@ -217,6 +217,17 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **서명 타임스탬프를 canvas 합성에서 HTML 오버레이로 전환** (2026-04-28)
+  - 배경: 합성 방식은 (a) DB created_at 이 아닌 클라이언트 현재 시각이 박혀 일관성 부족, (b) 동일 서명을 재불러올 때 시간이 매번 갱신되어 변조 우려, (c) 합성/마스킹 시각적 부자연스러움
+  - `holiday_reqeust_info.php`:
+    - `saveSign()`: `addTimestampToSignature()` 제거 → 원본 `signaturePad.toDataURL()` → `resizeImage()` 만 거쳐 서버 전송 (타임스탬프 미합성)
+    - `signLoad()`: `addTimestampToSignature()` 제거 → `imgSRc` 직접 `<img>` 미리보기, `data.data.signature_data` 를 그대로 서버 전송 (PHP 인라인 echo 폐기)
+    - `addTimestampToSignature()` 함수 정의 자체 삭제
+    - 세 결재자 서명 표시 영역(`.sign_boxs_img1/2/3`):
+      - 외곽 div 에 `style="position:relative;"` 부여
+      - `<img>` 다음에 `<span class="sign_timestamp" style="position:absolute;right:8px;bottom:4px;color:#ff0000;font-size:14px;line-height:1;">` 로 `a_sign_off_mng_sign.created_at` 을 `Y.m.d H:i` 포맷으로 오버레이
+      - SQL 은 기존 `SELECT soi.*` 그대로(이미 created_at 포함) → 추가 쿼리 변경 없음
+  - 결과: 서버 저장본은 깨끗한 원본 서명, 화면에는 결재 시점(DB 기록)이 표시되어 변조 불가 + 페이지 새로고침 시 동일 시각 유지
 - [x] **서명 워터마크 합성 방식을 별도 하단 띠로 변경** (2026-04-28)
   - `holiday_reqeust_info.php` `addTimestampToSignature()`:
     - 캔버스 크기를 `width = img.width`, `height = img.height + 30` 으로 확장
