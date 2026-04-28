@@ -24,7 +24,7 @@ $req_ho = sql_fetch("SELECT ho.ho_name, dong.dong_name
 $requester_name = $req_ho['dong_name'] . '동 ' . $req_ho['ho_name'] . '호';
 
 // ── 대상 호실 입주민 정보 + FCM 토큰 조회 ────────────────────────────────
-$target_ho = sql_fetch("SELECT ho.ho_tenant_id, mem.mb_token
+$target_ho = sql_fetch("SELECT ho.ho_tenant_id, mem.mb_token, mem.noti5
                         FROM a_building_ho as ho
                         LEFT JOIN a_member as mem ON ho.ho_tenant_id = mem.mb_id
                         WHERE ho.ho_id = '{$target_ho_id}'");
@@ -36,6 +36,7 @@ if (!$target_ho['ho_tenant_id']) {
 
 $recv_id      = $target_ho['ho_tenant_id'];
 $mb_token     = $target_ho['mb_token'];
+$noti5        = $target_ho['noti5'];
 $today        = date("Y-m-d H:i:s");
 $push_title   = '이동 주차 요청';
 $push_content = "{$requester_name}에서 이동 주차를 요청했습니다. (차량번호: {$car_number})";
@@ -52,8 +53,8 @@ $insert_push = "INSERT INTO a_push SET
                 created_at   = '{$today}'";
 sql_query($insert_push);
 
-// ── FCM 직접 발송 (토큰 있는 경우) ───────────────────────────────────────
-if ($mb_token != '') {
+// ── FCM 직접 발송 (토큰 + noti5 게이트) ──────────────────────────────────
+if ($mb_token != '' && $noti5) {
     try { fcm_send($mb_token, $push_title, $push_content, 'parking_move', "{$target_ho_id}", "/parking_manage.php?"); } catch(Exception $e) {}
 }
 

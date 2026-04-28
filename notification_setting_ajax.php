@@ -6,7 +6,7 @@ $tenant_at = date("Y-m-d");
 $ip_info = $_SERVER['REMOTE_ADDR'];
 
 // 허용된 noti 컬럼명 화이트리스트 (SQL injection 방지 + noti_all 저장 허용)
-$allowed_noti = ['noti_all', 'noti1', 'noti2', 'noti3', 'noti4', 'noti5', 'noti6', 'noti7'];
+$allowed_noti = ['noti_all', 'noti1', 'noti2', 'noti3', 'noti4', 'noti5', 'noti6', 'noti7', 'noti8'];
 if(!in_array($noti, $allowed_noti, true)){
     echo result_data(false, '잘못된 알림 종류입니다.', []);
     exit;

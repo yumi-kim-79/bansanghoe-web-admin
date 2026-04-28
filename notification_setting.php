@@ -11,6 +11,7 @@ $noti4 = "";
 $noti5 = "";
 $noti6 = "";
 $noti7 = "";
+$noti8 = "";
 
 if($types == "sm"){
     // noti_all 은 독립 컬럼 (개별 noti와 별개). 값이 '0'이 아니면 ON 으로 표시 (기본 ON)
@@ -21,6 +22,7 @@ if($types == "sm"){
     if($member['noti4'] == "1") $noti4 = "checked";
     if($member['noti5'] == "1") $noti5 = "checked";
     if($member['noti6'] == "1") $noti6 = "checked";
+    if($member['noti8'] == "1") $noti8 = "checked";
 }else{
     $all_chks = ($user_info['noti_all'] === '0' || $user_info['noti_all'] === 0) ? '' : 'checked';
     if($user_info['noti1'] == "1") $noti1 = "checked";
@@ -108,6 +110,19 @@ if($types == "sm"){
                         </div>
                     </div>
                 </li>
+                <?php if($types == "sm"){?>
+                <li>
+                    <p>점검일지</p>
+                    <div class="noti_setting_swich">
+                        <div class="noti_setting_swich_box">
+                            <input type="checkbox" name="noti8" id="switch8" class="switch_chk switch_chk2" value="1" <?php echo $noti8; ?>>
+                            <label for="switch8" class="switch_label">
+                                <span class="onf_btn"></span>
+                            </label>
+                        </div>
+                    </div>
+                </li>
+                <?php }?>
                 <?php if($user_info['mb_type'] == "IN" || $is_member){?>
                 <li>
                     <p><?php echo $types == "sm" ? "민원" : "온라인 투표 알림";?></p>

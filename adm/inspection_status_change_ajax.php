@@ -41,18 +41,18 @@ if($inspection_status == 'Y'){
     $building_name = $building_info['building_name'];
 
      // 단지내 세대에게 푸시발송
-    $ho_sql = "SELECT ho.*, mem.mb_id, mem.mb_token FROM a_building_ho as ho
+    $ho_sql = "SELECT ho.*, mem.mb_id, mem.mb_token, mem.noti2 FROM a_building_ho as ho
                LEFT JOIN a_member as mem ON ho.ho_tenant_hp = mem.mb_hp
                WHERE ho.building_id = '{$inspection_info['building_id']}' and ho.ho_status = 'Y' and ho.is_del = 0 ORDER BY ho.ho_id asc";
     $ho_res = sql_query($ho_sql);
 
     while($ho_row = sql_fetch_array($ho_res)){
-        
+
         $push_title = '[점검일지] '.$building_name.' 점검일지가 등록되었습니다.';
         $push_content = $inspection_info['inspection_year'].'년 '.$inspection_info['inspection_month'].'월 '.$building_name.' 점검일지입니다.';
 
-        if($ho_row['mb_token'] != ""){ //토큰이 있는경우 푸시 발송
-            
+        if($ho_row['mb_token'] != "" && $ho_row['noti2']){ //토큰이 있는경우 푸시 발송 (공문/공지 카테고리)
+
             try { fcm_send($ho_row['mb_token'], $push_title, $push_content, 'inspection_y', "{$inspection_idx}", "/inspection_info.php?inspection_idx="); } catch(Exception $e) {}
         }
 

@@ -217,6 +217,20 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **noti8(점검일지) 신규 카테고리 + 잔여 게이트 정책 결정** (2026-04-28)
+  - 매핑 정책 결정:
+    - 점검일지 작성 → 매니저 = **noti8 신규 컬럼** (전용 카테고리)
+    - 점검일지 승인 → 입주민 = noti2 (공문/공지 기존 카테고리에 흡수)
+    - 이동 주차 요청 → 입주민 = noti5 (민원 카테고리에 흡수, 일대일 알림 성격)
+  - `sql/add_noti8_column.sql` 신규: `ALTER TABLE a_member ADD COLUMN noti8 tinyint(2) NOT NULL DEFAULT 1;` + 동일 ALTER on `g5_member`
+  - `notification_setting.php`:
+    - `$noti8` 변수 초기화 + sm 타입 분기에서 `$member['noti8']` 읽어오기
+    - sm 전용 "점검일지" 토글 `<li>` 추가 (`name="noti8"`, `id="switch8"`, 품의서 다음 위치)
+  - `notification_setting_ajax.php` 화이트리스트에 `noti8` 추가
+  - `inspection_form_update.php`: SELECT 에 `mb.noti8` 추가, 게이트 `&& $mng_row['noti8']`
+  - `adm/inspection_status_change_ajax.php`: SELECT 에 `mem.noti2` 추가, 게이트 `&& $ho_row['noti2']`
+  - `parking_move_request_ajax.php`: SELECT 에 `mem.noti5` 추가, 게이트 `&& $noti5`
+  - ⚠️ **서버 DB 작업 필요**: `sql/add_noti8_column.sql` 을 운영(`sinbansang`) + 테스트(`bansanghoe`) DB 양쪽에서 실행 필요
 - [x] **FCM noti 카테고리 매핑 정합성 수정 (5개 파일)** (2026-04-28)
   - 직전 감사에서 발견된 잘못된/누락 게이트 일괄 정정. 매핑 표(2026-04-23 정책): noti1 사내결재 / noti2 게시판(사용자) / noti3 캘린더 / noti4 전출 / noti5 민원(사용자) / noti6 품의서·민원(매니저)·게시판(매니저).
   - `sm_complain_info_answer_update.php:37`: `$mem_row['noti3']` → **`noti5`** (민원답변→사용자, 카테고리 정정)
