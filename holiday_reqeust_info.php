@@ -394,40 +394,35 @@ function saveSign(){
     }
 }
 
-// 서명 이미지 우측 하단에 날짜/시간 워터마크 추가
+// 서명 이미지 하단에 30px 띠를 추가하여 날짜/시간 워터마크 합성
 function addTimestampToSignature(base64Str, callback) {
     const img = new Image();
     img.src = base64Str;
     img.onload = function() {
+        const stampBandHeight = 30;
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         canvas.width = img.width;
-        canvas.height = img.height;
+        canvas.height = img.height + stampBandHeight;
+
+        // 원본 서명은 상단에 그대로
         ctx.drawImage(img, 0, 0);
+
+        // 하단 30px 띠는 흰색 배경
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, img.height, canvas.width, stampBandHeight);
 
         const now = new Date();
         const pad = (n) => String(n).padStart(2, "0");
         const stamp = now.getFullYear() + "." + pad(now.getMonth() + 1) + "." + pad(now.getDate())
                     + " " + pad(now.getHours()) + ":" + pad(now.getMinutes());
 
-        const fontSize = 24;
-        const padding = 8;
-        ctx.font = fontSize + "px sans-serif";
-
-        // 텍스트 너비 측정 후 해당 영역만 흰색으로 마스킹
-        const textWidth = ctx.measureText(stamp).width;
-        const bgPad = 4;
-        const rectX = canvas.width - padding - textWidth - bgPad;
-        const rectY = canvas.height - padding - fontSize - bgPad;
-        const rectW = textWidth + bgPad * 2;
-        const rectH = fontSize + bgPad * 2;
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(rectX, rectY, rectW, rectH);
-
+        // 추가된 하단 영역에 우측 정렬로 타임스탬프
+        ctx.font = "24px sans-serif";
         ctx.fillStyle = "#ff0000";
         ctx.textAlign = "right";
         ctx.textBaseline = "bottom";
-        ctx.fillText(stamp, canvas.width - padding, canvas.height - padding);
+        ctx.fillText(stamp, canvas.width - 8, canvas.height - 4);
 
         callback(canvas.toDataURL("image/png"));
     };
