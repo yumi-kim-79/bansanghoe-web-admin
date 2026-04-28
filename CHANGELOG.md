@@ -2,6 +2,10 @@
 
 ## 2026-04-29
 ### Added
+- 검침/단지/세대 통합 API 재작성 (`api/meter_api.php`) — 서버 전용으로 git clean 시 소실되어 신규 커밋
+  - `?action=buildings` 운영 단지 목록 (주소 + 세대 수)
+  - `?action=units&building_id=N` 세대 목록 (입주일 포함, units_api.php 와 동일 페이로드)
+  - `?action=meter&building_id=N&year=YYYY&month=M[&type=electro|water]` 당월/전월 검침값 + 사용량
 - 세대(Units) 조회 API 신규 (`api/units_api.php`)
   - `GET ?action=units&building_id=N`
   - 응답에 `move_in_date` (= `a_building_ho.ho_tenant_at`) 포함, 빈값/`0000-00-00` 은 `null` 변환
