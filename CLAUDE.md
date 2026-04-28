@@ -217,6 +217,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **저장된 서명 불러오기에도 타임스탬프 워터마크 적용** (2026-04-28)
+  - `holiday_reqeust_info.php` `signLoad()`:
+    - `/data/file/approval/{fil_name}` 경로(`imgSRc`)를 `addTimestampToSignature(imgSRc, callback)` 에 그대로 전달 → 임시 캔버스에 그려서 우측 하단에 `YYYY.MM.DD HH:MM` 합성한 dataURL 생성
+    - 서버 전송용 `sign_dataURL` 을 PHP 변수(`$signature_check_row['signature_data']`) 대신 워터마크 합성된 dataURL 로 교체
+    - `$("." + ele).html()` 미리보기도 합성된 dataURL 의 `<img>` 로 표시 (URL 직접 표시 폐기)
+    - `addTimestampToSignature()` 의 `img.src` 는 base64 와 동일 출처 URL 양쪽 모두 허용 — 동일 출처 이미지는 캔버스 오염 없이 `toDataURL()` 가능
 - [x] **결재 서명 이미지에 타임스탬프 워터마크 추가** (2026-04-28)
   - `holiday_reqeust_info.php` `saveSign()`:
     - `signaturePad.toDataURL()` 결과를 `addTimestampToSignature()` 로 한 번 처리한 뒤 기존 `resizeImage()` 호출
