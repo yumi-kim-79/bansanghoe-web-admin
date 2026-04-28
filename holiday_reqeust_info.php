@@ -405,6 +405,10 @@ function addTimestampToSignature(base64Str, callback) {
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
 
+        // 기존 타임스탬프 영역(하단 30px)을 흰색으로 덮어씌움
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+
         const now = new Date();
         const pad = (n) => String(n).padStart(2, "0");
         const stamp = now.getFullYear() + "." + pad(now.getMonth() + 1) + "." + pad(now.getDate())

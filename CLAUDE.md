@@ -217,6 +217,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **서명 워터마크 합성 시 하단 30px 흰색 덮어씌움** (2026-04-28)
+  - `holiday_reqeust_info.php` `addTimestampToSignature()`:
+    - `ctx.drawImage()` 직후 `ctx.fillRect(0, canvas.height - 30, canvas.width, 30)` (흰색)으로 하단 30px 띠 마스킹 추가
+    - 그 위에 24px 빨간색 타임스탬프 합성
+  - 사유: signLoad 로 불러온 이미지에 이미 박혀있던 작은 타임스탬프와 새 타임스탬프 중복 표시 방지
 - [x] **서명 워터마크 폰트 크기 12px → 24px** (2026-04-28)
   - `holiday_reqeust_info.php` `addTimestampToSignature()`: `ctx.font = "12px sans-serif"` → `"24px sans-serif"`
   - 사유: 200px 리사이즈 후 가독성 부족으로 키움
