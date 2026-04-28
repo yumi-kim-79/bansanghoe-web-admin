@@ -217,6 +217,13 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **서명 워터마크 합성 방식을 별도 하단 띠로 변경** (2026-04-28)
+  - `holiday_reqeust_info.php` `addTimestampToSignature()`:
+    - 캔버스 크기를 `width = img.width`, `height = img.height + 30` 으로 확장
+    - 원본 서명은 `(0, 0)` 위치에 그대로 그려서 잘림 없음
+    - 추가된 하단 30px 띠는 흰색 배경 (`fillRect(0, img.height, width, 30)`)
+    - 그 위에 24px 빨간색 타임스탬프를 우측 정렬로 합성 (우측 8px / 하단 4px 패딩)
+    - 이미지 위에 덮어씌우는 방식 폐기 → 서명 글씨가 하단에 길게 내려가도 가려지지 않음
 - [x] **서명 워터마크 흰색 마스킹을 텍스트 영역으로 한정** (2026-04-28)
   - `holiday_reqeust_info.php` `addTimestampToSignature()`:
     - 하단 30px 전체 흰색 띠 → `ctx.measureText(stamp).width` 로 텍스트 너비 측정 후 해당 영역(가로 textWidth + 좌우 4px 여유, 세로 fontSize + 상하 4px 여유)만 흰색 사각형으로 마스킹
