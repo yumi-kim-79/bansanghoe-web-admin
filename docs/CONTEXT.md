@@ -35,6 +35,9 @@
 | GET | `/api/building_settings_api.php?action=building_settings_all` | 전체 단지 연체요율 목록 |
 | POST | `/api/building_settings_api.php?action=update_building_settings` | 단지 연체요율 수정 |
 | GET | `/api/units_api.php?action=units&building_id=N` | 단지 내 세대 목록 (입주일 `move_in_date` 포함) |
+| GET | `/api/meter_api.php?action=buildings` | 운영 중 단지 목록 (주소 + 총 세대수) |
+| GET | `/api/meter_api.php?action=units&building_id=N` | 단지 세대 목록 (units_api 와 동일 페이로드) |
+| GET | `/api/meter_api.php?action=meter&building_id=N&year=YYYY&month=M[&type=electro\|water]` | 당월/전월 검침값 + 사용량 (type 미지정 시 electro) |
 
 ### 주요 테이블 (sinbansang DB)
 
