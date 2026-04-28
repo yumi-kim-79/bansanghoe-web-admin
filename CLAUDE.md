@@ -217,6 +217,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **결재 서명 이미지에 타임스탬프 워터마크 추가** (2026-04-28)
+  - `holiday_reqeust_info.php` `saveSign()`:
+    - `signaturePad.toDataURL()` 결과를 `addTimestampToSignature()` 로 한 번 처리한 뒤 기존 `resizeImage()` 호출
+    - 신규 헬퍼 `addTimestampToSignature(base64Str, callback)`: 서명 PNG 를 임시 캔버스에 다시 그린 뒤 우측 하단에 `YYYY.MM.DD HH:MM` 텍스트(12px sans-serif, `#ff0000`, padding 8px)를 합성하여 dataURL 재생성
+    - 합성된 dataURL 이 변수 `dataURL` 로 전달되어 미리보기(`$("." + ele).html(...)`) 와 서버 저장(resize 후 200px) 모두에 반영됨
+    - `img.onerror` 폴백: 이미지 로드 실패 시 원본 dataURL 그대로 콜백 호출
 - [x] **FCM 무효 토큰 자동 정리 + 디스크 모니터링 크론** (2026-04-27)
   - `lib/common.lib.php` `fcm_send()`:
     - `CURLOPT_HEADER, true` → `false` 변경 (응답에 헤더가 섞여 `json_decode` 파싱 실패하던 문제 해결)
@@ -587,4 +593,4 @@ curl https://raw.githubusercontent.com/yumi-kim-79/{저장소}/main/{경로}/{�
 
 ---
 
-*최종 업데이트: 2026-04-27*
+*최종 업데이트: 2026-04-28*

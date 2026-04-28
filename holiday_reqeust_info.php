@@ -332,7 +332,8 @@ function saveSign(){
         return false;
     } else {
         
-        const dataURL = signaturePad.toDataURL("image/png");
+        const originalDataURL = signaturePad.toDataURL("image/png");
+        addTimestampToSignature(originalDataURL, function(dataURL) {
         let sign_dataURL = "";
         resizeImage(dataURL, 200, function(resizedDataURL) {
             //$("#approval_signature").val(resizedDataURL);
@@ -364,9 +365,9 @@ function saveSign(){
                 success: function(data) {
                     console.log('data:::', data);
 
-                    if(data.result == false) { 
+                    if(data.result == false) {
                         showToast(data.msg);
-                    
+
                         return false;
                     }else{
                         showToast(data.msg);
@@ -384,12 +385,42 @@ function saveSign(){
                             location.replace("/holiday_request_sample.php?mem_type=sign_user2&sign_id=" + sign_id);
                         }, 700);
 
-                    
+
                     }
                 },
             });
         });
+        });
     }
+}
+
+// 서명 이미지 우측 하단에 날짜/시간 워터마크 추가
+function addTimestampToSignature(base64Str, callback) {
+    const img = new Image();
+    img.src = base64Str;
+    img.onload = function() {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        const stamp = now.getFullYear() + "." + pad(now.getMonth() + 1) + "." + pad(now.getDate())
+                    + " " + pad(now.getHours()) + ":" + pad(now.getMinutes());
+
+        ctx.font = "12px sans-serif";
+        ctx.fillStyle = "#ff0000";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(stamp, canvas.width - 8, canvas.height - 8);
+
+        callback(canvas.toDataURL("image/png"));
+    };
+    img.onerror = function() {
+        callback(base64Str);
+    };
 }
 
 const ratio =  Math.max(window.devicePixelRatio || 1, 1);
