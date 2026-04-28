@@ -44,7 +44,7 @@ if($expense_row['enforce_id'] != $enforce_id){
                     created_at = '{$today}'";
     sql_query($insert_push);
 
-    if($enforce_info['mb_token'] != ""){ //토큰이 있는경우 푸시 발송
+    if($enforce_info['mb_token'] != "" && $enforce_info['noti6']){ //토큰이 있는경우 푸시 발송 (품의서 카테고리)
         try { fcm_send($enforce_info['mb_token'], $push_title, $push_content, 'expense2', "{$ex_id}", "/expense_report_info.php?types=sm&building_id=".$expense_row['building_id']."&ex_id="); } catch(Exception $e) {}
     }
 }

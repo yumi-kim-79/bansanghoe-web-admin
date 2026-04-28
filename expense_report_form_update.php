@@ -93,7 +93,7 @@ if($w == "u"){
         sql_query($insert_push);
 
 
-        if($ex_approver1_info['mb_token'] != ""){ //토큰이 있는경우 푸시 발송
+        if($ex_approver1_info['mb_token'] != "" && $ex_approver1_info['noti6']){ //토큰이 있는경우 푸시 발송 (품의서 카테고리)
             try { fcm_send($ex_approver1_info['mb_token'], $push_title, $push_content, 'expense', "{$ex_id}", "/expense_report_adm_info.php?ex_id="); } catch(Exception $e) {}
         }
         

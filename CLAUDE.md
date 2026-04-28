@@ -217,6 +217,15 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **FCM noti 카테고리 매핑 정합성 수정 (5개 파일)** (2026-04-28)
+  - 직전 감사에서 발견된 잘못된/누락 게이트 일괄 정정. 매핑 표(2026-04-23 정책): noti1 사내결재 / noti2 게시판(사용자) / noti3 캘린더 / noti4 전출 / noti5 민원(사용자) / noti6 품의서·민원(매니저)·게시판(매니저).
+  - `sm_complain_info_answer_update.php:37`: `$mem_row['noti3']` → **`noti5`** (민원답변→사용자, 카테고리 정정)
+  - `adm/approval_form_check.php:186, 214`: 다음 결재자 cascade 푸시 게이트에 `&& $sign_off_id_info['noti1']` 추가 — `holiday_reqeust_info_sign_ajax.php` 와 동일 패턴 정합화
+  - `adm/expense_enforce_change.php:47`: `&& $enforce_info['noti6']` 추가 (품의서 시행자 등록)
+  - `expense_report_form_update.php:96`: `&& $ex_approver1_info['noti6']` 추가 (품의서 결재자 푸시)
+  - `expense_report_info_enforce_change.php:46`: `&& $enforce_info['noti6']` 추가 (시행자 변경)
+  - `cron_calendar.php:59`: `&& $mem['noti3']` 추가 (반복일정 cron 알림)
+  - 잔여 정책 결정 필요 항목(점검·주차이동요청·신규가입 등)은 별도 작업
 - [x] **민감 키 파일 git 트래킹 제거 + main → develop 백머지** (2026-04-28)
   - `.gitignore` (develop): `sinbansang_fcm_key.json`, `*firebase-adminsdk*.json`, `sinbansang-key.pem` 패턴 추가 (main 에는 앞 두 개만 있던 상태에서 동기화)
   - `git rm --cached sinbansang_fcm_key.json sinbansang-key.pem` → develop 인덱스에서 제거 (로컬/서버 파일은 유지)
