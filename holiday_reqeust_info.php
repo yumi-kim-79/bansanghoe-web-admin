@@ -410,7 +410,7 @@ function addTimestampToSignature(base64Str, callback) {
         const stamp = now.getFullYear() + "." + pad(now.getMonth() + 1) + "." + pad(now.getDate())
                     + " " + pad(now.getHours()) + ":" + pad(now.getMinutes());
 
-        ctx.font = "12px sans-serif";
+        ctx.font = "24px sans-serif";
         ctx.fillStyle = "#ff0000";
         ctx.textAlign = "right";
         ctx.textBaseline = "bottom";
