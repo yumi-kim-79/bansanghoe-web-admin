@@ -405,20 +405,29 @@ function addTimestampToSignature(base64Str, callback) {
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
 
-        // 기존 타임스탬프 영역(하단 30px)을 흰색으로 덮어씌움
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
-
         const now = new Date();
         const pad = (n) => String(n).padStart(2, "0");
         const stamp = now.getFullYear() + "." + pad(now.getMonth() + 1) + "." + pad(now.getDate())
                     + " " + pad(now.getHours()) + ":" + pad(now.getMinutes());
 
-        ctx.font = "24px sans-serif";
+        const fontSize = 24;
+        const padding = 8;
+        ctx.font = fontSize + "px sans-serif";
+
+        // 텍스트 너비 측정 후 해당 영역만 흰색으로 마스킹
+        const textWidth = ctx.measureText(stamp).width;
+        const bgPad = 4;
+        const rectX = canvas.width - padding - textWidth - bgPad;
+        const rectY = canvas.height - padding - fontSize - bgPad;
+        const rectW = textWidth + bgPad * 2;
+        const rectH = fontSize + bgPad * 2;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(rectX, rectY, rectW, rectH);
+
         ctx.fillStyle = "#ff0000";
         ctx.textAlign = "right";
         ctx.textBaseline = "bottom";
-        ctx.fillText(stamp, canvas.width - 8, canvas.height - 8);
+        ctx.fillText(stamp, canvas.width - padding, canvas.height - padding);
 
         callback(canvas.toDataURL("image/png"));
     };

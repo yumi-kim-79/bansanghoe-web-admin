@@ -217,6 +217,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **서명 워터마크 흰색 마스킹을 텍스트 영역으로 한정** (2026-04-28)
+  - `holiday_reqeust_info.php` `addTimestampToSignature()`:
+    - 하단 30px 전체 흰색 띠 → `ctx.measureText(stamp).width` 로 텍스트 너비 측정 후 해당 영역(가로 textWidth + 좌우 4px 여유, 세로 fontSize + 상하 4px 여유)만 흰색 사각형으로 마스킹
+    - 우측 하단 8px 패딩 유지, 24px 빨간색 타임스탬프 그대로 합성
+    - 서명 본체 글씨가 하단 끝까지 길게 내려가도 텍스트 영역 외에는 가리지 않음
 - [x] **서명 워터마크 합성 시 하단 30px 흰색 덮어씌움** (2026-04-28)
   - `holiday_reqeust_info.php` `addTimestampToSignature()`:
     - `ctx.drawImage()` 직후 `ctx.fillRect(0, canvas.height - 30, canvas.width, 30)` (흰색)으로 하단 30px 띠 마스킹 추가
