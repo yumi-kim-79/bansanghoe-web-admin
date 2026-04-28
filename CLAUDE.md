@@ -217,6 +217,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **서명 워터마크 폰트 크기 12px → 24px** (2026-04-28)
+  - `holiday_reqeust_info.php` `addTimestampToSignature()`: `ctx.font = "12px sans-serif"` → `"24px sans-serif"`
+  - 사유: 200px 리사이즈 후 가독성 부족으로 키움
 - [x] **저장된 서명 불러오기에도 타임스탬프 워터마크 적용** (2026-04-28)
   - `holiday_reqeust_info.php` `signLoad()`:
     - `/data/file/approval/{fil_name}` 경로(`imgSRc`)를 `addTimestampToSignature(imgSRc, callback)` 에 그대로 전달 → 임시 캔버스에 그려서 우측 하단에 `YYYY.MM.DD HH:MM` 합성한 dataURL 생성
