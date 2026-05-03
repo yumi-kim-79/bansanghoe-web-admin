@@ -217,6 +217,23 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **검침/단지/세대 통합 API 재작성 — `api/meter_api.php`** (2026-04-29)
+  - 배경: 서버에만 존재하던 `meter_api.php` 가 git clean 으로 소실 → 본 저장소에 신규 커밋
+  - 3 액션 지원:
+    - `?action=buildings`: `a_building` (`is_del=0 AND is_use=1`) → 응답 `[{building_id, building_name, address, total_units}]` (`address` 는 `building_addr` + `building_addr2` concat, `total_units` 는 `a_building_ho` COUNT 서브쿼리)
+    - `?action=units&building_id=N`: `units_api.php` 와 동일 페이로드 (`move_in_date` 포함)
+    - `?action=meter&building_id=N&year=YYYY&month=M[&type=electro|water]`: 당월·전월 `a_meter_building.mr_idx` 조회 후 `a_meter_reading` LEFT JOIN 으로 `prev_value/curr_value/usage` 산출. 1월 요청 시 전월은 전년 12월로 자동 처리. 타입 미지정 시 `electro` 기본
+  - PDO 직접 연결 + prepared statement, CORS 헤더 동일 패턴
+  - `docs/CONTEXT.md` API 표 + `CHANGELOG.md` 갱신
+- [x] **세대(Units) 조회 API 신규 — `api/units_api.php`** (2026-04-29)
+  - 신규 엔드포인트 `GET /api/units_api.php?action=units&building_id=N`
+  - 응답: `[{ ho_id, dong_id, dong_name, ho_name, ho_owner, ho_size, move_in_date }, ...]`
+  - `move_in_date` 는 `a_building_ho.ho_tenant_at` 매핑. 빈값 또는 `'0000-00-00'` 은 JSON `null` 로 변환
+  - 정렬: `dong_name ASC, ho_name ASC`
+  - `is_del = 0` 필터, `LEFT JOIN a_building_dong` 으로 동명 조인
+  - 기존 `api/building_settings_api.php` 와 동일 PDO 직접 연결 패턴 (Gnuboard `_common.php` 의존 없음, prepared statement)
+  - 본 저장소에는 `meter_api.php` 가 없어 (서버 전용) 합치는 대신 신규 파일로 분리
+  - `docs/CONTEXT.md` API 표 + `CHANGELOG.md` 갱신
 - [x] **noti8(점검일지) 신규 카테고리 + 잔여 게이트 정책 결정** (2026-04-28)
   - 매핑 정책 결정:
     - 점검일지 작성 → 매니저 = **noti8 신규 컬럼** (전용 카테고리)
