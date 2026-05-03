@@ -217,6 +217,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **단지 담당자 설정 화면에 전체선택 체크박스 추가** (2026-05-04)
+  - `adm/building_mng_add.php` 담당자 설정 섹션:
+    - 미배정 담당자 / 배정된 담당자 패널 헤더 각각에 "전체선택" 체크박스 추가 (`#select_all_unassigned`, `#select_all_assigned`)
+    - JS `toggleSelectAll(listId, isChecked)`: 해당 리스트의 `.manager_item` 체크박스를 일괄 토글, **검색 필터로 가려진 항목(`style.display="none"`)은 제외**
+    - `moveManagers()` 호출 후 양쪽 전체선택 체크박스 자동 해제 (이동된 항목 처리 후 일관 상태)
+    - CSS: `.manager_panel_title` flex 레이아웃 (제목 좌측, 전체선택 우측), `.select_all_label` 스타일 신규
 - [x] **검침/단지/세대 통합 API 재작성 — `api/meter_api.php`** (2026-04-29)
   - 배경: 서버에만 존재하던 `meter_api.php` 가 git clean 으로 소실 → 본 저장소에 신규 커밋
   - 3 액션 지원:

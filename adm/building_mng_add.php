@@ -392,7 +392,13 @@ add_javascript(G5_POSTCODE_JS, 0);    //다음 주소 js
             </div>
             <div class="manager_dual_box">
                 <div class="manager_panel">
-                    <div class="manager_panel_title">미배정 담당자</div>
+                    <div class="manager_panel_title">
+                        <span>미배정 담당자</span>
+                        <label class="select_all_label">
+                            <input type="checkbox" id="select_all_unassigned" onchange="toggleSelectAll('unassigned_list', this.checked)">
+                            전체선택
+                        </label>
+                    </div>
                     <div class="manager_list" id="unassigned_list">
                         <?php while($mrow = sql_fetch_array($all_mng_res)){
                             $is_assigned = in_array($mrow['mng_id'], $assigned_ids);
@@ -412,7 +418,13 @@ add_javascript(G5_POSTCODE_JS, 0);    //다음 주소 js
                     <button type="button" class="btn btn_02" onclick="moveManagers('remove');">← 제거</button>
                 </div>
                 <div class="manager_panel">
-                    <div class="manager_panel_title">배정된 담당자 <span id="assigned_count">(<?php echo count($assigned_ids);?>명)</span></div>
+                    <div class="manager_panel_title">
+                        <span>배정된 담당자 <span id="assigned_count">(<?php echo count($assigned_ids);?>명)</span></span>
+                        <label class="select_all_label">
+                            <input type="checkbox" id="select_all_assigned" onchange="toggleSelectAll('assigned_list', this.checked)">
+                            전체선택
+                        </label>
+                    </div>
                     <div class="manager_list" id="assigned_list">
                         <?php
                         // 배정된 담당자 다시 조회 (상세 정보 포함)
@@ -446,7 +458,9 @@ add_javascript(G5_POSTCODE_JS, 0);    //다음 주소 js
     .manager_search_box {margin-bottom:10px;}
     .manager_dual_box {display:flex;gap:10px;align-items:stretch;}
     .manager_panel {flex:1;border:1px solid #d6dce7;border-radius:6px;overflow:hidden;}
-    .manager_panel_title {padding:8px 12px;background:#f4f6f9;font-weight:600;font-size:13px;border-bottom:1px solid #d6dce7;}
+    .manager_panel_title {padding:8px 12px;background:#f4f6f9;font-weight:600;font-size:13px;border-bottom:1px solid #d6dce7;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+    .select_all_label {font-weight:400;font-size:12px;cursor:pointer;display:inline-flex;gap:4px;align-items:center;color:#444;}
+    .select_all_label input[type="checkbox"] {margin:0;}
     .manager_list {height:240px;overflow-y:auto;padding:4px;}
     .manager_item {display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;border-radius:4px;font-size:12px;}
     .manager_item:hover {background:#f0f7ff;}
@@ -494,11 +508,25 @@ add_javascript(G5_POSTCODE_JS, 0);    //다음 주소 js
             });
         }
         updateCount();
+        // 이동 후 전체선택 체크박스 해제
+        var sa1 = document.getElementById('select_all_unassigned');
+        var sa2 = document.getElementById('select_all_assigned');
+        if(sa1) sa1.checked = false;
+        if(sa2) sa2.checked = false;
     }
 
     function updateCount(){
         var count = document.querySelectorAll('#assigned_list .manager_item').length;
         document.getElementById('assigned_count').textContent = '(' + count + '명)';
+    }
+
+    // 미배정/배정 목록 전체선택 (검색 필터로 가려진 항목은 제외)
+    function toggleSelectAll(listId, isChecked){
+        document.querySelectorAll('#' + listId + ' .manager_item').forEach(function(item){
+            if(item.style.display === 'none') return;
+            var cb = item.querySelector('input[type="checkbox"]');
+            if(cb) cb.checked = isChecked;
+        });
     }
     </script>
 
