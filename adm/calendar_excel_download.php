@@ -45,8 +45,8 @@ $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 $sheet->setTitle($cal_name);
 
-$sheet->getStyle('A:H')->getFont()->setSize(13);
-$sheet->mergeCells('A1:H1');
+$sheet->getStyle('A:I')->getFont()->setSize(13);
+$sheet->mergeCells('A1:I1');
 $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 $sheet->setCellValue('A1', '신반상회 '.$year.'-'.$month_pad.' '.$cal_name);
 $sheet->getStyle('A1')->getFont()->setSize(20)->setBold(true);
@@ -60,6 +60,7 @@ $sheet->setCellValue('E3', '작성자');
 $sheet->setCellValue('F3', '담당자');
 $sheet->setCellValue('G3', '처리자');
 $sheet->setCellValue('H3', '처리완료');
+$sheet->setCellValue('I3', '내용');
 
 $sheet->getColumnDimension('A')->setWidth(8);
 $sheet->getColumnDimension('B')->setWidth(14);
@@ -69,9 +70,10 @@ $sheet->getColumnDimension('E')->setWidth(20);
 $sheet->getColumnDimension('F')->setWidth(20);
 $sheet->getColumnDimension('G')->setWidth(20);
 $sheet->getColumnDimension('H')->setWidth(10);
+$sheet->getColumnDimension('I')->setWidth(50);
 
-$sheet->getStyle('A3:H3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-$sheet->getStyle('A3:H3')->getFont()->setSize(14)->setBold(true);
+$sheet->getStyle('A3:I3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+$sheet->getStyle('A3:I3')->getFont()->setSize(14)->setBold(true);
 
 // 작성자/담당자/처리자 표시 헬퍼 — get_schedule.php 와 동일 규칙
 function _excel_writer_label($wid){
@@ -113,9 +115,15 @@ while($row = sql_fetch_array($res)){
     $sheet->setCellValue('G'.$cell, $processor ?: '-');
     $sheet->setCellValue('H'.$cell, $row['is_process'] ? '완료' : '미처리');
 
-    $sheet->getStyle('A'.$cell.':H'.$cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-    $sheet->getStyle('A'.$cell.':H'.$cell)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+    // 내용: HTML 태그 제거 + 엔티티 디코드 후 셀에 입력 (에디터 HTML 저장 대비)
+    $content_plain = trim(html_entity_decode(strip_tags($row['cal_content'] ?? ''), ENT_QUOTES, 'UTF-8'));
+    $sheet->setCellValue('I'.$cell, $content_plain);
+    $sheet->getStyle('I'.$cell)->getAlignment()->setWrapText(true);
+
+    $sheet->getStyle('A'.$cell.':I'.$cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('A'.$cell.':I'.$cell)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
     $sheet->getStyle('D'.$cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+    $sheet->getStyle('I'.$cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
     $cell++;
     $num++;
@@ -123,7 +131,7 @@ while($row = sql_fetch_array($res)){
 
 // 데이터 0건이면 안내 행
 if($num === 1){
-    $sheet->mergeCells('A4:H4');
+    $sheet->mergeCells('A4:I4');
     $sheet->setCellValue('A4', $year.'-'.$month_pad.' 에 등록된 일정이 없습니다.');
     $sheet->getStyle('A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 }
