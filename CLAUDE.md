@@ -217,6 +217,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **전출 정산 엑셀에 "내용" 컬럼 추가** (2026-05-11)
+  - `adm/calendar_excel_download.php`: I 컬럼 "내용" 추가 (헤더 + 데이터 + 너비 50 + WrapText + 좌측 정렬)
+  - 데이터: `cal_content` 를 `strip_tags()` + `html_entity_decode(..., ENT_QUOTES, 'UTF-8')` 로 정제 (에디터 HTML 저장 케이스 대비)
+  - 모든 범위(`A:H` → `A:I`, `A1:H1` → `A1:I1`, 헤더 스타일, 본문 정렬, 빈 데이터 안내 행) 일관되게 I 까지 확장
+  - 사용자 요청 항목 중 (2) is_process "완료/미처리" 표시, (3) is_process=1 시 process_id 매니저 표시는 직전 작업(엑셀 다운로드 신규)에서 이미 동일 사양으로 작성되어 있어 변경 없음
 - [x] **전출 정산 엑셀 버튼 URL 을 월 이동에 동기화** (2026-05-11)
   - `adm/calendar_list.php`: 엑셀 다운로드 anchor 에 `id="excel_download_btn"` 부여
   - `moveCal(year, month, type, calcode)` 진입 시점에 `excel_download_btn.href` 를 현재 년/월로 재작성 (`encodeURIComponent` 안전화)
