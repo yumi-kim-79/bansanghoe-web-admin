@@ -217,6 +217,10 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **전출 정산 엑셀 버튼 URL 을 월 이동에 동기화** (2026-05-11)
+  - `adm/calendar_list.php`: 엑셀 다운로드 anchor 에 `id="excel_download_btn"` 부여
+  - `moveCal(year, month, type, calcode)` 진입 시점에 `excel_download_btn.href` 를 현재 년/월로 재작성 (`encodeURIComponent` 안전화)
+  - 모든 월 이동 경로(년/월 드롭다운, 캘린더 prev/next, 초기 로드)가 `moveCal()` 단일 진입점을 거치므로 한 곳 수정으로 전 경로 커버
 - [x] **전출 정산 캘린더 월별 엑셀 다운로드 추가** (2026-05-11)
   - `adm/calendar_list.php`: `cal_code='move_out_settlement'` 일 때 상단 액션바에 "엑셀 다운로드" 버튼 노출 (현재 선택된 `year`/`month` 그대로 전달)
   - `adm/calendar_excel_download.php` 신규: `GET cal_code, year, month` 파라미터, `a_calendar` JOIN `a_mng` + `a_building` 으로 월 단위 조회 후 PhpSpreadsheet 로 `.xlsx` 출력

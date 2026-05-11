@@ -173,7 +173,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     </div>
     <div class="btn_fixed_top">
         <?php if ($cal_code == 'move_out_settlement') { ?>
-            <a href="./calendar_excel_download.php?cal_code=<?php echo $cal_code; ?>&amp;year=<?php echo $year; ?>&amp;month=<?php echo $month; ?>" class="btn btn_02">엑셀 다운로드</a>
+            <a id="excel_download_btn" href="./calendar_excel_download.php?cal_code=<?php echo $cal_code; ?>&amp;year=<?php echo $year; ?>&amp;month=<?php echo $month; ?>" class="btn btn_02">엑셀 다운로드</a>
         <?php } ?>
         <?php if ($is_admin == 'super') { ?>
             <a href="./calendar_form.php?cal_code=<?php echo $cal_code?>" id="member_add" class="btn btn_03">등록</a>
@@ -209,10 +209,18 @@ function cal_month_change(){
 
 
 function moveCal(year, month, type, calcode){
+    // 엑셀 다운로드 버튼 URL 동기화 (월 이동 시 함께 업데이트)
+    var excelBtn = document.getElementById('excel_download_btn');
+    if(excelBtn){
+        excelBtn.href = './calendar_excel_download.php?cal_code=' + encodeURIComponent(calcode)
+            + '&year=' + encodeURIComponent(year)
+            + '&month=' + encodeURIComponent(month);
+    }
+
     $.ajax({
         type: "POST",
         url: "./get_calendar2.php",
-        data: {toYear:year, toMonth:month, type:type, calcode:calcode}, 
+        data: {toYear:year, toMonth:month, type:type, calcode:calcode},
         cache: false,
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
