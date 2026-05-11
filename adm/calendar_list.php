@@ -172,6 +172,9 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         </div>
     </div>
     <div class="btn_fixed_top">
+        <?php if ($cal_code == 'move_out_settlement') { ?>
+            <a href="./calendar_excel_download.php?cal_code=<?php echo $cal_code; ?>&amp;year=<?php echo $year; ?>&amp;month=<?php echo $month; ?>" class="btn btn_02">엑셀 다운로드</a>
+        <?php } ?>
         <?php if ($is_admin == 'super') { ?>
             <a href="./calendar_form.php?cal_code=<?php echo $cal_code?>" id="member_add" class="btn btn_03">등록</a>
         <?php } ?>
