@@ -217,6 +217,13 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **엑셀 처리완료 데이터 소스를 `a_calendar_process` 로 전환** (2026-05-11)
+  - `adm/calendar_excel_download.php`:
+    - SELECT 에 `LEFT JOIN a_calendar_process AS proc ON proc.cal_idx = cal.cal_idx AND proc.process_date = cal.cal_date` 추가
+    - `proc.process_id AS proc_process_id` 컬럼 선택
+    - 처리완료 여부: `cal.is_process` → `!empty($row['proc_process_id'])` 로 변경
+    - 처리자: `cal.process_id` → `proc.process_id` 기반 `_excel_writer_label()` 호출
+  - 사유: 반복일정은 occurrence 별로 `a_calendar_process` 에 개별 row 가 쌓이므로(`cal_idx` + `process_date` 매칭), `a_calendar.is_process` (단일 row 플래그) 보다 정확한 처리 상태를 반영
 - [x] **전출 정산 엑셀에 "내용" 컬럼 추가** (2026-05-11)
   - `adm/calendar_excel_download.php`: I 컬럼 "내용" 추가 (헤더 + 데이터 + 너비 50 + WrapText + 좌측 정렬)
   - 데이터: `cal_content` 를 `strip_tags()` + `html_entity_decode(..., ENT_QUOTES, 'UTF-8')` 로 정제 (에디터 HTML 저장 케이스 대비)

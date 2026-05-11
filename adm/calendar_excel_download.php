@@ -28,11 +28,16 @@ $cal_setting = sql_fetch("SELECT cal_name FROM a_calendar_setting WHERE cal_code
 $cal_name = $cal_setting ? $cal_setting['cal_name'] : $cal_code;
 
 // ─── 일정 조회 ─────────────────────────────────────────────────────
+// 처리완료 여부/처리자는 a_calendar_process (날짜별 처리 레코드) 에서 가져옴
+//   반복일정의 경우 occurrence 별로 별도 row 가 존재하므로 cal_idx + process_date 매칭
 $schedule_sql = "SELECT cal.*, mng.mng_name, mng.mng_department AS mng_dept_idx,
-                        building.building_name
+                        building.building_name,
+                        proc.process_id AS proc_process_id
                  FROM a_calendar AS cal
-                 LEFT JOIN a_mng AS mng           ON cal.mng_id = mng.mng_id
-                 LEFT JOIN a_building AS building ON cal.building_id = building.building_id
+                 LEFT JOIN a_mng AS mng                ON cal.mng_id = mng.mng_id
+                 LEFT JOIN a_building AS building      ON cal.building_id = building.building_id
+                 LEFT JOIN a_calendar_process AS proc  ON proc.cal_idx = cal.cal_idx
+                                                     AND proc.process_date = cal.cal_date
                  WHERE cal.is_del = 0
                    AND cal.cal_code = '{$cal_code}'
                    AND cal.cal_date LIKE '{$date_prefix}%'
@@ -100,11 +105,9 @@ while($row = sql_fetch_array($res)){
     }
     $manager = trim($dept_name.' '.($row['mng_name'] ?? ''));
 
-    // 처리자: 처리완료 시 process_id 의 매니저 부서+이름
-    $processor = '';
-    if($row['is_process']){
-        $processor = _excel_writer_label($row['process_id']);
-    }
+    // 처리자: a_calendar_process.process_id 가 있으면 그 매니저의 부서+이름
+    $is_done = !empty($row['proc_process_id']);
+    $processor = $is_done ? _excel_writer_label($row['proc_process_id']) : '';
 
     $sheet->setCellValue('A'.$cell, $num);
     $sheet->setCellValue('B'.$cell, $row['cal_date']);
@@ -113,7 +116,7 @@ while($row = sql_fetch_array($res)){
     $sheet->setCellValue('E'.$cell, $writer ?: '-');
     $sheet->setCellValue('F'.$cell, $manager ?: '-');
     $sheet->setCellValue('G'.$cell, $processor ?: '-');
-    $sheet->setCellValue('H'.$cell, $row['is_process'] ? '완료' : '미처리');
+    $sheet->setCellValue('H'.$cell, $is_done ? '완료' : '미처리');
 
     // 내용: HTML 태그 제거 + 엔티티 디코드 후 셀에 입력 (에디터 HTML 저장 대비)
     $content_plain = trim(html_entity_decode(strip_tags($row['cal_content'] ?? ''), ENT_QUOTES, 'UTF-8'));
