@@ -217,6 +217,14 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **전출 정산 캘린더 월별 엑셀 다운로드 추가** (2026-05-11)
+  - `adm/calendar_list.php`: `cal_code='move_out_settlement'` 일 때 상단 액션바에 "엑셀 다운로드" 버튼 노출 (현재 선택된 `year`/`month` 그대로 전달)
+  - `adm/calendar_excel_download.php` 신규: `GET cal_code, year, month` 파라미터, `a_calendar` JOIN `a_mng` + `a_building` 으로 월 단위 조회 후 PhpSpreadsheet 로 `.xlsx` 출력
+  - 컬럼: 번호 / 날짜 / 단지명 / 제목 / 작성자 / 담당자(부서+이름) / 처리자 / 처리완료
+  - 작성자·처리자 표시 규칙은 `inc/get_schedule.php` 와 동일: `wid='admin'` → "신반상회", 그 외 매니저는 `get_manger()` → 부서 + 이름
+  - `mng_department = '-1'` → "전체", 그 외 → `get_department_name()` 으로 부서명 lookup
+  - 파일명: `신반상회_{카테고리명}_YYYYMM.xlsx` (UTF-8 filename* 인코딩, IE/Edge 폴백 포함)
+  - 일정 0건이면 안내 행 출력
 - [x] **단지 담당자 설정 화면에 전체선택 체크박스 추가** (2026-05-04)
   - `adm/building_mng_add.php` 담당자 설정 섹션:
     - 미배정 담당자 / 배정된 담당자 패널 헤더 각각에 "전체선택" 체크박스 추가 (`#select_all_unassigned`, `#select_all_assigned`)
