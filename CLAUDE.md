@@ -217,6 +217,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **전출 정산 등록 폼 내용(cal_content) 기본 템플릿 자동 입력** (2026-05-12)
+  - 대상: `adm/calendar_form.php` (어드민 웹) + `adm/calendar_form2.php` (sm 매니저 모바일)
+  - 조건: `$w != 'u'` (신규 등록) AND `$cal_code == 'move_out_settlement'` AND `cal_content` 가 비어있을 때만 적용 → 수정(`w=u`)·기타 카테고리·기존 입력 시 영향 없음
+  - 템플릿: 접수일/전출자/전입자/소유주/부동산 연락처 → (빈줄) → 승강기/이사수수료/입금/기타 (▶ 마커, `\n` 줄바꿈)
+  - 적용 위치: `<textarea name="cal_content">` 직전에서 PHP 분기로 `$cal_content_val` 결정 후 echo
 - [x] **엑셀 처리완료 데이터 소스를 `a_calendar_process` 로 전환** (2026-05-11)
   - `adm/calendar_excel_download.php`:
     - SELECT 에 `LEFT JOIN a_calendar_process AS proc ON proc.cal_idx = cal.cal_idx AND proc.process_date = cal.cal_date` 추가

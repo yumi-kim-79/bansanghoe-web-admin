@@ -522,7 +522,14 @@ if($row['is_del']) alert('삭제된 일정입니다.');
                <tr class="tr_show">
                     <th>내용</th>
                     <td colspan="3">
-                        <textarea name="cal_content" id="cal_content" class="bansang_ipt ver2 full ta"><?php echo $row['cal_content']; ?></textarea>
+                        <?php
+                        // 전출 정산 신규 등록 시 cal_content 기본 템플릿
+                        $cal_content_val = $row['cal_content'] ?? '';
+                        if($w != 'u' && $cal_code == 'move_out_settlement' && $cal_content_val === ''){
+                            $cal_content_val = "▶접수일 : \n▶전출자성함/연락처/전출일 : \n▶전입자성함/연락처/전입일/차량정보 : \n▶소유주성함/연락처 :\n▶부동산 연락처 :\n\n▶승강기사용여부(전출/전입) :\n▶이사수수료 부과여부 : \n▶입금일자/입금자명/입금액 :\n▶기타";
+                        }
+                        ?>
+                        <textarea name="cal_content" id="cal_content" class="bansang_ipt ver2 full ta"><?php echo $cal_content_val; ?></textarea>
                     </td>
                </tr>
             </tbody>
