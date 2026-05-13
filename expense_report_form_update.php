@@ -200,12 +200,12 @@ if(isset($_FILES['expense_file']['name'])){
                     chmod($dest_file, G5_FILE_PERMISSION);
                     imagedestroy($cfile);
     
-                    resizeImage($dest_file, 720, 720);
+                    resizeImage($dest_file, 1920, 1920);
 
                     $upload[$i]['image'] = @getimagesize($dest_file); //이미지 축소된 정보로 다시 저장
                 }else{
                     if(move_uploaded_file($tmp_file, $dest_file)){
-                        resizeImage($dest_file, 720, 720);
+                        resizeImage($dest_file, 1920, 1920);
     
                         $upload[$i]['image'] = @getimagesize($dest_file); //이미지 축소된 정보로 다시 저장
                     }else{

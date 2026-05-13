@@ -217,6 +217,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **품의서 첨부 이미지 리사이즈 한도 720→1920** (2026-05-13)
+  - `expense_report_form_update.php`: `resizeImage($dest_file, 720, 720)` (2개소: L203 이미지 변환 분기 + L208 일반 업로드 분기) → `1920, 1920`
+  - 모바일 화면에서 영수증/서류 글씨 가독성 개선
 - [x] **서명 이미지 해상도 + 포맷 개선 (200→800px, PNG→JPEG 0.92)** (2026-05-13)
   - `holiday_reqeust_info.php`:
     - `saveSign()` L346: `resizeImage(dataURL, 200, ...)` → `resizeImage(dataURL, 800, ...)` — 결재서류 인쇄/확대 시 픽셀화 완화
