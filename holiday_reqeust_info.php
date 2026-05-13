@@ -343,7 +343,7 @@ function saveSign(){
         
         const dataURL = signaturePad.toDataURL("image/png");
         let sign_dataURL = "";
-        resizeImage(dataURL, 200, function(resizedDataURL) {
+        resizeImage(dataURL, 800, function(resizedDataURL) {
             //$("#approval_signature").val(resizedDataURL);
             $("#" + ele + "_t").val(resizedDataURL);
             sign_dataURL = resizedDataURL;
@@ -529,8 +529,11 @@ function resizeImage(base64Str, newWidth, callback) {
         canvas.width = newWidth;
         canvas.height = img.height * scale; // 높이 비율 유지
 
+        // JPEG 는 투명 지원 안 함 → 서명 투명 배경이 검정으로 렌더되지 않도록 흰색 채움
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        let resizedBase64 = canvas.toDataURL("image/png");
+        let resizedBase64 = canvas.toDataURL("image/jpeg", 0.92);
 
         callback(resizedBase64);
     };

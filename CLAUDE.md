@@ -217,6 +217,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **서명 이미지 해상도 + 포맷 개선 (200→800px, PNG→JPEG 0.92)** (2026-05-13)
+  - `holiday_reqeust_info.php`:
+    - `saveSign()` L346: `resizeImage(dataURL, 200, ...)` → `resizeImage(dataURL, 800, ...)` — 결재서류 인쇄/확대 시 픽셀화 완화
+    - `resizeImage()` L533: `canvas.toDataURL("image/png")` → `canvas.toDataURL("image/jpeg", 0.92)` — 고화질 유지하면서 PNG 대비 용량 절감
+    - JPEG 는 투명 비지원이므로 `drawImage` 전에 `ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,w,h)` 로 흰색 배경 prefill (서명 투명 영역이 검정으로 렌더되는 문제 방지)
+  - 사용자 요청 중 `signLoad()` 의 200→800 변경 부분은 **변경 대상 없음**: 직전 리팩토링(2026-04-28) 에서 signLoad 가 `resizeImage` 호출 없이 `data.data.signature_data` 원본을 그대로 서버 전송하는 구조로 바뀌어 있음
 - [x] **전출 정산 등록 폼 내용(cal_content) 기본 템플릿 자동 입력** (2026-05-12)
   - 대상: `adm/calendar_form.php` (어드민 웹) + `adm/calendar_form2.php` (sm 매니저 모바일)
   - 조건: `$w != 'u'` (신규 등록) AND `$cal_code == 'move_out_settlement'` AND `cal_content` 가 비어있을 때만 적용 → 수정(`w=u`)·기타 카테고리·기존 입력 시 영향 없음
