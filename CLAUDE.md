@@ -217,6 +217,14 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **결재 타임스탬프 오버레이를 어드민·인쇄 화면에도 적용 (옵션 B)** (2026-05-20)
+  - 매니저앱 `holiday_reqeust_info.php` 와 동일 패턴(외곽 div `position:relative` + 자식 `<span class="sign_timestamp">` 인라인 absolute, 빨간 14px, 우측 5px/하단 5px) 을 7개 파일에 일괄 적용
+  - 적용 파일 (3 결재자 × 7 파일 = 21개 오버레이):
+    - `adm/approval_info.php` — 결재 상세보기 (Type A: `mng_sign_img_box` 래퍼)
+    - `adm/approval_form_ajax1.php` (paid_holiday) ~ `adm/approval_form_ajax5.php` (overtime) — 5개 ajax 부분 렌더. ajax1/2/3/5#1 은 기존 `mng_sign_img_box` 래퍼에 `position:relative;display:inline-block;` 추가. ajax4 전부 + ajax5#2/#3 은 래퍼가 없어 `<div class="mng_sign_img_box" style="position:relative;display:inline-block;">` 으로 감쌈
+    - `holiday_request_sample.php` — 인쇄 샘플 뷰 (`sign_img_box` 래퍼)
+  - 데이터 소스: 각 결재자 SQL `SELECT soi.* FROM a_sign_off_mng_sign as soi ...` 에 `created_at` 이미 포함 → SQL 변경 불필요. `date('Y.m.d H:i', strtotime(...))` + `!empty(...)` 가드
+  - **범위 외 (별도 작업 권장)**: `holiday_reqeust_form.php` 와 `holiday_request_sample.php` L445 (신청자 서명 영역) 는 `a_sign_off_img` 라는 **다른 테이블**을 사용 — 결재자(`a_sign_off_mng_sign`) 와 별개. 신청자 서명에도 타임스탬프가 필요하면 해당 테이블의 created_at 컬럼 존재 여부 확인 후 별도 처리 필요
 - [x] **품의서 첨부 이미지 리사이즈 한도 720→1920** (2026-05-13)
   - `expense_report_form_update.php`: `resizeImage($dest_file, 720, 720)` (2개소: L203 이미지 변환 분기 + L208 일반 업로드 분기) → `1920, 1920`
   - 모바일 화면에서 영수증/서류 글씨 가독성 개선

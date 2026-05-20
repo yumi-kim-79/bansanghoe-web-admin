@@ -162,8 +162,8 @@ $file_total = sql_num_rows($file_res);
             <div class="sign_box_wrap">
                 <div class="sign_box">
                     <div class="sign_box_tit_box"><?php echo $sign_off_mng_id1['mg_name']; ?></div>
-                    <div class="sign_img_box">
-                        <?php 
+                    <div class="sign_img_box" style="position:relative;">
+                        <?php
                         $sql_sign_off_img = "SELECT soi.*, sig.fil_name FROM a_sign_off_mng_sign as soi
                         LEFT JOIN a_signature as sig ON soi.sg_idx = sig.sg_idx
                         WHERE soi.is_del = 0 and soi.sign_id = '{$sign_id}' and sign_mng_data = 'sign_off_mng_id1'";
@@ -171,6 +171,9 @@ $file_total = sql_num_rows($file_res);
                         ?>
                        <?php if($sign_img_row){?>
                         <img src="/data/file/approval/<?php echo $sign_img_row['fil_name']; ?>" alt="">
+                        <?php if(!empty($sign_img_row['created_at'])): ?>
+                        <span class="sign_timestamp" style="position:absolute;bottom:5px;right:5px;color:red;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row['created_at'])); ?></span>
+                        <?php endif; ?>
                         <?php }?>
                     </div>
                 </div>
@@ -181,8 +184,8 @@ $file_total = sql_num_rows($file_res);
                     ?>
                 <div class="sign_box">
                     <div class="sign_box_tit_box"><?php echo $sign_off_mng_id2['mg_name']; ?></div>
-                    <div class="sign_img_box">
-                        <?php 
+                    <div class="sign_img_box" style="position:relative;">
+                        <?php
                         $sql_sign_off_img2 = "SELECT soi.*, sig.fil_name FROM a_sign_off_mng_sign as soi
                         LEFT JOIN a_signature as sig ON soi.sg_idx = sig.sg_idx
                         WHERE soi.is_del = 0 and soi.sign_id = '{$sign_id}' and sign_mng_data = 'sign_off_mng_id2'";
@@ -190,6 +193,9 @@ $file_total = sql_num_rows($file_res);
                         ?>
                        <?php if($sign_img_row2){?>
                         <img src="/data/file/approval/<?php echo $sign_img_row2['fil_name']; ?>" alt="">
+                        <?php if(!empty($sign_img_row2['created_at'])): ?>
+                        <span class="sign_timestamp" style="position:absolute;bottom:5px;right:5px;color:red;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row2['created_at'])); ?></span>
+                        <?php endif; ?>
                         <?php }?>
                     </div>
                 </div>
@@ -197,8 +203,8 @@ $file_total = sql_num_rows($file_res);
                 <?php if($sign_off_row['sign_off_mng_id3'] != ""){?>
                 <div class="sign_box">
                     <div class="sign_box_tit_box"><?php echo $sign_off_mng_id3['mg_name']; ?></div>
-                    <div class="sign_img_box">
-                     <?php 
+                    <div class="sign_img_box" style="position:relative;">
+                     <?php
                         $sql_sign_off_img3 = "SELECT soi.*, sig.fil_name FROM a_sign_off_mng_sign as soi
                         LEFT JOIN a_signature as sig ON soi.sg_idx = sig.sg_idx
                         WHERE soi.is_del = 0 and soi.sign_id = '{$sign_id}' and sign_mng_data = 'sign_off_mng_id3'";
@@ -206,6 +212,9 @@ $file_total = sql_num_rows($file_res);
                         ?>
                        <?php if($sign_img_row3){?>
                         <img src="/data/file/approval/<?php echo $sign_img_row3['fil_name']; ?>" alt="">
+                        <?php if(!empty($sign_img_row3['created_at'])): ?>
+                        <span class="sign_timestamp" style="position:absolute;bottom:5px;right:5px;color:red;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row3['created_at'])); ?></span>
+                        <?php endif; ?>
                         <?php }?>
                     </div>
                 </div>
