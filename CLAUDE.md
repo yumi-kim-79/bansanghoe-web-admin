@@ -217,6 +217,16 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **점검일지 저장 시 활성 계약 서버 재검증 추가 (option 1)** (2026-05-20)
+  - 배경: 직전 작업(`e7061674`) 이후에도 오염 데이터 생성 (`inspection_idx=2025`, 2026-05-20 10:34) — 화면 표시 쿼리는 수정되었지만 저장 경로가 클라이언트 hidden 값을 그대로 신뢰. 페이지 캐시 / OPcache lag / 사전 로드 + 지연 제출 / 악의적 수정 등 어떤 경로로든 stale `company_idx` 가 POST 되면 그대로 저장됨
+  - `inspection_form_update.php` L8-9 직후 활성 계약 서버 재조회 블록 추가:
+    - `inspection_form.php:16` 과 동일 활성 계약 필터 (`is_del=0 AND is_temp=0 AND ct_status=0 AND ct_sdate<=today<=ct_edate`)
+    - 결과 0건이면 `die("현재 유효한 계약이 없습니다.")` — 명시적 에러
+    - 클라이언트 `$inspection_cmp` 와 서버 활성 계약이 다르면 `error_log("[INSP_CMP_OVERRIDE] ...")` 로깅 후 서버 값으로 덮어씀
+  - `$inspection_cmp` 변수가 이후 INSERT (L40) 에서 그대로 사용되므로 in-place override 만으로 모든 흐름 차단
+  - UPDATE 분기는 `inspection_cmp` 컬럼을 변경하지 않으므로 영향 없음
+  - `sql/inspection_cmp_audit_2026.sql` 신규 — 2026년 오염 데이터 전수 감사 (`suggested_correction`/`suggested_company_idx` 동시 노출, UPDATE 보정 시 사용)
+  - ⚠️ **서버 작업 대기**: 운영 DB 에서 `sql/inspection_cmp_audit_2026.sql` 실행 → 결과 보고 → 보정 가능 건만 UPDATE (UPDATE 는 사용자 승인 후 별도 진행)
 - [x] **QR 점검 어드민 경로 추가 조사 — 변경 없음** (2026-05-20) — 어드민에 별도 QR 진입 코드 경로 없음(`adm/inspection_print.php` 의 QR 인코딩 URL 이 사용자측 `/inspection_form.php` 가리킴). 운영 DB(`building_id=5, industry_idx=1`) 시뮬레이션: 활성 계약 1건(경성방재 `ct_idx=1405`) 매칭 — 직전 작업(`e7061674`)으로 이미 해결, 사용자 피드백 원인은 캐시/배포 이전 시점 추정. `adm/inspection_missing.php` 의 a_contract 정합성 보강은 별도 작업으로 분리(필요 시 진행).
 - [x] **QR 점검 진입 시 활성 계약만 매칭하도록 수정 (해지 업체 표시 차단)** (2026-05-20)
   - `inspection_form.php:16` — `a_contract` 단순 매칭(`building_id + industry_idx` 만 필터)이 만료·해지·임시저장 계약까지 잡아 잘못된 업체가 점검 화면에 노출되던 문제 수정

@@ -8,6 +8,30 @@ function isValidPhoneNumber($phone) {
 if($inspection_category == "") die(result_data(false, "업종이 선택되지 않았습니다. 다시 시도해주세요.", []));
 if($inspection_cmp == "") die(result_data(false, "업체가 선택되지 않았습니다. 다시 시도해주세요.", []));
 if($building_id == "") die(result_data(false, "단지가 선택되지 않았습니다. 다시 시도해주세요.", []));
+
+// === 활성 계약 서버 측 재검증 (option 1: 권위적 재조회 + 자동 정정) ===
+//   클라이언트가 보낸 inspection_cmp 는 페이지 캐시 / OPcache lag / 사전 로드 + 지연 제출
+//   등으로 stale 한 company_idx 일 수 있음. 화면 표시(inspection_form.php:16) 와 동일한
+//   활성 계약 필터를 저장 시점에 재실행하여 권위적인 company_idx 로 덮어씀.
+$today_date = date('Y-m-d');
+$active_contract = sql_fetch("SELECT company_idx FROM a_contract
+                              WHERE building_id = '{$building_id}'
+                                AND industry_idx = '{$inspection_category}'
+                                AND is_del = 0
+                                AND is_temp = 0
+                                AND ct_status = 0
+                                AND ct_sdate <= '{$today_date}'
+                                AND ct_edate >= '{$today_date}'
+                              ORDER BY ct_sdate DESC, ct_idx DESC
+                              LIMIT 1");
+if(!$active_contract){
+    die(result_data(false, "현재 유효한 계약이 없습니다. 관리자에게 문의해 주세요.", []));
+}
+if($inspection_cmp != $active_contract['company_idx']){
+    error_log("[INSP_CMP_OVERRIDE] building={$building_id} industry={$inspection_category} client={$inspection_cmp} -> active={$active_contract['company_idx']}");
+}
+$inspection_cmp = $active_contract['company_idx'];
+// === 활성 계약 재검증 끝 ===
 if($inspection_name == "") die(result_data(false, "작성자를 입력해주세요.", []));
 if($inspection_hp == "") die(result_data(false, "연락처를 입력해주세요.", []));
 if (!isValidPhoneNumber($inspection_hp)) die(result_data(false, "연락처를 올바른 형식으로 입력해주세요. ex)010-1111-1111", "visit_hp"));
