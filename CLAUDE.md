@@ -217,6 +217,7 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **QR 점검 어드민 경로 추가 조사 — 변경 없음** (2026-05-20) — 어드민에 별도 QR 진입 코드 경로 없음(`adm/inspection_print.php` 의 QR 인코딩 URL 이 사용자측 `/inspection_form.php` 가리킴). 운영 DB(`building_id=5, industry_idx=1`) 시뮬레이션: 활성 계약 1건(경성방재 `ct_idx=1405`) 매칭 — 직전 작업(`e7061674`)으로 이미 해결, 사용자 피드백 원인은 캐시/배포 이전 시점 추정. `adm/inspection_missing.php` 의 a_contract 정합성 보강은 별도 작업으로 분리(필요 시 진행).
 - [x] **QR 점검 진입 시 활성 계약만 매칭하도록 수정 (해지 업체 표시 차단)** (2026-05-20)
   - `inspection_form.php:16` — `a_contract` 단순 매칭(`building_id + industry_idx` 만 필터)이 만료·해지·임시저장 계약까지 잡아 잘못된 업체가 점검 화면에 노출되던 문제 수정
   - 변경 후 쿼리:
