@@ -12,8 +12,22 @@ $building_infos = get_builiding_info($bdi_data[0]);
 
 // print_r2($building_infos);
 
-//단지와 업종으로 계약된 업체가 있는지 확인
-$contract_info = sql_fetch("SELECT * FROM a_contract WHERE building_id = '{$bdi_data[0]}' and industry_idx = '{$bdi_data[1]}'");
+//단지 + 업종 + 오늘 날짜 기준 유효한 계약 1건 조회
+//  - is_del/is_temp/ct_status 필터로 정상 계약만
+//  - ct_sdate <= 오늘 <= ct_edate 로 만료/미시작 계약 제외
+//  - 다건 매칭 시 최근 계약 우선 (ORDER BY ct_sdate DESC, ct_idx DESC)
+//  QR 은 고정이므로 단지·업종에 활성 계약이 없으면 $contract_info 가 비어 안내 화면으로 분기
+$today_date = date('Y-m-d');
+$contract_info = sql_fetch("SELECT * FROM a_contract
+                            WHERE building_id = '{$bdi_data[0]}'
+                              AND industry_idx = '{$bdi_data[1]}'
+                              AND is_del = 0
+                              AND is_temp = 0
+                              AND ct_status = 0
+                              AND ct_sdate <= '{$today_date}'
+                              AND ct_edate >= '{$today_date}'
+                            ORDER BY ct_sdate DESC, ct_idx DESC
+                            LIMIT 1");
 
 //단지 업종 현재 연도와 월에 등록된 점검일지가 있는지
 $inspection_confirm = "SELECT * FROM a_inspection WHERE building_id = '{$bdi_data[0]}' and inspection_category = '{$bdi_data[1]}' and inspection_year = '{$year}' and inspection_month = '{$months}' and (inspection_status != 'Y' and inspection_status != 'H') ORDER BY inspection_idx desc limit 0,1 ";

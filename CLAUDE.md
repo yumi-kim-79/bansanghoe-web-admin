@@ -217,6 +217,18 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **QR 점검 진입 시 활성 계약만 매칭하도록 수정 (해지 업체 표시 차단)** (2026-05-20)
+  - `inspection_form.php:16` — `a_contract` 단순 매칭(`building_id + industry_idx` 만 필터)이 만료·해지·임시저장 계약까지 잡아 잘못된 업체가 점검 화면에 노출되던 문제 수정
+  - 변경 후 쿼리:
+    ```sql
+    SELECT * FROM a_contract
+    WHERE building_id = ? AND industry_idx = ?
+      AND is_del = 0 AND is_temp = 0 AND ct_status = 0
+      AND ct_sdate <= CURDATE() AND ct_edate >= CURDATE()
+    ORDER BY ct_sdate DESC, ct_idx DESC LIMIT 1
+    ```
+  - QR 자체는 고정이라 수정 불가 → 서버 측에서 동적으로 활성 계약을 선택하는 방식
+  - 매칭 0건일 경우 기존 `if($contract_info)` 가드가 안내 화면으로 분기 (별도 안내 메시지 추가는 별도 작업)
 - [x] **결재 타임스탬프 오버레이를 어드민·인쇄 화면에도 적용 (옵션 B)** (2026-05-20)
   - 매니저앱 `holiday_reqeust_info.php` 와 동일 패턴(외곽 div `position:relative` + 자식 `<span class="sign_timestamp">` 인라인 absolute, 빨간 14px, 우측 5px/하단 5px) 을 7개 파일에 일괄 적용
   - 적용 파일 (3 결재자 × 7 파일 = 21개 오버레이):
