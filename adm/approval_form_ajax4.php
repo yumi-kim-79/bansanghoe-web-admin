@@ -121,7 +121,12 @@ if($w == "u"){
                         <input type="hidden" name="sign_off_mng_id1" id="sign_off_mng_id1" value="<?php echo $row['sign_off_mng_id1'];?>" class="bansang_ipt" readonly>
                         <input type="text" name="sign_off_mng1" value="<?php echo $sign_off_mng1['mng_name'].' 결재완료';?>" class="bansang_ipt" readonly>
                         <?php if($sign_img_row){?>
-                        <img src="/data/file/approval/<?php echo $sign_img_row['fil_name']; ?>" alt="" class="mgt10">
+                        <div class="mng_sign_img_box" style="position:relative;display:inline-block;">
+                            <img src="/data/file/approval/<?php echo $sign_img_row['fil_name']; ?>" alt="" class="mgt10">
+                            <?php if(!empty($sign_img_row['created_at'])): ?>
+                            <span class="sign_timestamp" style="position:absolute;bottom:5px;right:5px;color:red;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row['created_at'])); ?></span>
+                            <?php endif; ?>
+                        </div>
                         <?php }?>
                     <?php }else{?>
                     <select name="sign_off_mng_id1" id="sign_off_mng_id1" class="bansang_sel" required>
@@ -150,7 +155,12 @@ if($w == "u"){
                         <input type="hidden" name="sign_off_mng_id2" id="sign_off_mng_id2" value="<?php echo $row['sign_off_mng_id2'];?>" class="bansang_ipt" readonly>
                         <input type="text" name="sign_off_mng2" value="<?php echo $sign_off_mng2['mng_name'].' 결재완료';?>" class="bansang_ipt" readonly>
                         <?php if($sign_img_row2){?>
-                        <img src="/data/file/approval/<?php echo $sign_img_row2['fil_name']; ?>" alt="" class="mgt10">
+                        <div class="mng_sign_img_box" style="position:relative;display:inline-block;">
+                            <img src="/data/file/approval/<?php echo $sign_img_row2['fil_name']; ?>" alt="" class="mgt10">
+                            <?php if(!empty($sign_img_row2['created_at'])): ?>
+                            <span class="sign_timestamp" style="position:absolute;bottom:5px;right:5px;color:red;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row2['created_at'])); ?></span>
+                            <?php endif; ?>
+                        </div>
                         <?php }?>
                     <?php }else{?>
                     <select name="sign_off_mng_id2" id="sign_off_mng_id2" class="bansang_sel" required <?php echo $readonlys;?>>
@@ -179,7 +189,12 @@ if($w == "u"){
                         <input type="hidden" name="sign_off_mng_id3" id="sign_off_mng_id3" value="<?php echo $row['sign_off_mng_id3'];?>" class="bansang_ipt" readonly>
                         <input type="text" name="sign_off_mng3" value="<?php echo $sign_off_mng3['mng_name'].' 결재완료';?>" class="bansang_ipt" readonly>
                         <?php if($sign_img_row3){?>
-                        <img src="/data/file/approval/<?php echo $sign_img_row3['fil_name']; ?>" alt="" class="mgt10">
+                        <div class="mng_sign_img_box" style="position:relative;display:inline-block;">
+                            <img src="/data/file/approval/<?php echo $sign_img_row3['fil_name']; ?>" alt="" class="mgt10">
+                            <?php if(!empty($sign_img_row3['created_at'])): ?>
+                            <span class="sign_timestamp" style="position:absolute;bottom:5px;right:5px;color:red;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row3['created_at'])); ?></span>
+                            <?php endif; ?>
+                        </div>
                         <?php }?>
                     <?php }else{?>
                     <select name="sign_off_mng_id3" id="sign_off_mng_id3" class="bansang_sel" required <?php echo $readonlys;?>>
