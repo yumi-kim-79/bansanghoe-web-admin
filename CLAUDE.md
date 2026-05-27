@@ -217,6 +217,24 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **결재 도장 박스 타임스탬프 한 줄 표시 + 서명 영역 분리 (8 파일 24 span)** (2026-05-28)
+  - 문제: 도장 박스 셀 폭(`.sign_boxs_img` width:50% × td) 보다 14px `Y.m.d H:i` 텍스트가 길어 두 줄로 줄바꿈, 서명 이미지와 타임스탬프 영역이 겹침
+  - PHP (8 파일 × 3 결재자 = 24 span):
+    - `adm/approval_info.php`, `adm/approval_form_ajax1~5.php`, `holiday_reqeust_info.php`, `holiday_request_sample.php`
+    - 인라인 `style="position:absolute;bottom:5px;right:5px;color:red;font-size:14px;line-height:1;"` 제거
+    - 날짜 포맷 `date('Y.m.d H:i', ...)` → `date('y.m.d H:i', ...)` (2자리 연도 — `26.05.27 17:23`)
+  - CSS:
+    - `adm/css/admin.css` 에 `.sign_boxs_img, .mng_sign_img_box` 공용 + `.sign_timestamp` 규칙 추가 (11px)
+    - `css/default.css` 에 `.sign_boxs_img, .sign_img_box` 공용 + `.sign_timestamp` 규칙 추가 (12px 모바일)
+    - 외곽 wrapper: `position:relative; padding-bottom:18px;`
+    - img: `max-height: calc(100% - 18px); object-fit: contain;` (서명이 18px 보호 영역 침범 차단)
+    - `.sign_timestamp`: `position:absolute; left/right:0; bottom:0; text-align:right; padding:2px 5px; white-space:nowrap; background:#fff; border-top:1px dashed #ddd` — 사인란/날짜란 시각적 분리 (점선 + 흰 배경)
+  - 기존 `.sign_boxs_img {width:50%}`, `.mng_sign_img_box {width:50%}` 보존 (다른 의존성 가능)
+  - 추가 wrapper 클래스(`.sign_img_box` for `holiday_request_sample.php`) 도 함께 그룹화 — 사용자 사양상 `.sign_boxs_img` 만 명시되었으나 8 파일 일관 UI 의도에 맞춰 grouped selector 로 확장
+  - test 검증 → 운영 배포 완료. 결재내역 도장 박스 "26.XX.XX HH:MM" 한 줄 + 점선 분리 정상 동작 확인
+  - **디버그 우선 원칙 적용 (회귀 오인 케이스)**: 사용자 보고된 "우상단 도장 박스 + 본문 사라짐" 회귀가 실제로는 **test 환경의 `signOffSample` 파일 동기화 누락(404)** 이었음을 Phase A/B/C 정독 + 사용자 Network/DB 검증으로 확정. 코드 변경 `b1675405` 와 무관 → revert 회피, main 머지 진행. 교훈: 회귀 보고 시 즉시 revert 보다 PHP diff + CSS cascade + 환경 데이터 격리 점검을 먼저 수행하면 잘못된 revert + 재작업 비용 절감
+  - 별개 작업 (이번 범위 밖, 기록): test 환경 `/var/www/html_test/data/file/` 전체 동기화 + test DB 2026-04-15 이후 동기화 필요 — 운영팀 별도 작업
+
 - [x] **점검일지 저장 시 활성 계약 서버 재검증 추가 (option 1)** (2026-05-20)
   - 배경: 직전 작업(`e7061674`) 이후에도 오염 데이터 생성 (`inspection_idx=2025`, 2026-05-20 10:34) — 화면 표시 쿼리는 수정되었지만 저장 경로가 클라이언트 hidden 값을 그대로 신뢰. 페이지 캐시 / OPcache lag / 사전 로드 + 지연 제출 / 악의적 수정 등 어떤 경로로든 stale `company_idx` 가 POST 되면 그대로 저장됨
   - `inspection_form_update.php` L8-9 직후 활성 계약 서버 재조회 블록 추가:
