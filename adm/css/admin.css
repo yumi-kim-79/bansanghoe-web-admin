@@ -1222,6 +1222,31 @@ box-shadow: 1px 2px 5px rgba(150,150,150,0.5);z-index:1000}
 .sign_boxs_img {width: 50%;}
 .sign_boxs_img img {max-width: 100%;}
 
+/* 결재 도장 박스 타임스탬프 (sign_boxs_img / mng_sign_img_box 공용) */
+.sign_boxs_img,
+.mng_sign_img_box {
+    position: relative;
+    padding-bottom: 18px;
+}
+.sign_boxs_img img,
+.mng_sign_img_box img {
+    max-height: calc(100% - 18px);
+    object-fit: contain;
+}
+.sign_timestamp {
+    display: block;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    text-align: right;
+    padding: 2px 5px;
+    font-size: 11px;
+    line-height: 1;
+    color: red;
+    white-space: nowrap;
+    background: #fff;
+    border-top: 1px dashed #ddd;
+}
+
 .bansang_ipt {width:auto;height:40px;background:#F1F3F4;border:none;border-radius:8px;padding-left:15px;display: block;}
 .bansang_ipt.full {width: 100%;}
 .bansang_ipt.ver2 {border:1px solid #E4E4E4;background: #fff;}

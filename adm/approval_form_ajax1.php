@@ -141,7 +141,7 @@ if($w == "u"){
                             <div class="mng_sign_img_box" style="position:relative;display:inline-block;">
                                 <img src="/data/file/approval/<?php echo $sign_img_row['fil_name']; ?>" alt="" class="mgt10">
                                 <?php if(!empty($sign_img_row['created_at'])): ?>
-                                <span class="sign_timestamp" style="position:absolute;bottom:5px;right:5px;color:red;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row['created_at'])); ?></span>
+                                <span class="sign_timestamp"><?php echo date('y.m.d H:i', strtotime($sign_img_row['created_at'])); ?></span>
                                 <?php endif; ?>
                             </div>
                         <?php }?>
@@ -176,7 +176,7 @@ if($w == "u"){
                             <div class="mng_sign_img_box" style="position:relative;display:inline-block;">
                                 <img src="/data/file/approval/<?php echo $sign_img_row2['fil_name']; ?>" alt="" class="mgt10">
                                 <?php if(!empty($sign_img_row2['created_at'])): ?>
-                                <span class="sign_timestamp" style="position:absolute;bottom:5px;right:5px;color:red;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row2['created_at'])); ?></span>
+                                <span class="sign_timestamp"><?php echo date('y.m.d H:i', strtotime($sign_img_row2['created_at'])); ?></span>
                                 <?php endif; ?>
                             </div>
                         <?php }?>
@@ -211,7 +211,7 @@ if($w == "u"){
                             <div class="mng_sign_img_box" style="position:relative;display:inline-block;">
                                 <img src="/data/file/approval/<?php echo $sign_img_row3['fil_name']; ?>" alt="" class="mgt10">
                                 <?php if(!empty($sign_img_row3['created_at'])): ?>
-                                <span class="sign_timestamp" style="position:absolute;bottom:5px;right:5px;color:red;font-size:14px;line-height:1;"><?php echo date('Y.m.d H:i', strtotime($sign_img_row3['created_at'])); ?></span>
+                                <span class="sign_timestamp"><?php echo date('y.m.d H:i', strtotime($sign_img_row3['created_at'])); ?></span>
                                 <?php endif; ?>
                             </div>
                         <?php }?>

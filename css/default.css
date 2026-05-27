@@ -1138,6 +1138,31 @@ gap: 6px;width: 100%;height: 100%;font-weight: 500;}
 #signatureCanvas {border:1px solid #dfdfdf;margin-top: 10px;min-height: 150px;width: 100%;}
 .sign_boxs_img img {width:auto;height:auto;max-width: 100%;max-height: 100%;}
 
+/* 결재 도장 박스 타임스탬프 (sign_boxs_img / sign_img_box 공용 — 모바일·인쇄) */
+.sign_boxs_img,
+.sign_img_box {
+    position: relative;
+    padding-bottom: 18px;
+}
+.sign_boxs_img img,
+.sign_img_box img {
+    max-height: calc(100% - 18px);
+    object-fit: contain;
+}
+.sign_timestamp {
+    display: block;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    text-align: right;
+    padding: 2px 5px;
+    font-size: 12px;
+    line-height: 1;
+    color: red;
+    white-space: nowrap;
+    background: #fff;
+    border-top: 1px dashed #ddd;
+}
+
 .sm_schedule_list {padding-bottom: 20px;}
 .sm_schedule_box + .sm_schedule_box {margin-top: 10px;}
 .sm_schedule_box a {padding: 15px;border-radius: 10px;border:1px solid #e7ecef;box-shadow: 0 2px 6px rgba(123, 138, 149, 0.15);display: block;background: #fff;}
