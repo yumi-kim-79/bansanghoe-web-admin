@@ -217,6 +217,13 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **결재 도장 박스 (작은 박스) 레이아웃 보정** (2026-05-28)
+  - 배경: 직전 작업(b1675405)에서 `.sign_boxs_img, .sign_img_box` 를 grouped selector 로 묶어 `padding-bottom:18px + max-height:calc(100% - 18px)` 적용 → `holiday_request_sample.php` 의 작은 도장 박스(100×80)가 셀 외부로 흘러나오고 인라인 `max-height:100%` 가 외부 CSS 를 cascade 로 이겨 timestamp 영역 침범
+  - 변경:
+    - `holiday_request_sample.php` 인라인 `<style>` L85-86: `.sign_img_box` 에 `position:relative; box-sizing:border-box; padding-bottom:18px` 추가, `.sign_img_box img` 에 `max-height:calc(100% - 18px); object-fit:contain` 추가 — 인라인이 외부 CSS 보다 cascade 우선이라 `!important` 불필요
+    - `css/default.css` L1141-1164: `.sign_boxs_img` 와 `.sign_img_box` 의 grouped selector 분리. 큰 박스는 기존 동작 유지, 작은 박스용 `.sign_img_box .sign_timestamp { text-align:center; font-size:10px; padding:1px 2px }` 만 별도 정의
+  - 격리: `adm/expense_print_sample.php` 의 `.sign_img_box` 도 자체 인라인 `<style>` 보유 → cascade 우선으로 무영향. `.sign_boxs_img` (큰 결재내역 박스) 도 별도 selector 로 분리되어 무영향
+  - Step 5 (main 머지) 사용자 검증 후 별도 승인
 - [x] **결재 도장 박스 타임스탬프 한 줄 표시 + 서명 영역 분리 (8 파일 24 span)** (2026-05-28)
   - 문제: 도장 박스 셀 폭(`.sign_boxs_img` width:50% × td) 보다 14px `Y.m.d H:i` 텍스트가 길어 두 줄로 줄바꿈, 서명 이미지와 타임스탬프 영역이 겹침
   - PHP (8 파일 × 3 결재자 = 24 span):
