@@ -217,35 +217,34 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
-- [x] **결재 도장 박스 폰트 13px + 박스 폭 115px 확장 (가독성 최종 조정)** (2026-05-28)
-  - `holiday_request_sample.php` 인라인 `<style>`: `.sign_box` width 100→115px, `.sign_img_box` width 100→115px
-  - `css/default.css`: `.sign_img_box .sign_timestamp` font-size 11→13px
-  - 폰트 가독성 + 한 줄 유지 확보. 도장 박스 3 셀 합계 345px (A4 안 약 113mm 위치, 본문과 약 29mm 여유)
-  - 큰 결재내역 박스(`.sign_boxs_img`) 무영향 — grouped selector 분리 상태 유지
-- [x] **결재 도장 박스 (작은 박스) 레이아웃 보정** (2026-05-28)
-  - 배경: 직전 작업(b1675405)에서 `.sign_boxs_img, .sign_img_box` 를 grouped selector 로 묶어 `padding-bottom:18px + max-height:calc(100% - 18px)` 적용 → `holiday_request_sample.php` 의 작은 도장 박스(100×80)가 셀 외부로 흘러나오고 인라인 `max-height:100%` 가 외부 CSS 를 cascade 로 이겨 timestamp 영역 침범
-  - 변경:
-    - `holiday_request_sample.php` 인라인 `<style>` L85-86: `.sign_img_box` 에 `position:relative; box-sizing:border-box; padding-bottom:18px` 추가, `.sign_img_box img` 에 `max-height:calc(100% - 18px); object-fit:contain` 추가 — 인라인이 외부 CSS 보다 cascade 우선이라 `!important` 불필요
-    - `css/default.css` L1141-1164: `.sign_boxs_img` 와 `.sign_img_box` 의 grouped selector 분리. 큰 박스는 기존 동작 유지, 작은 박스용 `.sign_img_box .sign_timestamp { text-align:center; font-size:10px; padding:1px 2px }` 만 별도 정의
-  - 격리: `adm/expense_print_sample.php` 의 `.sign_img_box` 도 자체 인라인 `<style>` 보유 → cascade 우선으로 무영향. `.sign_boxs_img` (큰 결재내역 박스) 도 별도 selector 로 분리되어 무영향
-  - Step 5 (main 머지) 사용자 검증 후 별도 승인
-- [x] **결재 도장 박스 타임스탬프 한 줄 표시 + 서명 영역 분리 (8 파일 24 span)** (2026-05-28)
-  - 문제: 도장 박스 셀 폭(`.sign_boxs_img` width:50% × td) 보다 14px `Y.m.d H:i` 텍스트가 길어 두 줄로 줄바꿈, 서명 이미지와 타임스탬프 영역이 겹침
-  - PHP (8 파일 × 3 결재자 = 24 span):
-    - `adm/approval_info.php`, `adm/approval_form_ajax1~5.php`, `holiday_reqeust_info.php`, `holiday_request_sample.php`
-    - 인라인 `style="position:absolute;bottom:5px;right:5px;color:red;font-size:14px;line-height:1;"` 제거
-    - 날짜 포맷 `date('Y.m.d H:i', ...)` → `date('y.m.d H:i', ...)` (2자리 연도 — `26.05.27 17:23`)
-  - CSS:
-    - `adm/css/admin.css` 에 `.sign_boxs_img, .mng_sign_img_box` 공용 + `.sign_timestamp` 규칙 추가 (11px)
-    - `css/default.css` 에 `.sign_boxs_img, .sign_img_box` 공용 + `.sign_timestamp` 규칙 추가 (12px 모바일)
-    - 외곽 wrapper: `position:relative; padding-bottom:18px;`
-    - img: `max-height: calc(100% - 18px); object-fit: contain;` (서명이 18px 보호 영역 침범 차단)
-    - `.sign_timestamp`: `position:absolute; left/right:0; bottom:0; text-align:right; padding:2px 5px; white-space:nowrap; background:#fff; border-top:1px dashed #ddd` — 사인란/날짜란 시각적 분리 (점선 + 흰 배경)
-  - 기존 `.sign_boxs_img {width:50%}`, `.mng_sign_img_box {width:50%}` 보존 (다른 의존성 가능)
-  - 추가 wrapper 클래스(`.sign_img_box` for `holiday_request_sample.php`) 도 함께 그룹화 — 사용자 사양상 `.sign_boxs_img` 만 명시되었으나 8 파일 일관 UI 의도에 맞춰 grouped selector 로 확장
-  - test 검증 → 운영 배포 완료. 결재내역 도장 박스 "26.XX.XX HH:MM" 한 줄 + 점선 분리 정상 동작 확인
-  - **디버그 우선 원칙 적용 (회귀 오인 케이스)**: 사용자 보고된 "우상단 도장 박스 + 본문 사라짐" 회귀가 실제로는 **test 환경의 `signOffSample` 파일 동기화 누락(404)** 이었음을 Phase A/B/C 정독 + 사용자 Network/DB 검증으로 확정. 코드 변경 `b1675405` 와 무관 → revert 회피, main 머지 진행. 교훈: 회귀 보고 시 즉시 revert 보다 PHP diff + CSS cascade + 환경 데이터 격리 점검을 먼저 수행하면 잘못된 revert + 재작업 비용 절감
-  - 별개 작업 (이번 범위 밖, 기록): test 환경 `/var/www/html_test/data/file/` 전체 동기화 + test DB 2026-04-15 이후 동기화 필요 — 운영팀 별도 작업
+- [x] 🚨 **[보안 우선] 운영 `.git` 디렉토리 외부 노출 발견** (2026-05-28, 후속 작업 필요)
+  - 운영 access log 에서 외부 IP 가 `/var/www/html/.git/objects/...` 를 스캔하며 **HTTP 200 응답** 받는 패턴 확인
+  - 영향: 소스 코드 + 커밋 히스토리 + 과거 노출된 자격증명(2026-04 FCM 키 사고 등 이력) 모두 외부 다운로드 가능
+  - 동일 패턴: 2026-04 FCM 서비스 계정 키 GitHub 노출 사고와 유사한 자격증명 유출 경로
+  - 후속 조치 (별도 PR 권장):
+    - 운영 `/var/www/html/.git` 외부 접근 차단 — Apache `.htaccess` `<DirectoryMatch "^.*/\.git">Require all denied</DirectoryMatch>` 또는 디렉토리 자체 제거 (deploy 스크립트 영향 점검 필수)
+    - `/var/www/html_test/.git` 동일 조치
+    - 다른 hidden directory (`.env`, `.svn` 등) 일괄 차단 규칙 추가
+    - 노출 기간 동안 다운로드되었을 가능성 있는 자격증명 일괄 로테이션 검토 (FCM, DB, SMS API, 토스페이먼츠 등)
+- [x] **결재 도장 박스 UI 개선 작업 — 완전 종료** (2026-05-28)
+  - **배경**: 결재서류함 상단 도장 박스에서 날짜 두 줄 표시, 사인 박스 경계 침범, 날짜·사인 영역 미분리 보고
+  - **변경 (운영 배포 완료, 최종 commit `4c676fe0`)**:
+    - **PHP 8 파일 × 3 결재자 = 24 span**: 인라인 style 제거 → `.sign_timestamp` 클래스 이관, 날짜 포맷 `Y.m.d` → `y.m.d` (`26.XX.XX HH:MM` 한 줄)
+      - 적용: `adm/approval_info.php`, `adm/approval_form_ajax1~5.php`, `holiday_reqeust_info.php`, `holiday_request_sample.php`
+    - **CSS 분리**: `.sign_boxs_img` (큰 결재내역 박스, padding-bottom 18px) ↔ `.sign_img_box` (작은 도장 박스) grouped selector 분리하여 영향 격리
+      - `adm/css/admin.css` — 큰 박스 + `.mng_sign_img_box` 공용 11px
+      - `css/default.css` — 큰 박스 + 작은 박스 별도 13px (모바일)
+      - `.sign_timestamp` 공통: `position:absolute; bottom:0; right:0; nowrap; background:#fff; border-top:1px dashed #ddd` (사인란/날짜란 시각 분리)
+    - **`holiday_request_sample.php` 인라인 `<style>`**: 작은 박스 폭 100→115px, `box-sizing:border-box`, `padding-bottom:18px`, `max-height:calc(100% - 18px)` — 인라인 cascade 우선으로 `!important` 회피
+  - **디버그 우선 원칙 적용 (중요 교훈)**: 사용자 보고된 "우상단 도장 박스 + 본문 사라짐" 회귀가 실제로는 (1) test 환경 `signOffSample` 파일 동기화 누락(404) (2) 옛 PNG 그대로 남아있던 문제임을 Phase A/B/C 정독 + DB/파일 시스템 직접 검증으로 확정. 즉시 revert 회피 → 의도한 개선 유지 + 정확한 추가 처리로 마무리
+  - **일괄 재캡쳐 (옵션 C)**: 코드 배포 전 작성된 PNG 들이 옛 포맷 유지하므로 puppeteer 로 일괄 재캡쳐
+    - 대상: 2026년 작성 결재 997건 (`sign_id=859~1888`, 배포 시각 09:40 이전, 1889 옵션 B 로 사전 갱신됨)
+    - 사용자 로컬 (macOS arm64 + Node 20 + puppeteer 24.43.1 + 시스템 Chrome) 에서 실행
+    - 스크립트: `~/recapture_signoff/recapture_signoff.js` (사용자 로컬, git 외 보관)
+    - 운영 백업: `/root/backup_a_sign_off_sample_20260528_1050.sql` (106K) + `/root/backup_signOffSample_20260528_1051.tar.gz` (996M)
+    - 결과: 997건 정상 재캡쳐 완료
+  - **알려진 환경 격차 (별도 작업 필요)**: test DB 가 2026-04-15 시점에 멈춰있음 + `/var/www/html_test/data/file/` 일부 누락. 향후 `rsync + mysqldump` 동기화 작업 별도 진행 권장
+  - **보안 메모**: 일괄 재캡쳐 시 추출한 `~/recapture_signoff/cookies.json` (PHPSESSID) 은 git 커밋 금지 (`.gitignore` 적용). 작업 완료 후 파일 삭제 권장
 
 - [x] **점검일지 저장 시 활성 계약 서버 재검증 추가 (option 1)** (2026-05-20)
   - 배경: 직전 작업(`e7061674`) 이후에도 오염 데이터 생성 (`inspection_idx=2025`, 2026-05-20 10:34) — 화면 표시 쿼리는 수정되었지만 저장 경로가 클라이언트 hidden 값을 그대로 신뢰. 페이지 캐시 / OPcache lag / 사전 로드 + 지연 제출 / 악의적 수정 등 어떤 경로로든 stale `company_idx` 가 POST 되면 그대로 저장됨
