@@ -1138,17 +1138,25 @@ gap: 6px;width: 100%;height: 100%;font-weight: 500;}
 #signatureCanvas {border:1px solid #dfdfdf;margin-top: 10px;min-height: 150px;width: 100%;}
 .sign_boxs_img img {width:auto;height:auto;max-width: 100%;max-height: 100%;}
 
-/* 결재 도장 박스 타임스탬프 (sign_boxs_img / sign_img_box 공용 — 모바일·인쇄) */
-.sign_boxs_img,
-.sign_img_box {
+/* 큰 결재내역 박스 (.sign_boxs_img) — 모바일 결재 조회용. 기존 동작 유지 */
+.sign_boxs_img {
     position: relative;
     padding-bottom: 18px;
 }
-.sign_boxs_img img,
-.sign_img_box img {
+.sign_boxs_img img {
     max-height: calc(100% - 18px);
     object-fit: contain;
 }
+
+/* 작은 도장 박스 (.sign_img_box, 100×80) — 박스 레이아웃은 holiday_request_sample.php
+   인라인 <style> 에서 처리. 여기서는 timestamp 정렬/폰트만 작은 셀 기준으로 재정의 */
+.sign_img_box .sign_timestamp {
+    text-align: center;
+    font-size: 13px;
+    padding: 1px 2px;
+}
+
+/* 기본 .sign_timestamp (큰 박스용) — 우측 정렬 12px */
 .sign_timestamp {
     display: block;
     position: absolute;

@@ -79,11 +79,11 @@ $file_total = sql_num_rows($file_res);
 
 .sign_off_sample_info {display: flex;flex-direction:column;flex:1;justify-content:space-between;gap:30px 0;}
 .sign_box_wrap {display: flex;position: absolute;top:50px;right: 5mm;}
-.sign_box {width: 100px;border: 1px solid #121212;border-left: none;}
+.sign_box {width: 115px;border: 1px solid #121212;border-left: none;}
 .sign_box_wrap .sign_box:first-child {border-left: 1px solid #121212;}
 .sign_box_tit_box {border-bottom: 1px solid #121212;height: 25px;display: flex;align-items:center;justify-content:center;}
-.sign_img_box {width: 100px;height: 80px;display: flex;align-items:center;justify-content:center;}
-.sign_img_box img {max-width: 100%;max-height:100%;width: auto;height: auto;}
+.sign_img_box {width: 115px;height: 80px;position:relative;box-sizing:border-box;padding-bottom:18px;display: flex;align-items:center;justify-content:center;}
+.sign_img_box img {max-width: 100%;max-height:calc(100% - 18px);width: auto;height: auto;object-fit:contain;}
 .news_tit_box {font-size: 30px;font-weight: 600;text-align: center;width: 100%;max-width: 210mm;margin-bottom: 40px;}
 
 .write_info_wrap {width: 40%;border-left: 1px solid #999;border-bottom: 1px solid #999;border-right: 1px solid #999;margin-bottom: 30px;}
