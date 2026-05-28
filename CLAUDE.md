@@ -217,6 +217,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **결재 도장 박스 폰트 13px + 박스 폭 115px 확장 (가독성 최종 조정)** (2026-05-28)
+  - `holiday_request_sample.php` 인라인 `<style>`: `.sign_box` width 100→115px, `.sign_img_box` width 100→115px
+  - `css/default.css`: `.sign_img_box .sign_timestamp` font-size 11→13px
+  - 폰트 가독성 + 한 줄 유지 확보. 도장 박스 3 셀 합계 345px (A4 안 약 113mm 위치, 본문과 약 29mm 여유)
+  - 큰 결재내역 박스(`.sign_boxs_img`) 무영향 — grouped selector 분리 상태 유지
 - [x] **결재 도장 박스 (작은 박스) 레이아웃 보정** (2026-05-28)
   - 배경: 직전 작업(b1675405)에서 `.sign_boxs_img, .sign_img_box` 를 grouped selector 로 묶어 `padding-bottom:18px + max-height:calc(100% - 18px)` 적용 → `holiday_request_sample.php` 의 작은 도장 박스(100×80)가 셀 외부로 흘러나오고 인라인 `max-height:100%` 가 외부 CSS 를 cascade 로 이겨 timestamp 영역 침범
   - 변경:
