@@ -217,6 +217,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **매니저 앱 결재 도장 박스 mobile.css 누락 보완** (2026-05-28)
+  - **배경**: 웹 도장 박스 UI 개선 작업 완료 후, SM 매니저 앱(WebView) 에서만 옛 포맷 표시 사용자 보고. 진단 결과 `head.sub.php:L70` 의 CSS 로딩 분기 (`G5_IS_MOBILE ? mobile : default`) 로 인해 모바일 UA 가 `mobile.css` 로딩 → `mobile.css` 에 `.sign_boxs_img / .sign_img_box / .sign_timestamp` 규칙 자체가 없어 새 포맷 미적용 확인
+  - **변경 (운영 배포 완료)**: `css/mobile.css` 끝에 `default.css` L1134~L1175 와 동일 규칙 복제 (43줄), CSS 변수 fallback 추가 (`var(--boxColor4, #fff)`, `var(--borderColor, #E4E4E4)`)
+  - **부수 효과**: 모바일 매니저 신규 결재 작성 시 html2canvas 캡쳐도 새 포맷 PNG 저장 (이전엔 모바일 UA 라 옛 포맷 PNG 저장될 잠재 회귀 차단)
+  - **검증 메모**: test 환경 본문 영역 누락(`sign_id=1891`) 확인됨 — 본 변경과 무관, 사전 데이터 동기화 누락. 운영 동일 sign_id 정상 표시 확인. test 환경 동기화 (mysqldump + rsync) 는 별도 작업 권장
 - [x] 🚨 **[보안 우선] 운영 `.git` 디렉토리 외부 노출 발견** (2026-05-28, 후속 작업 필요)
   - 운영 access log 에서 외부 IP 가 `/var/www/html/.git/objects/...` 를 스캔하며 **HTTP 200 응답** 받는 패턴 확인
   - 영향: 소스 코드 + 커밋 히스토리 + 과거 노출된 자격증명(2026-04 FCM 키 사고 등 이력) 모두 외부 다운로드 가능
