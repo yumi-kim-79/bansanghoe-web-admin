@@ -217,6 +217,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **결재 도장 박스 PNG 캡쳐 근본 해결 — `holiday_request_sample.php` default.css 강제 로드** (2026-05-29)
+  - **배경**: 5/28 mobile.css 변경 후에도 모바일 매니저 작성 결재가 옛 포맷 PNG 저장될 가능성 (CSS 동기화 운영 부담 + 회귀 위험 영속화). 실제 원인: PNG 캡쳐 시점에 mobile.css 가 로드되어 default.css 와 분리 경로
+  - **근본 해결 (운영 배포 완료)**: `holiday_request_sample.php` L16 (head.sub.php include) 직후 9 라인 추가 — `G5_IS_MOBILE` 일 때 `default.css` 강제 추가 로드. cascade 상 default 가 mobile 위에 적용 → 모바일/PC 무관 항상 default.css 결과로 PNG 캡쳐
+  - **영원 보장**: 향후 CSS 디자인 변경 시 `default.css` 만 수정하면 신규 결재 자동 반영. `mobile.css` 동기화 부담 제거. 모바일 매니저 작성 결재의 옛 포맷 회귀 영원히 차단
+  - **부수 결정**: `mobile.css` 의 sign 규칙(`d06a9ed3`) 유지 — 결재 조회 화면(`holiday_reqeust_info.php`) 의 모바일 표시 통일성 + 안전망
+  - **잔여 작업 (별도, 일회성)**: 5/28 09:40 ~ mobile.css 운영 배포 사이 작성된 옛 포맷 PNG 약 6건 (`sign_id=1890~1895` 추정) 마지막 재캡쳐. 이후 영원히 자동 보장
 - [x] **매니저 앱 결재 도장 박스 mobile.css 누락 보완** (2026-05-28)
   - **배경**: 웹 도장 박스 UI 개선 작업 완료 후, SM 매니저 앱(WebView) 에서만 옛 포맷 표시 사용자 보고. 진단 결과 `head.sub.php:L70` 의 CSS 로딩 분기 (`G5_IS_MOBILE ? mobile : default`) 로 인해 모바일 UA 가 `mobile.css` 로딩 → `mobile.css` 에 `.sign_boxs_img / .sign_img_box / .sign_timestamp` 규칙 자체가 없어 새 포맷 미적용 확인
   - **변경 (운영 배포 완료)**: `css/mobile.css` 끝에 `default.css` L1134~L1175 와 동일 규칙 복제 (43줄), CSS 변수 fallback 추가 (`var(--boxColor4, #fff)`, `var(--borderColor, #E4E4E4)`)
