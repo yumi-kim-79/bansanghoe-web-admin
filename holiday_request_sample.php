@@ -15,6 +15,15 @@ $approval_name = approval_category_name($sign_off_row['sign_off_category']);
 $g5['title'] = $approval_name;
 include_once(G5_PATH.'/head.sub.php');
 
+// === PNG 캡쳐 페이지 한정: default.css 강제 로드 ===
+// head.sub.php 의 G5_IS_MOBILE 분기로 모바일 UA 시 mobile.css 만 로드되는데,
+// 본 페이지는 html2canvas 로 캡쳐되어 정적 PNG 로 저장되므로 default.css 결과로 캡쳐 필요.
+// (사용자에게 직접 노출되지 않고 캡쳐 후 즉시 redirect 됨)
+if (G5_IS_MOBILE) {
+    echo '<link rel="stylesheet" href="'.G5_CSS_URL.'/default.css?ver='.G5_CSS_VER.'">'.PHP_EOL;
+}
+// ============================================================
+
 $holiday_sql = "SELECT * FROM a_holiday_person WHERE is_del = 0 and sign_id = '{$sign_id}' ORDER BY hp_idx asc";
 $holiday_res = sql_query($holiday_sql);
 $holiday_total = sql_num_rows($holiday_res);
