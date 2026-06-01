@@ -217,6 +217,16 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **결재 도장 박스 작업 완전 종료 — 잔여 재캡처 + 영원 보장 확인** (2026-06-01)
+  - **배경**: 5/29 09:06 `default.css` 강제 로드 패치 운영 배포(`b9283381`) 직후에도 5/29 오후(10~17시) 사인된 결재 9건이 옛 포맷으로 PNG 저장됨
+  - **강력 원인 추정 (OPcache)**: `opcache.enable=On` 확인. 패치 직후 PHP OPcache 가 옛 코드(default.css 미강제) 캐시를 보유 → 신규 결재 PNG 캡쳐 시점에 패치 미반영. 6/1 새벽 캐시 자연 만료 후 신규 결재(`sign_id=1909`) 가 자동으로 새 포맷 저장됨을 확인 → 코드 영원 보장 메커니즘 정상 동작 입증
+  - **잔여 재캡처 (puppeteer, 사용자 로컬)**: 옛 포맷 9건 (`sign_id=1895`, `1900~1907`) 재캡처 완료 (8건 + 1건)
+  - **누적 처리 집계**: 997 (5/28 옵션 C 일괄) + 6 (5/29 작업) + 8 + 1 = **1,012건** 전수 새 포맷 확정
+  - **최종 상태**:
+    - `holiday_request_sample.php` 의 `default.css` 강제 로드 유지 (핵심 영원 보장 메커니즘)
+    - `mobile.css` 의 sign 규칙 유지 (결재 조회 화면 통일성 + 안전망)
+    - 모든 결재 화면(PC/모바일/매니저앱) 포맷 통일 완료
+  - **후속 작업 (별도, OPcache 가설 대응)**: CSS/PHP 배포 후 즉시 효과가 안 나타나면 `systemctl reload httpd` 수동 실행 권장. CI/CD 워크플로(`deploy.yml`)에 배포 후 자동 `reload httpd` 추가 검토 (다음 작업)
 - [x] **결재 도장 박스 PNG 캡쳐 근본 해결 — `holiday_request_sample.php` default.css 강제 로드** (2026-05-29)
   - **배경**: 5/28 mobile.css 변경 후에도 모바일 매니저 작성 결재가 옛 포맷 PNG 저장될 가능성 (CSS 동기화 운영 부담 + 회귀 위험 영속화). 실제 원인: PNG 캡쳐 시점에 mobile.css 가 로드되어 default.css 와 분리 경로
   - **근본 해결 (운영 배포 완료)**: `holiday_request_sample.php` L16 (head.sub.php include) 직후 9 라인 추가 — `G5_IS_MOBILE` 일 때 `default.css` 강제 추가 로드. cascade 상 default 가 mobile 위에 적용 → 모바일/PC 무관 항상 default.css 결과로 PNG 캡쳐
@@ -796,4 +806,4 @@ curl https://raw.githubusercontent.com/yumi-kim-79/{저장소}/main/{경로}/{�
 
 ---
 
-*최종 업데이트: 2026-04-28*
+*최종 업데이트: 2026-06-01*
