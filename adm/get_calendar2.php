@@ -121,7 +121,7 @@ sort($res_date);
 
 <section class="cal_tr cal_head">
 	<?php for( $i = 0; $i < count( $doms ); $i++ ) { ?>
-	<div class="cal_div cal_th"><?php echo $doms[$i]?></div>
+	<div class="cal_div cal_th<?php echo $i==0?' cal_sun':($i==6?' cal_sat':'');?>"><?php echo $doms[$i]?></div>
 	<?php } ?>
 </section>
 
@@ -134,7 +134,7 @@ sort($res_date);
 			if ( $startDay <= $cellIndex && $nowDayCount <= $days ) {
 				$date2 = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($nowDayCount, 2, "0", STR_PAD_LEFT);
 	?>
-		<div class="cal_div cal_td cal_td_box <?php if($date2 == date("Y-m-d")){?>today <?php }?> <?php if($type == '2'){?>ver2<?php }?>" data-date="<?php echo $date2; ?>">
+		<div class="cal_div cal_td cal_td_box <?php if($date2 == date("Y-m-d")){?>today <?php }?> <?php if($type == '2'){?>ver2<?php }?><?php echo $cols==0?' cal_sun':($cols==6?' cal_sat':'');?>" data-date="<?php echo $date2; ?>">
 			<div class="cal_day_box">
 				<?php echo $nowDayCount++?>
                 <?php
@@ -149,7 +149,7 @@ sort($res_date);
 		<?php } else if ( $cellIndex < $startDay ) {
 				$prevDate = $prevYear."-".sprintf("%02d", $prevMonth)."-".sprintf("%02d", $prevDayCount);
 		?>
-		<div class="cal_div cal_td not_this">
+		<div class="cal_div cal_td not_this<?php echo $cols==0?' cal_sun':($cols==6?' cal_sat':'');?>">
 			<div class="cal_day_box">
 				<?php echo $prevDayCount++?>
 			</div>
@@ -158,7 +158,7 @@ sort($res_date);
 		<?php } else if ( $cellIndex >= $days ) {
 				$nextDate = $nextYear."-".sprintf("%02d", $nextMonth)."-".sprintf("%02d", $nextDayCount);
 		?>
-		<div class="cal_div cal_td not_this">
+		<div class="cal_div cal_td not_this<?php echo $cols==0?' cal_sun':($cols==6?' cal_sat':'');?>">
 			<div class="cal_day_box">
 				<?php echo $nextDayCount++?>
 			</div>

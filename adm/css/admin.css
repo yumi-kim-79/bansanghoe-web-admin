@@ -1321,6 +1321,11 @@ input[type="checkbox"][readonly] {
 .cal_head {background:#F8FBFB;margin-top:10px;}
 .cal_div {width:14.285%;}
 .cal_th {padding:10px 5px;font-size:14px;line-height:1.1;color: #3d3d3d;font-weight: 600;}
+/* 요일 색상: 일요일=빨강 / 토요일=파랑 (토/일만, 공휴일 미적용) */
+.cal_th.cal_sun {color: #e53935;}
+.cal_th.cal_sat {color: #1976d2;}
+.cal_td.cal_sun .cal_day_box {color: #e53935;}
+.cal_td.cal_sat .cal_day_box {color: #1976d2;}
 .cal_td {display:flex;align-items:center;justify-content:center;height:132px;padding:0 5px;font-size:15px;}
 .cal_td + .cal_td {}
 .cal_td.select_dates {}
@@ -1618,13 +1623,13 @@ display:none;
 .cal_schedule_label {font-size: 14px;font-weight: 500;}
 
 .cal_schedule_box_wrap {overflow: auto;height: calc(100% - 43px);}
-.cal_schedule_box + .cal_schedule_box {margin-top: 10px;}
-.cal_schedule_box a {padding: 10px;border:1px solid var(--borderColor2);display: flex;flex-direction: column;border-radius: 6px;font-size: 13px;}
-.cal_schedule_date_box {display: flex;align-items: center;justify-content: space-between;margin-bottom: 7px;}
+.cal_schedule_box + .cal_schedule_box {margin-top: 6px;}
+.cal_schedule_box a {padding: 7px 9px;border:1px solid var(--borderColor2);display: flex;flex-direction: column;border-radius: 6px;font-size: 12px;}
+.cal_schedule_date_box {display: flex;align-items: center;justify-content: space-between;margin-bottom: 4px;}
 .sm_schedule_status {color: var(--colorMain);}
 .cal_schedule_date {color: var(--fontColor2);}
-.cal_schedule_building {margin: 0 0 7px;font-size: 13px;}
-.cal_schedule_title {margin: 0 0 7px;font-weight: 500;width: 100%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;font-size: 14px;}
+.cal_schedule_building {margin: 0 0 4px;font-size: 12px;}
+.cal_schedule_title {margin: 0 0 4px;font-weight: 500;width: 100%;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;font-size: 13px;}
 .cal_schedule_writer {color: #969696;}
 .cal_schedule_contbox {display: flex;align-items: center;}
 .cal_schedule_contbox > div {max-width: 50%;}

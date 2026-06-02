@@ -206,7 +206,7 @@ if ($page < 1) {
     $page = 1; // 페이지가 없으면 첫 페이지 (1 페이지)
 }
 
-$limit_go = 5; // 한 페이지에 보여줄 목록 수
+$limit_go = 8; // 한 페이지에 보여줄 목록 수
 $total = count($total_array); // 전체 게시물 수
 
 $total_pages = ceil($total / $limit_go); // 전체 페이지 수

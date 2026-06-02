@@ -1172,14 +1172,14 @@ gap: 6px;width: 100%;height: 100%;font-weight: 500;}
 }
 
 .sm_schedule_list {padding-bottom: 20px;}
-.sm_schedule_box + .sm_schedule_box {margin-top: 10px;}
-.sm_schedule_box a {padding: 15px;border-radius: 10px;border:1px solid #e7ecef;box-shadow: 0 2px 6px rgba(123, 138, 149, 0.15);display: block;background: #fff;}
+.sm_schedule_box + .sm_schedule_box {margin-top: 7px;}
+.sm_schedule_box a {padding: 11px;border-radius: 10px;border:1px solid #e7ecef;box-shadow: 0 2px 6px rgba(123, 138, 149, 0.15);display: block;background: #fff;}
 .sm_schedule_box.on3 a {background: rgba(112,194,253, 0.05);border:1px solid var(--colorMain);}
 .sm_schedule_box_top {display: flex;align-items: center;justify-content: space-between;}
 .sm_schedule_date {font-size: 12px;color: #666;}
 .sm_schedule_status {font-size: 12px;font-weight: 500;color: var(--colorMain);}
 .sm_schedule_box_tit {font-size: 13px;font-weight: 500;white-space: nowrap;text-overflow: ellipsis;}
-.sm_schedule_box_mid {font-size: 15px;font-weight: 500;white-space: nowrap;text-overflow: ellipsis;}
+.sm_schedule_box_mid {font-size: 14px;font-weight: 500;white-space: nowrap;text-overflow: ellipsis;}
 .sm_schedule_box_addr {font-size: 14px;color: #3d3d3d;}
 .sm_schedule_box_bot {font-size: 12px;color: #969696;}
 .sm_schedule_box_bot2 {display: flex;align-items: center;flex-wrap: wrap;}
@@ -1210,6 +1210,11 @@ gap: 6px;width: 100%;height: 100%;font-weight: 500;}
 .cal_head {background:#F8FBFB;margin-top:10px;}
 .cal_div {width:14.285%;}
 .cal_th {padding:10px 5px;font-size:14px;line-height:1.1;color: #3d3d3d;font-weight: 600;}
+/* 요일 색상: 일요일=빨강 / 토요일=파랑 (토/일만, 공휴일 미적용) */
+.cal_th.cal_sun {color: #e53935;}
+.cal_th.cal_sat {color: #1976d2;}
+.cal_td.cal_sun .cal_day_box {color: #e53935;}
+.cal_td.cal_sat .cal_day_box {color: #1976d2;}
 .cal_td {display:flex;align-items:center;justify-content:center;height:58px;padding:0 5px;font-size:15px;}
 .cal_td + .cal_td {}
 .cal_td.select_dates {}
