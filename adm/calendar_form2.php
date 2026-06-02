@@ -140,6 +140,17 @@ if($w == 'u'){
     }
 }
 
+// 반복설정 "표시"용 값: 그달 예외(noti_repeat='N' + exception_idx 채워짐)면 부모의 반복설정으로 표시
+//  (B-2: 예외는 반복 시리즈의 한 occurrence이므로 화면엔 "월간/연간"으로 보여야 함.
+//   내용/제목/담당자 등 입력값은 예외 자신의 값을 그대로 사용 — 여기서 바꾸지 않음)
+$display_repeat = $row['noti_repeat'];
+if($row['noti_repeat'] == 'N' && !empty($row['exception_idx'])){
+    $parent_repeat_row = sql_fetch("SELECT noti_repeat FROM a_calendar WHERE cal_idx = '{$row['exception_idx']}'");
+    if($parent_repeat_row['noti_repeat'] != ''){
+        $display_repeat = $parent_repeat_row['noti_repeat'];
+    }
+}
+
 //처리완료 프로세스 변경
 $is_process_chk = false;
 
@@ -560,9 +571,9 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                     </td>
                     <th>반복 설정</th>
                     <td>
-                        <?php if($is_process_chk || $row['noti_repeat'] != 'N'){
-                            
-                            switch($row['noti_repeat']){
+                        <?php if($is_process_chk || $display_repeat != 'N'){
+
+                            switch($display_repeat){
                                 case "N":
                                     $noti_repeat_s = "안함";
                                 break;
@@ -575,7 +586,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                             }    
                             echo $noti_repeat_s;
                         ?>
-                        <input type="hidden" name="noti_repeat" value="<?php echo $row['noti_repeat']; ?>">
+                        <input type="hidden" name="noti_repeat" value="<?php echo $display_repeat; ?>">
                         <?php }else{ ?>
                             <div class="radio_chk_wrap">
                                 <div class="radio_chk_box">
@@ -787,16 +798,8 @@ function calendar_del(del_mode){
 
 function fcalendar_submit(f) {
 
-    let notiRepeat = "<?php echo $row['noti_repeat'];?>";
-    let calEdate = "<?php echo $row['cal_edate'];?>";
-    let cal_date2 = "<?php echo $cal_date_def; ?>";
-
-    if(f.w.value == 'u' && notiRepeat != "N" && calEdate == ''){
-        if(!confirm("현재 일정 수정 시 " + cal_date2 + " 날짜 이후의 반복 일정이 모두 변경됩니다.\n계속 진행하시겠습니까?")){
-            return false;
-        }
-    }
-
+    // B-2: 내용 수정은 백엔드에서 "그달 예외 보존 + 부모 내용 전파"로 처리되므로
+    //      별도 범위 선택/확인 팝업 불필요. 반복 설정도 강등되지 않음.
     buildingInfoPopOpen();
 
     return true;
