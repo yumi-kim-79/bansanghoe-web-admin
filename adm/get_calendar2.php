@@ -6,7 +6,8 @@ $startYear        = date( "Y" );
 $endYear        = date( "Y" ) + 4;
 
 /********** 입력값 **********/
-$year            = ( $toYear )? $toYear : date( "Y" );
+$year            = ( $toYear && $toYear !== 'all' )? $toYear : date( "Y" );
+$is_all_year     = ($toYear === 'all'); // 전체 기간 보기 — 그리드는 현재 연도로 표시, 년 드롭다운만 '전체'
 $is_year         = ($toMonth === 'all'); // 연간 보기 — 그리드는 현재월로 표시, 월 드롭다운만 '전체'
 $month            = ( $toMonth && $toMonth !== 'all' )? $toMonth : date( "m" );
 $doms            = array( "일", "월", "화", "수", "목", "금", "토" );
@@ -100,8 +101,9 @@ sort($res_date);
         <div class="cal_sel_with_nav">
             <button type="button" class="cal_nav_arrow" onclick="calYearMove(-1);" aria-label="전년">&lt;</button>
             <select name="cal_year" id="cal_year" class="bansang_sel" onchange="cal_year_change();">
+                <option value="all" <?php echo $is_all_year ? 'selected' : ''; ?>>전체</option>
                 <?php for($y = 2024;$y<=$yearD;$y++){?>
-                <option value="<?php echo $y; ?>" <?php echo get_selected($year, $y); ?>><?php echo $y; ?></option>
+                <option value="<?php echo $y; ?>" <?php echo get_selected($is_all_year ? 'all' : $year, $y); ?>><?php echo $y; ?></option>
                 <?php }?>
             </select>
             <button type="button" class="cal_nav_arrow" onclick="calYearMove(1);" aria-label="익년">&gt;</button>
@@ -122,7 +124,7 @@ sort($res_date);
             <button type="button" class="cal_nav_arrow" onclick="calMonthMove(1);" aria-label="익월">&gt;</button>
         </div>
     </div>
-    <?php if($is_year){ ?><span class="cal_year_badge">연간 보기</span><?php } ?>
+    <?php if($is_all_year){ ?><span class="cal_year_badge">전체 기간</span><?php }elseif($is_year){ ?><span class="cal_year_badge">연간 보기</span><?php } ?>
     <input type="text" id="cal_building_search" placeholder="검색창"
         style="padding:5px 10px; border:2px solid #1976d2; border-radius:4px; font-size:14px; width:180px; height:34px; box-sizing:border-box;">
     <button type="button" onclick="doCalSearch()"

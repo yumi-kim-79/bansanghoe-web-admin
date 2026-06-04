@@ -216,16 +216,22 @@ function cal_month_change(){
 
 // 년 전후 이동 화살표 (3-a)
 function calYearMove(delta){
-    var y = parseInt($("#cal_year option:selected").val(), 10) + delta;
+    var yc = $("#cal_year option:selected").val();
+    // 전체 기간(year='all') 상태에서 년 화살표 클릭 시 현재 연도 기준으로 진입
+    if(yc === 'all'){ yc = "<?php echo date('Y'); ?>"; }
+    var y = parseInt(yc, 10) + delta;
     var m = $("#cal_month option:selected").val();
     moveCal(y, m, "1", "<?php echo $cal_code; ?>");
 }
 
 // 월 전후 이동 화살표 (3-a) — 연도 경계 처리(1월→전해 12월, 12월→다음해 1월)
 function calMonthMove(delta){
-    var y = parseInt($("#cal_year option:selected").val(), 10);
+    var yc = $("#cal_year option:selected").val();
+    // 전체 기간(year='all') 상태에서 월 화살표 클릭 시 현재 연도 기준
+    if(yc === 'all'){ yc = "<?php echo date('Y'); ?>"; }
+    var y = parseInt(yc, 10);
     var cur = $("#cal_month option:selected").val();
-    // 연간(전체) 상태에서 월 화살표 클릭 시 현재월 기준으로 진입
+    // 연간(전체 월) 상태에서 월 화살표 클릭 시 현재월 기준으로 진입
     if(cur === 'all'){ cur = "<?php echo date('m'); ?>"; }
     var m = parseInt(cur, 10) + delta;
     if(m < 1){ m = 12; y = y - 1; }
@@ -236,6 +242,12 @@ function calMonthMove(delta){
 
 
 function moveCal(year, month, type, calcode){
+    // ③ 전체 기간(year='all')은 단지 선택 필수 — 미선택 시 alert + AJAX 미발사 (백엔드 안전망과 이중)
+    if(year === 'all' && ($("#cal_building_search").val()||"").trim() === ""){
+        alert("단지를 먼저 검색·선택하세요.");
+        return;
+    }
+
     // 엑셀 다운로드 버튼 URL 동기화 (월 이동 시 함께 업데이트)
     var excelBtn = document.getElementById('excel_download_btn');
     if(excelBtn){

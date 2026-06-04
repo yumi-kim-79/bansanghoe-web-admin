@@ -3,7 +3,9 @@ require_once './_common.php';
 
 $sql_common = " from a_calendar ";
 
-$year            = ( $toYear )? $toYear : date( "Y" );
+// 전체 기간(연도 'all'): 특정 건물 전 기간 — 다년 펼침은 STEP 2. 'all'이면 안전 폴백(현재 연도)
+$is_all_year = ($toYear === 'all');
+$year            = ( $toYear && $toYear !== 'all' )? $toYear : date( "Y" );
 
 // 연간 모드: 월 미선택('all' 또는 빈값)이면 그 해 전체 조회 (방식 A — 우측 목록만 연간)
 $is_year = ($toMonth === 'all' || $toMonth === '');
@@ -13,6 +15,11 @@ $now_month = $year.'-'.sprintf('%02d', $month);
 
 // 조회 날짜 prefix: 연간이면 'YYYY', 월간이면 'YYYY-MM' (cal_date / process_date LIKE 'prefix%')
 $date_like = $is_year ? "{$year}" : $now_month;
+
+// 반복 펼침 경계(범위): 끝 = 전체기간(year'all')='이번 달 말' / 연간=연말 / 월간=월말
+//                     시작 = 전체기간=사실상 무제한('1000-01-01') / 연간=연초 / 월간=월초
+$end_date   = $is_all_year ? date("Y-m-t") : ($is_year ? "{$year}-12-31" : date("Y-m-t", strtotime($now_month)));
+$start_date = $is_all_year ? "1000-01-01"  : ($is_year ? "{$year}-01-01" : date("Y-m-01", strtotime($now_month)));
 
 $sql_search1 = "";
 $sql_search2 = "";
@@ -34,10 +41,18 @@ if ($building_stx != "") {
     }
 }
 
+// ③ 전체 기간(연도 'all')은 특정 건물 필수 — 미지정 시 무거운 전수 펼침 차단 (백엔드 안전망)
+if($is_all_year && $building_stx == ""){
+    echo '<div class="cal_schedule_empty">단지를 먼저 검색·선택해 주세요.<br>(전체 기간 조회는 단지 선택이 필요합니다)</div>';
+    exit;
+}
+
+// 비반복/예외 날짜 조건: 전체기간은 prefix 못 쓰니 'cal_date <= 이번달말', 그 외는 'cal_date like prefix%'
+$date_cond = $is_all_year ? " and cal_date <= '{$end_date}' " : " and cal_date like '{$date_like}%' ";
 if($calcode == "schedule"){
-    $sql_search = " and cal_date like '{$date_like}%' ";
+    $sql_search = $date_cond;
 }else{
-    $sql_search = " and cal_date like '{$date_like}%' and cal_code = '{$calcode}' ";
+    $sql_search = $date_cond . " and cal_code = '{$calcode}' ";
 
     $sql_search1 = " and cal_code = '{$calcode}' ";
 }
@@ -57,10 +72,12 @@ if($selectDate != ""){
 //  키: "{cal_idx}_{process_date}", 값: process_id. 키 존재 = 처리완료(기존 COUNT(*)>0 과 동치)
 //  범위: 조회기간(date_like: 월간='YYYY-MM' / 연간='YYYY') + cal_code/building (a_calendar 조인).
 $proc_map = [];
+// 전체기간은 process_date prefix 못 쓰니 '<= 이번달말'. 그 외는 prefix.
+$proc_date_cond = $is_all_year ? "p.process_date <= '{$end_date}'" : "p.process_date like '{$date_like}%'";
 $proc_sql = "SELECT p.cal_idx, p.process_date, p.process_id
              FROM a_calendar_process AS p
              JOIN a_calendar AS c ON c.cal_idx = p.cal_idx
-             WHERE p.process_date like '{$date_like}%' {$sql_search1} {$building_id_filter}";
+             WHERE {$proc_date_cond} {$sql_search1} {$building_id_filter}";
 $proc_res = sql_query($proc_sql);
 while($proc_row = sql_fetch_array($proc_res)){
     $proc_map[$proc_row['cal_idx'] . '_' . $proc_row['process_date']] = $proc_row['process_id'];
@@ -88,8 +105,7 @@ while($row_n = sql_fetch_array($result2)){
 }
 
 
-$def_date = date("Y-m", strtotime($now_month)); //기준날짜
-$end_date = $is_year ? "{$year}-12-31" : date("Y-m-t", strtotime($now_month)); // 조회범위 끝 (연간=연말 / 월간=월말)
+$def_date = date("Y-m", strtotime($now_month)); //기준날짜 (참고용. 범위는 상단 $start_date/$end_date 사용)
 
 // 삭제된 예외 레코드 날짜 목록 (반복일정에서 특정 날짜 제외용)
 // key: "parent_cal_idx_날짜" → 해당 날짜에 예외 처리가 있으면 원본 반복 스킵
@@ -104,25 +120,38 @@ while($exc_row = sql_fetch_array($exc_res)){
 $sql_month = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'MONTH' {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result_m = sql_query($sql_month);
 
-// 펼침 대상 월: 월간 모드는 해당 월 1개, 연간 모드는 1~12월 (12개월 루프로 "감싸기")
-$months_loop = $is_year ? range(1, 12) : array(intval($month));
-
+// MONTH 펼침: 월간=해당 월 1개 / 연간=그 해 1~12월 / 전체기간=부모시작~이번달(여러 해)
+//  effective 범위 안에서 월 단위 스테핑. 월/연간 모드는 기존(STEP C)과 동일 범위로 떨어짐(아래 논리 동일).
 while($row_m = sql_fetch_array($result_m)){
 
-    $parent_start = $row_m['cal_date'];   // 부모 반복 시작일 (occurrence 루프 간 불변 보존)
+    $parent_start = $row_m['cal_date'];   // 부모 반복 시작일 (불변 보존)
     $parent_edate = $row_m['cal_edate'];  // 부모 마감일
     $rep_day      = date("d", strtotime($parent_start)); // 월간 반복 일자 고정
 
-    //시작일이 조회범위 끝보다 크면(아직 시작 안 함) 부모 전체 제외
-    if($parent_start > $end_date){
+    // effective 범위: 시작 = max(부모시작, 조회범위시작) / 끝 = min(부모마감(있으면), 조회범위끝)
+    $eff_start = ($parent_start > $start_date) ? $parent_start : $start_date;
+    $eff_end   = $end_date;
+    if($parent_edate != '' && $parent_edate < $eff_end){ $eff_end = $parent_edate; }
+
+    // 시작이 끝보다 뒤면(아직 시작 안 함 / 이미 종료) 펼침 없음
+    if($eff_start > $eff_end){
         continue;
     }
 
-    foreach($months_loop as $loop_m){
+    // 월 단위 스테핑 (해를 넘나듦). occurrence 일자는 rep_day 고정.
+    $cur_y = (int)date("Y", strtotime($eff_start));
+    $cur_m = (int)date("n", strtotime($eff_start));
+    $end_y = (int)date("Y", strtotime($eff_end));
+    $end_m = (int)date("n", strtotime($eff_end));
 
-        $date_month = $year.'-'.sprintf('%02d', $loop_m).'-'.$rep_day; //YYYY-MM-dd occurrence
+    while($cur_y < $end_y || ($cur_y === $end_y && $cur_m <= $end_m)){
 
-        // ★ R1: occurrence가 부모 시작일 이전이면 제외 (연간 12개월 중 시작 전 달 차단)
+        $date_month = sprintf('%04d-%02d', $cur_y, $cur_m).'-'.$rep_day; //YYYY-MM-dd occurrence
+
+        // 다음 스텝 미리 진행 (이후 continue 안전 — 무한루프 방지)
+        $cur_m++; if($cur_m > 12){ $cur_m = 1; $cur_y++; }
+
+        // ★ R1: occurrence가 부모 시작일 이전이면 제외
         if($date_month < $parent_start){
             continue;
         }
@@ -152,7 +181,7 @@ while($row_m = sql_fetch_array($result_m)){
             }
         }
 
-        // 부모를 복사해 occurrence로 push (원본 $row_m 변형 금지 — 12개월 루프 오염 방지)
+        // 부모를 복사해 occurrence로 push (원본 $row_m 변형 금지)
         $item = $row_m;
         $item['cal_date'] = $date_month;
 
@@ -178,10 +207,34 @@ $result_y = sql_query($sql_year);
 
 
 
-$start_date = $is_year ? "{$year}-01-01" : date("Y-m-01", strtotime($now_month)); // 조회범위 시작 (연간=연초 / 월간=월초)
-
 while($row_y = sql_fetch_array($result_y)){
 
+    // 전체 기간(year'all')은 연 단위 스테핑(부모 시작연~올해). 그 외(월/연간)는 기존 STEP C 로직 그대로.
+    if($is_all_year){
+        $y_md = date("m-d", strtotime($row_y['cal_date'])); //연간 반복 월일 고정
+        $cy   = (int)date("Y", strtotime($row_y['cal_date'])); //부모 시작연
+        $ey   = (int)date("Y", strtotime($end_date)); //올해(이번 달 말의 연도)
+        for(; $cy <= $ey; $cy++){
+            $date_year = $cy.'-'.$y_md;
+            if(isset($exception_dates[$row_y['cal_idx'] . '_' . $date_year])){ continue; }
+            if($selectDate != "" && $date_year != $selectDate){ continue; }
+            if($date_year < $start_date){ continue; }
+            if($date_year > $end_date){ continue; }
+            if($row_y['cal_edate'] != '' && $date_year > $row_y['cal_edate']){ continue; }
+            $item = $row_y;
+            $item['cal_date'] = $date_year;
+            $proc_key = $item['cal_idx'] . '_' . $date_year;
+            if(array_key_exists($proc_key, $proc_map)){
+                $item['is_process'] = 1;
+                $item['process_id'] = $proc_map[$proc_key];
+            }else{
+                $item['is_process'] = 0;
+                $item['process_id'] = '';
+            }
+            array_push($total_array, $item);
+        }
+        continue; //다음 부모로
+    }
 
     $date_year = $def_year.'-'.date("m-d", strtotime($row_y['cal_date'])); //연간 반복이므로 월일자만 고정
 
