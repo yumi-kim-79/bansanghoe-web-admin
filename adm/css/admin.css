@@ -1350,6 +1350,11 @@ input[type="checkbox"][readonly] {
 
 .cal_header_new {display: flex;gap:0 20px;}
 .cal_header_select_box {display: flex;align-items: center;gap:0 10px;}
+/* 년/월 전후 이동 화살표 (3-a) */
+.cal_sel_with_nav {display: flex;align-items: center;gap: 4px;}
+.cal_nav_arrow {width: 28px;height: 34px;border:1px solid #1976d2;background:#fff;color:#1976d2;border-radius:4px;font-size:18px;line-height:1;cursor:pointer;box-sizing:border-box;padding:0;}
+.cal_nav_arrow:hover {background:#1976d2;color:#fff;}
+.cal_year_badge {display:inline-flex;align-items:center;height:34px;padding:0 12px;background:#eaf3fb;color:#1976d2;border:1px solid #1976d2;border-radius:4px;font-size:13px;font-weight:600;}
 
 /* 팝업 */
 

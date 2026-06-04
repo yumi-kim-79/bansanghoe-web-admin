@@ -7,7 +7,8 @@ $endYear        = date( "Y" ) + 4;
 
 /********** 입력값 **********/
 $year            = ( $toYear )? $toYear : date( "Y" );
-$month            = ( $toMonth )? $toMonth : date( "m" );
+$is_year         = ($toMonth === 'all'); // 연간 보기 — 그리드는 현재월로 표시, 월 드롭다운만 '전체'
+$month            = ( $toMonth && $toMonth !== 'all' )? $toMonth : date( "m" );
 $doms            = array( "일", "월", "화", "수", "목", "금", "토" );
 
 /********** 계산값 **********/
@@ -96,22 +97,32 @@ sort($res_date);
 <div class="cal_header_new" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
     <div class="cal_header_select_box">
         <div class="cal_header_label">년도</div>
-        <select name="cal_year" id="cal_year" class="bansang_sel" onchange="cal_year_change();">
-            <?php for($y = 2024;$y<=$yearD;$y++){?>
-            <option value="<?php echo $y; ?>" <?php echo get_selected($year, $y); ?>><?php echo $y; ?></option>
-            <?php }?>
-        </select>
+        <div class="cal_sel_with_nav">
+            <button type="button" class="cal_nav_arrow" onclick="calYearMove(-1);" aria-label="전년">&lsaquo;</button>
+            <select name="cal_year" id="cal_year" class="bansang_sel" onchange="cal_year_change();">
+                <?php for($y = 2024;$y<=$yearD;$y++){?>
+                <option value="<?php echo $y; ?>" <?php echo get_selected($year, $y); ?>><?php echo $y; ?></option>
+                <?php }?>
+            </select>
+            <button type="button" class="cal_nav_arrow" onclick="calYearMove(1);" aria-label="익년">&rsaquo;</button>
+        </div>
     </div>
     <div class="cal_header_select_box">
         <div class="cal_header_label">월</div>
-        <select name="cal_month" id="cal_month" class="bansang_sel" onchange="cal_month_change();">
-            <?php for($i=1;$i<=12;$i++){
-                 $monthzero = str_pad($i, 2, "0", STR_PAD_LEFT);
-            ?>
-            <option value="<?php echo $monthzero; ?>" <?php echo get_selected($month, $monthzero); ?>><?php echo $monthzero; ?></option>
-            <?php }?>
-        </select>
+        <div class="cal_sel_with_nav">
+            <button type="button" class="cal_nav_arrow" onclick="calMonthMove(-1);" aria-label="전월">&lsaquo;</button>
+            <select name="cal_month" id="cal_month" class="bansang_sel" onchange="cal_month_change();">
+                <option value="all" <?php echo $is_year ? 'selected' : ''; ?>>전체</option>
+                <?php for($i=1;$i<=12;$i++){
+                     $monthzero = str_pad($i, 2, "0", STR_PAD_LEFT);
+                ?>
+                <option value="<?php echo $monthzero; ?>" <?php echo get_selected($is_year ? 'all' : $month, $monthzero); ?>><?php echo $monthzero; ?></option>
+                <?php }?>
+            </select>
+            <button type="button" class="cal_nav_arrow" onclick="calMonthMove(1);" aria-label="익월">&rsaquo;</button>
+        </div>
     </div>
+    <?php if($is_year){ ?><span class="cal_year_badge">연간 보기</span><?php } ?>
     <input type="text" id="cal_building_search" placeholder="검색창"
         style="padding:5px 10px; border:2px solid #1976d2; border-radius:4px; font-size:14px; width:180px; height:34px; box-sizing:border-box;">
     <button type="button" onclick="doCalSearch()"

@@ -4,9 +4,15 @@ require_once './_common.php';
 $sql_common = " from a_calendar ";
 
 $year            = ( $toYear )? $toYear : date( "Y" );
-$month            = ( $toMonth )? $toMonth : date( "m" );
+
+// 연간 모드: 월 미선택('all' 또는 빈값)이면 그 해 전체 조회 (방식 A — 우측 목록만 연간)
+$is_year = ($toMonth === 'all' || $toMonth === '');
+$month            = ( $toMonth && $toMonth !== 'all' )? $toMonth : date( "m" );
 
 $now_month = $year.'-'.sprintf('%02d', $month);
+
+// 조회 날짜 prefix: 연간이면 'YYYY', 월간이면 'YYYY-MM' (cal_date / process_date LIKE 'prefix%')
+$date_like = $is_year ? "{$year}" : $now_month;
 
 $sql_search1 = "";
 $sql_search2 = "";
@@ -29,9 +35,9 @@ if ($building_stx != "") {
 }
 
 if($calcode == "schedule"){
-    $sql_search = " and cal_date like '{$now_month}%' ";
+    $sql_search = " and cal_date like '{$date_like}%' ";
 }else{
-    $sql_search = " and cal_date like '{$now_month}%' and cal_code = '{$calcode}' ";
+    $sql_search = " and cal_date like '{$date_like}%' and cal_code = '{$calcode}' ";
 
     $sql_search1 = " and cal_code = '{$calcode}' ";
 }
@@ -47,6 +53,19 @@ if($selectDate != ""){
     $sql_search2 = " and cal_date = '{$selectDate}' ";
 }
 
+// 처리이력 일괄 로드 (occurrence별 개별 SELECT 제거 — 조회 방식만 변경, 판정 기준은 기존과 동일)
+//  키: "{cal_idx}_{process_date}", 값: process_id. 키 존재 = 처리완료(기존 COUNT(*)>0 과 동치)
+//  범위: 조회기간(date_like: 월간='YYYY-MM' / 연간='YYYY') + cal_code/building (a_calendar 조인).
+$proc_map = [];
+$proc_sql = "SELECT p.cal_idx, p.process_date, p.process_id
+             FROM a_calendar_process AS p
+             JOIN a_calendar AS c ON c.cal_idx = p.cal_idx
+             WHERE p.process_date like '{$date_like}%' {$sql_search1} {$building_id_filter}";
+$proc_res = sql_query($proc_sql);
+while($proc_row = sql_fetch_array($proc_res)){
+    $proc_map[$proc_row['cal_idx'] . '_' . $proc_row['process_date']] = $proc_row['process_id'];
+}
+
 //반복설정 없는 일정 + noti_repeat='N'인 예외 레코드
 //noti_repeat='MONTH'/'YEAR'인 예외 레코드는 반복 쿼리에서 처리되므로 여기서 제외
 $sql_no = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'N' {$sql_search} {$sql_search2} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
@@ -56,11 +75,10 @@ $total_array = array();
 
 while($row_n = sql_fetch_array($result2)){
 
-    $process_sql = sql_fetch("SELECT *, COUNT(*) as cnt FROM a_calendar_process WHERE cal_idx = {$row_n['cal_idx']} and process_date = '{$row_n['cal_date']}'");
-
-    if($process_sql['cnt'] > 0){
+    $proc_key = $row_n['cal_idx'] . '_' . $row_n['cal_date'];
+    if(array_key_exists($proc_key, $proc_map)){
         $row_n['is_process'] = 1;
-        $row_n['process_id'] = $process_sql['process_id'];
+        $row_n['process_id'] = $proc_map[$proc_key];
     }else{
         $row_n['is_process'] = 0;
         $row_n['process_id'] = '';
@@ -71,7 +89,7 @@ while($row_n = sql_fetch_array($result2)){
 
 
 $def_date = date("Y-m", strtotime($now_month)); //기준날짜
-$end_date = date("Y-m-t", strtotime($now_month)); // 달의 마지막 날짜
+$end_date = $is_year ? "{$year}-12-31" : date("Y-m-t", strtotime($now_month)); // 조회범위 끝 (연간=연말 / 월간=월말)
 
 // 삭제된 예외 레코드 날짜 목록 (반복일정에서 특정 날짜 제외용)
 // key: "parent_cal_idx_날짜" → 해당 날짜에 예외 처리가 있으면 원본 반복 스킵
@@ -86,57 +104,70 @@ while($exc_row = sql_fetch_array($exc_res)){
 $sql_month = "SELECT * FROM a_calendar WHERE is_del = 0 and noti_repeat = 'MONTH' {$sql_search1} {$building_id_filter} ORDER BY cal_date asc, cal_idx desc";
 $result_m = sql_query($sql_month);
 
+// 펼침 대상 월: 월간 모드는 해당 월 1개, 연간 모드는 1~12월 (12개월 루프로 "감싸기")
+$months_loop = $is_year ? range(1, 12) : array(intval($month));
+
 while($row_m = sql_fetch_array($result_m)){
 
-    //일정이 기준날짜보다 클경우 제외
-    if($row_m['cal_date'] > $end_date){
+    $parent_start = $row_m['cal_date'];   // 부모 반복 시작일 (occurrence 루프 간 불변 보존)
+    $parent_edate = $row_m['cal_edate'];  // 부모 마감일
+    $rep_day      = date("d", strtotime($parent_start)); // 월간 반복 일자 고정
+
+    //시작일이 조회범위 끝보다 크면(아직 시작 안 함) 부모 전체 제외
+    if($parent_start > $end_date){
         continue;
     }
 
-    $date_month = $def_date.'-'.date("d", strtotime($row_m['cal_date'])); //월간 반복이므로 일자만 고정
+    foreach($months_loop as $loop_m){
 
-    // 해당 날짜에 예외 레코드가 있으면 원본 스킵 (예외 레코드가 대신 표시됨)
-    if(isset($exception_dates[$row_m['cal_idx'] . '_' . $date_month])){
-        continue;
-    }
+        $date_month = $year.'-'.sprintf('%02d', $loop_m).'-'.$rep_day; //YYYY-MM-dd occurrence
 
-    $row_m['cal_date'] = $date_month; // 날짜 변경
-
-    //달력에서 날짜 선택한 경우
-    if($selectDate != ""){
-
-        //선택한 날짜와 다를경우 제외
-        if($date_month != $selectDate){
+        // ★ R1: occurrence가 부모 시작일 이전이면 제외 (연간 12개월 중 시작 전 달 차단)
+        if($date_month < $parent_start){
             continue;
         }
-    }
 
-    //일정이 기준날짜보다 클경우 제외
-    if($date_month > $end_date){
-        continue;
-    }
-
-    //일정에 마감날짜 있는 경우 날짜가 마감날짜보다 클경우 제외
-    if($row_m['cal_edate'] != ''){
-
-        if($row_m['cal_date'] > $row_m['cal_edate']){
+        // 해당 날짜에 예외 레코드가 있으면 원본 스킵 (예외 레코드가 대신 표시됨)
+        if(isset($exception_dates[$row_m['cal_idx'] . '_' . $date_month])){
             continue;
         }
+
+        //달력에서 날짜 선택한 경우
+        if($selectDate != ""){
+            //선택한 날짜와 다를경우 제외
+            if($date_month != $selectDate){
+                continue;
+            }
+        }
+
+        //occurrence가 조회범위 끝보다 클경우 제외
+        if($date_month > $end_date){
+            continue;
+        }
+
+        //일정에 마감날짜 있는 경우 occurrence가 마감날짜보다 클경우 제외
+        if($parent_edate != ''){
+            if($date_month > $parent_edate){
+                continue;
+            }
+        }
+
+        // 부모를 복사해 occurrence로 push (원본 $row_m 변형 금지 — 12개월 루프 오염 방지)
+        $item = $row_m;
+        $item['cal_date'] = $date_month;
+
+        // 일정 처리 확인 -- 해당 일정에 해당 날짜로 처리되었는지 확인
+        $proc_key = $item['cal_idx'] . '_' . $date_month;
+        if(array_key_exists($proc_key, $proc_map)){
+            $item['is_process'] = 1;
+            $item['process_id'] = $proc_map[$proc_key];
+        }else{
+            $item['is_process'] = 0;
+            $item['process_id'] = '';
+        }
+
+        array_push($total_array, $item);
     }
-
-
-    // 일정 처리 확인 -- 해당 일정에 해당 날짜로 처리되었는지 확인
-    $process_sql = sql_fetch("SELECT *, COUNT(*) as cnt FROM a_calendar_process WHERE cal_idx = {$row_m['cal_idx']} and process_date = '{$row_m['cal_date']}'");
-
-    if($process_sql['cnt'] > 0){
-        $row_m['is_process'] = 1;
-        $row_m['process_id'] = $process_sql['process_id'];
-    }else{
-        $row_m['is_process'] = 0;
-        $row_m['process_id'] = '';
-    }
-
-    array_push($total_array, $row_m);
 }
 
 $def_year = date("Y", strtotime($now_month)); // 연간 기준날짜
@@ -147,7 +178,7 @@ $result_y = sql_query($sql_year);
 
 
 
-$start_date = date("Y-m-01", strtotime($now_month)); // 연간 기준날짜
+$start_date = $is_year ? "{$year}-01-01" : date("Y-m-01", strtotime($now_month)); // 조회범위 시작 (연간=연초 / 월간=월초)
 
 while($row_y = sql_fetch_array($result_y)){
 
@@ -188,11 +219,10 @@ while($row_y = sql_fetch_array($result_y)){
     }
 
     // 일정 처리 확인
-    $process_sql = sql_fetch("SELECT *, COUNT(*) as cnt FROM a_calendar_process WHERE cal_idx = {$row_y['cal_idx']} and process_date = '{$row_y['cal_date']}'");
-
-    if($process_sql['cnt'] > 0){
+    $proc_key = $row_y['cal_idx'] . '_' . $row_y['cal_date'];
+    if(array_key_exists($proc_key, $proc_map)){
         $row_y['is_process'] = 1;
-        $row_y['process_id'] = $process_sql['process_id'];
+        $row_y['process_id'] = $proc_map[$proc_key];
     }else{
         $row_y['is_process'] = 0;
         $row_y['process_id'] = '';
