@@ -98,19 +98,19 @@ sort($res_date);
     <div class="cal_header_select_box">
         <div class="cal_header_label">년도</div>
         <div class="cal_sel_with_nav">
-            <button type="button" class="cal_nav_arrow" onclick="calYearMove(-1);" aria-label="전년">&lsaquo;</button>
+            <button type="button" class="cal_nav_arrow" onclick="calYearMove(-1);" aria-label="전년">&lt;</button>
             <select name="cal_year" id="cal_year" class="bansang_sel" onchange="cal_year_change();">
                 <?php for($y = 2024;$y<=$yearD;$y++){?>
                 <option value="<?php echo $y; ?>" <?php echo get_selected($year, $y); ?>><?php echo $y; ?></option>
                 <?php }?>
             </select>
-            <button type="button" class="cal_nav_arrow" onclick="calYearMove(1);" aria-label="익년">&rsaquo;</button>
+            <button type="button" class="cal_nav_arrow" onclick="calYearMove(1);" aria-label="익년">&gt;</button>
         </div>
     </div>
     <div class="cal_header_select_box">
         <div class="cal_header_label">월</div>
         <div class="cal_sel_with_nav">
-            <button type="button" class="cal_nav_arrow" onclick="calMonthMove(-1);" aria-label="전월">&lsaquo;</button>
+            <button type="button" class="cal_nav_arrow" onclick="calMonthMove(-1);" aria-label="전월">&lt;</button>
             <select name="cal_month" id="cal_month" class="bansang_sel" onchange="cal_month_change();">
                 <option value="all" <?php echo $is_year ? 'selected' : ''; ?>>전체</option>
                 <?php for($i=1;$i<=12;$i++){
@@ -119,7 +119,7 @@ sort($res_date);
                 <option value="<?php echo $monthzero; ?>" <?php echo get_selected($is_year ? 'all' : $month, $monthzero); ?>><?php echo $monthzero; ?></option>
                 <?php }?>
             </select>
-            <button type="button" class="cal_nav_arrow" onclick="calMonthMove(1);" aria-label="익월">&rsaquo;</button>
+            <button type="button" class="cal_nav_arrow" onclick="calMonthMove(1);" aria-label="익월">&gt;</button>
         </div>
     </div>
     <?php if($is_year){ ?><span class="cal_year_badge">연간 보기</span><?php } ?>

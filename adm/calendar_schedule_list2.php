@@ -243,6 +243,15 @@ foreach($total_array as $item){
 }
 $total_array = array_values($dedup_map);
 
+// 처리상태 필터 (②): is_process 는 occurrence별로 이미 계산됨 → dedup 후·페이징 전에 거르기만
+//  (펼침/예외/부모/dedup·연간 로직 무변경. 월/연간/연도전체 모든 모드 공통 적용)
+$process_status = isset($_POST['process_status']) ? $_POST['process_status'] : '';
+if($process_status === 'done'){
+    $total_array = array_values(array_filter($total_array, function($item){ return $item['is_process'] == 1; }));
+}elseif($process_status === 'todo'){
+    $total_array = array_values(array_filter($total_array, function($item){ return $item['is_process'] == 0; }));
+}
+
 //날짜순서, 인덱스에 맞게 다시 정렬
 usort($total_array, function($a, $b) {
     $dateCompare = strcmp($a['cal_date'], $b['cal_date']); // 날짜 오름차순

@@ -165,7 +165,14 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             <div class="calendar_area"></div>
         </div>
         <div class="cal_schedule_list_wrap">
-            <div class="cal_schedule_label mgb10">일정 내역</div>
+            <div class="cal_schedule_label mgb10" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <span>일정 내역</span>
+                <select id="cal_process_status" onchange="calProcessStatusChange();" style="height:30px;padding:0 8px;border:1px solid var(--borderColor);border-radius:4px;font-size:13px;font-weight:400;">
+                    <option value="">전체</option>
+                    <option value="done">처리완료</option>
+                    <option value="todo">미처리</option>
+                </select>
+            </div>
             <div class="cal_schedule_box_wrap">
                 
             </div>
@@ -252,7 +259,7 @@ function moveCal(year, month, type, calcode){
     $.ajax({
         type: "POST",
         url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:'', building_stx:($("#cal_building_search").val()||"")}, 
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:'', building_stx:($("#cal_building_search").val()||""), process_status:($("#cal_process_status").val()||"")},
         cache: false,
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
@@ -297,7 +304,7 @@ $(document).on("click", ".cal_td_box", function(){
     $.ajax({
         type: "POST",
         url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectDate, building_stx:($("#cal_building_search").val()||"")}, 
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectDate, building_stx:($("#cal_building_search").val()||""), process_status:($("#cal_process_status").val()||"")},
         cache: false,
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
@@ -314,7 +321,7 @@ function calendar_schedule_handler(year, month, calcode, selectDate) {
     $.ajax({
         type: "POST",
         url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectDate, building_stx:($("#cal_building_search").val()||"")}, 
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectDate, building_stx:($("#cal_building_search").val()||""), process_status:($("#cal_process_status").val()||"")},
         cache: false,
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
@@ -338,7 +345,7 @@ $(document).on('click', '.pg_page_noti', function() {
     $.ajax({
         type: "POST",
         url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectedDates, page:page, building_stx:($("#cal_building_search").val()||"")}, 
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:selectedDates, page:page, building_stx:($("#cal_building_search").val()||""), process_status:($("#cal_process_status").val()||"")},
         cache: false,
         async: true,
         contentType : "application/x-www-form-urlencoded; charset=UTF-8",
@@ -351,6 +358,14 @@ $(document).on('click', '.pg_page_noti', function() {
 });
 
 
+// 처리상태 필터(②) 변경 시 목록 재조회 (현재 년/월/단지/선택날짜 + process_status 유지)
+function calProcessStatusChange(){
+    var year    = $("#cal_year option:selected").val();
+    var month   = $("#cal_month option:selected").val();
+    var calcode = "<?php echo $cal_code;?>";
+    calendar_schedule_handler(year, month, calcode, selectedDates);
+}
+
 function doCalSearch() {
     var year    = $("#cal_year option:selected").val();
     var month   = $("#cal_month option:selected").val();
@@ -360,7 +375,7 @@ function doCalSearch() {
     $.ajax({
         type: "POST",
         url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:"", building_stx:stx},
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:"", building_stx:stx, process_status:($("#cal_process_status").val()||"")},
         cache: false, async: true,
         contentType: "application/x-www-form-urlencoded; charset=UTF-8",
         success: function(data) {
@@ -378,7 +393,7 @@ function resetCalSearch() {
     $.ajax({
         type: "POST",
         url: "./calendar_schedule_list2.php",
-        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:"", building_stx:""},
+        data: {toYear:year, toMonth:month, calcode:calcode, selectDate:"", building_stx:"", process_status:($("#cal_process_status").val()||"")},
         cache: false, async: true,
         contentType: "application/x-www-form-urlencoded; charset=UTF-8",
         success: function(data) {
