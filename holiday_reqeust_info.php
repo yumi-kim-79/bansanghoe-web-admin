@@ -418,6 +418,7 @@ window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
 function signLoad(id, ele, approval_cont){
+    if(!confirm("저장된 서명을 불러오시겠습니까?")) return false;
     let sendData = {'mb_id': id};
 
     $.ajax({

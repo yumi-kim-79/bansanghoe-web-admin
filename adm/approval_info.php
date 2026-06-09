@@ -296,6 +296,7 @@ $(function(){
 });
 
 function signLoad(id, ele, approval_cont){
+    if(!confirm("저장된 서명을 불러오시겠습니까?")) return false;
     let approval_signature_temp = $("#approval_signature_temp").val();
 
     let sendData = {'mb_id': id};
