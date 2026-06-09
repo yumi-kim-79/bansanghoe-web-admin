@@ -284,6 +284,13 @@ function bigSizeOff(){
 	$("#big_img").attr("src", "");
 }
 
+// [항목3] ESC 키로 확대팝업 닫기 (X버튼·배경클릭과 함께 3중 닫기)
+$(document).on('keydown', function(e){
+	if(e.key === 'Escape' && $("#big_size_pop").is(":visible")){
+		bigSizeOff();
+	}
+});
+
 $(function(){
     $("#wdate, .ipt_date").datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd", showButtonPanel: true, yearRange: "c-99:c+99", maxDate: "+365d", minDate:"0d" });
 });
