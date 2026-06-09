@@ -11,6 +11,11 @@ $sql_common = " FROM a_sign_off as sign_off
 
 $mb_ids = $member['mb_id'];
 
+// [항목1] 첫 진입(파라미터 자체 없음)이면 "내 결재" 기본. "전체"는 빈 파라미터로 명시 제출되므로 구분됨.
+if(!isset($_GET['sign_off_status'])){
+    $sign_off_status = 'MY';
+}
+
 $mng_infos = get_manger($mb_ids);
 
 if($mng_infos['mng_certi'] != 'D'){
@@ -65,6 +70,9 @@ if($sign_off_status == 'MY'){
 }else if($sign_off_status){
     $sql_search .= " and sign_off.sign_status = '{$sign_off_status}' ";
     $qstr .= '&sign_off_status='.$sign_off_status;
+}else{
+    // [항목1-옵션B] "전체"도 qstr 에 명시(빈값) → 상세→목록 복귀 시 '전체' 유지(다른 필터와 동일 동작)
+    $qstr .= '&sign_off_status=';
 }
 
 if($mng_department){

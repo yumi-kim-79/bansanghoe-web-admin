@@ -53,8 +53,8 @@ $depart_res = sql_query($depart_sql);
 </div>
 <script>
 let mng_certi = "<?php echo $mng_infos['mng_certi']; ?>";
-let tabIdx = "<?php echo $tabIdx ?? '1'; ?>";
-let tabCode = "<?php echo $tabCode ?? 'all'; ?>";
+let tabIdx = "<?php echo $tabIdx ?? '4'; ?>";
+let tabCode = "<?php echo $tabCode ?? 'my_approval'; ?>";
 
 tab_handler(tabIdx, tabCode);
 
