@@ -67,7 +67,9 @@ if($types == "sm"){
                     $building_mng = "SELECT mng_building.*, mb.mb_token FROM a_mng_building as mng_building LEFT JOIN g5_member as mb ON mng_building.mb_id = mb.mb_id WHERE mng_building.building_id = '{$building_id}'";
                     $buidling_mng_res = sql_query($building_mng);
 
-                    $push_title = "[차량등록] 차량이 등록되었습니다.";
+                    // [푸시통일] 입주민→매니저: 단지/동/호 식별 prefix (a_push 알림목록에 반영. L87 fcm_send 는 현재 주석)
+                    $prefix = build_push_prefix($building_id, $dong_id, $ho_id, 'manager');
+                    $push_title = $prefix."[차량등록] 차량이 등록되었습니다.";
                     $push_content = $mb_name."님이 ". $building_info['building_name']." 단지에 차량을 등록하였습니다.";
 
                     while($buidling_mng_row = sql_fetch_array($buidling_mng_res)){

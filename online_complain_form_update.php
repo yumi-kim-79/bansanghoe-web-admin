@@ -55,9 +55,12 @@ if($w == "u"){
                     WHERE mng.is_del = 0 {$wheres} ORDER BY mng.mng_idx desc";
         $mng_res = sql_query($mng_sql);
         
+        // [푸시통일] 입주민→매니저: 단지/동/호 식별 prefix (루프 밖 1회 계산 + static 캐싱)
+        $prefix = build_push_prefix($building_id, $dong_id, $ho_id, 'manager');
+
         while($mng_row = sql_fetch_array($mng_res)){
 
-            $push_title = '[민원신청] '.$complain_title." 민원신청이 있습니다.";
+            $push_title = $prefix.'[민원신청] '.$complain_title." 민원신청이 있습니다.";
             $push_content = $users['mb_name'].'님의 '.$complain_title." 민원신청이 있습니다.";
 
             if($mng_row['mb_token'] != "" && $mng_row['noti6']){ //토큰이 있는경우 푸시 발송
