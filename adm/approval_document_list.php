@@ -2,6 +2,10 @@
 $sub_menu = "800200";
 require_once './_common.php';
 
+// [항목5] 뒤로가기 캐시(BFCache) 무력화 — 저장 후 복귀 시 항상 최신 목록
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
 
 auth_check_menu($auth, $sub_menu, 'r');
 
@@ -310,6 +314,11 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
 <?php echo get_paging(G5_IS_MOBILE ? $config['cf_mobile_pages'] : $config['cf_write_pages'], $page, $total_page, '?' . $qstr . '&amp;page='); ?>
 
 <script>
+// [항목5] BFCache 복원 시 강제 새로고침 (뒤로가기 최신화)
+window.addEventListener('pageshow', function(event){
+    if(event.persisted){ location.reload(); }
+});
+
 $(function(){
     $(".ipt_date").datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd", showButtonPanel: true, yearRange: "c-99:c+99", maxDate: "+365d" });
 });
