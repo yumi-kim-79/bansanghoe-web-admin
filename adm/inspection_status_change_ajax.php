@@ -37,7 +37,7 @@ if($inspection_status == 'Y'){
 
     $inspection_info = sql_fetch("SELECT * FROM a_inspection WHERE inspection_idx = '{$inspection_idx}'");
 
-    $builidng_info = get_builiding_info($inspection_info['building_id']);
+    $building_info = get_builiding_info($inspection_info['building_id']);
     $building_name = $building_info['building_name'];
 
      // 단지내 세대에게 푸시발송

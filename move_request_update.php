@@ -56,9 +56,12 @@ if($w == "u"){
                              WHERE building.is_use = 1 and mem.mb_leave_date = '' and mng_b.building_id = '{$building_id}'";
         $mng_building_res = sql_query($mng_building_sql);
 
+        // [푸시통일] 입주민→매니저: 단지/동/호 식별 prefix (루프 밖 1회 계산 + static 캐싱)
+        $prefix = build_push_prefix($building_id, $dong_id, $ho_id, 'manager');
+
         while($mng_building_row = sql_fetch_array($mng_building_res)){
             
-            $push_title = "[이사(전출)신청] 민원신청이 있습니다.";
+            $push_title = $prefix."[이사(전출)신청] 민원신청이 있습니다.";
             $push_content = $users['mb_name']."님의 이사(전출)신청이 있습니다.";
 
             if($mng_building_row['mb_token'] != "" && $mng_building_row['noti4']){

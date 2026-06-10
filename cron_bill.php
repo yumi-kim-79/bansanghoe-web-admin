@@ -74,7 +74,7 @@ while($bill_row = sql_fetch_array($bill_res)){
 
             if($row_ho['mb_token'] != "" && $row_ho['noti1']){ //토큰이 있는경우 푸시 발송
            
-                fcm_send($row_ho['mb_token'], '[고지서] '.$push_title, $push_content, 'bill', "{$bill_row['bill_id']}", "/bill.php?bill_id=");
+                fcm_send($row_ho['mb_token'], '[고지서] '.$push_content, $push_content, 'bill', "{$bill_row['bill_id']}", "/bill.php?bill_id=");
             }
         }
 
