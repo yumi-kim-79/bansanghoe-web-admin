@@ -217,6 +217,26 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **결재/민원 7개 항목 중 1·2·3 운영 배포** (2026-06-10)
+  - **작업 범위**: 사용자 요청 7개 중 묶음 1·2·3 처리 (항목7·8 별도 추후).
+  - **묶음 1 — UI/UX 저위험 (3 commits)**
+    - `dae21c1d`: 결재서류함 첫 진입 '내 결재' 기본 (웹+모바일)
+      - `adm/approval_document_list.php`: `$sign_off_status` 미지정(첫 진입)이면 기본 'MY' → SQL 필터+라디오 일치. '전체'는 빈 파라미터로 명시 제출되어 구분
+      - qstr 옵션B: '전체'일 때도 `sign_off_status=` 명시 → 상세→목록 복귀 시 '전체' 유지(다른 필터와 일관성)
+      - 매니저앱 `approval_document.php`: 탭 기본값 `tabIdx '1'→'4'`, `tabCode 'all'→'my_approval'`
+    - `976191de`: 확대팝업 ESC + X 중앙상단
+      - `adm/css/admin.css` `.big_size_pop_x`: `right:10px` → `left:50%;transform:translateX(-50%)`
+      - `adm/approval_info.php`: `document keydown(Escape)` → `bigSizeOff()` 리스너 추가
+    - `dbbe0a00`: 서명불러오기 confirm (웹/매니저앱 `signLoad()` 첫머리). Q4=A: 저장 타이밍 유지(웹=미리보기, 앱=즉시저장)
+  - **묶음 2 — 결재 알림 동시발송 회귀 수정 (1 commit)**
+    - `a3651320`: 등록 푸시 동시→1차만. `approval_form_update.php` L253~ / `approval_form_update2.php` L108~ 의 `foreach(1,2,3)` → `if(sign_off_mng_id1 != "")` 1차-only (매니저앱 `holiday_reqeust_form_update.php` 패턴 복제)
+    - 2·3차는 사인 cascade 가 책임 (웹 `approval_form_check.php` / 앱 `holiday_reqeust_info_sign_ajax.php`, 이미 동작 중). 1차 결재자 폼 필수(`approval_form.php` JS L441) 확인 → 안전망 무영향
+    - 효과: 2·3차가 '자기 차례' 도래 시에만 알림 수신(순차의 정상 동작)
+  - **묶음 3 — BFCache + 뒤로가기 (2 commits)**
+    - `b65d54a2`: 어드민 `approval_document_list.php` + `complain_list.php` — `Cache-Control: no-store` 헤더(`_common.php` 직후) + `pageshow(persisted) reload` JS 이중 방어
+    - `839677d8`: 매니저앱 `approval_document.php` — 동일 이중 방어. 묶음1 `my_approval` 기본과 결합 → 항목6 완결. RN postMessage 없이 PHP-only(재빌드 불필요)
+  - **배포**: develop → test 사용자 검증 통과(묶음별 체크리스트) → main `--no-ff` 머지(`2b5fb45f`) → 운영 자동 배포. 운영 스모크 테스트는 사용자 진행
+  - **미진행(별도)**: 항목7 공휴일 캘린더 + 날씨공유 API(사용자 추후 결정), 항목8 날씨공유 기능 정의 추가 확인 필요
 - [x] **결재 도장 박스 작업 완전 종료 — 잔여 재캡처 + 영원 보장 확인** (2026-06-01)
   - **배경**: 5/29 09:06 `default.css` 강제 로드 패치 운영 배포(`b9283381`) 직후에도 5/29 오후(10~17시) 사인된 결재 9건이 옛 포맷으로 PNG 저장됨
   - **강력 원인 추정 (OPcache)**: `opcache.enable=On` 확인. 패치 직후 PHP OPcache 가 옛 코드(default.css 미강제) 캐시를 보유 → 신규 결재 PNG 캡쳐 시점에 패치 미반영. 6/1 새벽 캐시 자연 만료 후 신규 결재(`sign_id=1909`) 가 자동으로 새 포맷 저장됨을 확인 → 코드 영원 보장 메커니즘 정상 동작 입증
@@ -806,4 +826,4 @@ curl https://raw.githubusercontent.com/yumi-kim-79/{저장소}/main/{경로}/{�
 
 ---
 
-*최종 업데이트: 2026-06-01*
+*최종 업데이트: 2026-06-10*
