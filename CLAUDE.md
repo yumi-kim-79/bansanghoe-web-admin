@@ -217,6 +217,22 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **입주민→매니저 푸시 통일 + 버그 2개 + 차량 FCM 활성** (2026-06-10)
+  - **배경**: 반상회 앱(입주민) 발신 푸시가 매니저 앱 도달 시 건물명/동/호 표기 없어 어느 단지/세대인지 식별 불가(호수만 표시).
+  - **변경 (운영 배포 완료, merge `d5df4b84`)**
+    - 신규 헬퍼 `lib/common.lib.php` `build_push_prefix($building_id, $dong_id, $ho_id, $recipient_type)` (`fcm_send` 옆)
+      - NULL-safe(못 찾으면 빈 prefix → 기존 제목 유지로 회귀 없음), static 캐싱(요청 내 중복쿼리 방지)
+      - DB가 숫자만 저장('1','201') → 단위 자동 부착('1동','201호'), `sql_real_escape_string`(그누보드5 컨벤션)
+      - `manager`: `[건물명 동 호]` / `resident`: `[동 호]`(미래 대비)
+    - 4파일 적용(while 루프 밖 1회 계산, `a_push.push_title`도 변수 공유로 자동 prefix):
+      - `online_complain_form_update.php`(민원신청), `move_request_update.php`(전출신청), `bbs/user_first_login.php`(가입시 차량등록), `my_info_update.php`(차량등록)
+    - `my_info_update.php` L89 `fcm_send` 주석 해제(try-catch 포함): 차량등록 매니저 푸시 활성화
+    - 버그 fix 2건(작업3와 별개, 입주민 수신 푸시):
+      - `cron_bill.php:77` `$push_title` 미선언 → `$push_content`
+      - `adm/inspection_status_change_ajax.php:40` `$builidng_info` 오타 → `$building_info`
+  - **영원 보장**: 신규 입주민 발신 푸시 자동 prefix, 헬퍼 재사용 확장 용이, 매니저 조직 푸시(결재/품의서/일정/게시판) 무영향
+  - **명시적 제외**: 결재 요청·품의서·일정·게시판(매니저 조직 내부), 매니저→입주민, 입주민→입주민(이동주차 요청 등)
+  - **검증**: test DB 푸시 데이터 미갱신(2026-04-15 이후)으로 실측 불가 → 코드 안전성(NULL-safe·회귀 없음)으로 운영 검증 채택. 회귀 시 커밋 단위 revert(`3c64e4f7`/`87ec9b57`/`0971b2c7`)
 - [x] **결재/민원 7개 항목 중 1·2·3 운영 배포** (2026-06-10)
   - **작업 범위**: 사용자 요청 7개 중 묶음 1·2·3 처리 (항목7·8 별도 추후).
   - **묶음 1 — UI/UX 저위험 (3 commits)**
