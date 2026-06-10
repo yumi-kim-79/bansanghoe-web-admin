@@ -395,6 +395,52 @@ function fcm_send($token, $title = '푸시테스트 제목', $content = '푸시�
     }
 }
 
+/**
+ * 푸시 제목 prefix 생성 — 입주민→매니저 푸시에 [건물명 동 호] 식별 부여
+ *  manager : "[건물명 N동 N호] "  /  resident : "[N동 N호] "  (없으면 "")
+ *  DB(dong_name/ho_name)가 숫자만 저장이라 '동'/'호' 단위 자동 부착. NULL-safe + static 캐싱.
+ */
+function build_push_prefix($building_id, $dong_id = '', $ho_id = '', $recipient_type = 'manager'){
+    static $cache = [];
+    $key = $recipient_type.'|'.$building_id.'|'.$dong_id.'|'.$ho_id;
+    if(isset($cache[$key])) return $cache[$key];
+
+    $building_name = ''; $dong_name = ''; $ho_name = '';
+
+    if($ho_id !== '' && $ho_id !== null){
+        $ho = sql_fetch("SELECT ho.ho_name, ho.dong_id, ho.building_id, dong.dong_name
+                         FROM a_building_ho AS ho
+                         LEFT JOIN a_building_dong AS dong ON dong.dong_id = ho.dong_id
+                         WHERE ho.ho_id = '".sql_real_escape_string($ho_id)."' LIMIT 1");
+        if($ho){
+            $ho_name = $ho['ho_name'];
+            $dong_name = $ho['dong_name'];
+            if($building_id === '' || $building_id === null) $building_id = $ho['building_id'];
+        }
+    }
+    if($dong_name === '' && $dong_id !== '' && $dong_id !== null){
+        $d = sql_fetch("SELECT dong_name FROM a_building_dong WHERE dong_id = '".sql_real_escape_string($dong_id)."' LIMIT 1");
+        if($d) $dong_name = $d['dong_name'];
+    }
+    if($building_id !== '' && $building_id !== null){
+        $b = get_builiding_info($building_id);
+        $building_name = isset($b['building_name']) ? $b['building_name'] : '';
+    }
+
+    // 단위 자동 부착 (DB 가 숫자만 저장. 이미 '동'/'호' 포함 시 중복 방지)
+    if($dong_name !== '' && !preg_match('/동$/', $dong_name)) $dong_name .= '동';
+    if($ho_name   !== '' && !preg_match('/호$/', $ho_name))   $ho_name   .= '호';
+
+    $parts = [];
+    if($recipient_type === 'manager' && $building_name !== '') $parts[] = $building_name;
+    if($dong_name !== '') $parts[] = $dong_name;
+    if($ho_name   !== '') $parts[] = $ho_name;
+
+    $prefix = empty($parts) ? '' : '['.implode(' ', $parts).'] ';
+    $cache[$key] = $prefix;
+    return $prefix;
+}
+
 //문자발송 sms
 function aligo_sms($phoneNumber, $messageText, $type="SMS"){
 
