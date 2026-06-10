@@ -1,5 +1,11 @@
 <?php
 include_once('./_common.php');
+
+// [항목5/6] 뒤로가기 캐시(BFCache) 무력화 — WebView goBack 시 항상 최신 목록
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
+
 include_once(G5_PATH.'/head_sm.php');
 include_once(G5_PLUGIN_PATH.'/jquery-ui/datepicker.php');
 
@@ -52,9 +58,14 @@ $depart_res = sql_query($depart_sql);
     </div>
 </div>
 <script>
+// [항목5/6] BFCache 복원(WebView goBack 포함) 시 강제 새로고침 → tab_handler 재실행으로 내결재 탭 + 최신
+window.addEventListener('pageshow', function(event){
+    if(event.persisted){ location.reload(); }
+});
+
 let mng_certi = "<?php echo $mng_infos['mng_certi']; ?>";
-let tabIdx = "<?php echo $tabIdx ?? '1'; ?>";
-let tabCode = "<?php echo $tabCode ?? 'all'; ?>";
+let tabIdx = "<?php echo $tabIdx ?? '4'; ?>";
+let tabCode = "<?php echo $tabCode ?? 'my_approval'; ?>";
 
 tab_handler(tabIdx, tabCode);
 

@@ -2,6 +2,10 @@
 $sub_menu = "800200";
 require_once './_common.php';
 
+// [항목5] 뒤로가기 캐시(BFCache) 무력화 — 저장 후 복귀 시 항상 최신 목록
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
 
 auth_check_menu($auth, $sub_menu, 'r');
 
@@ -10,6 +14,11 @@ $sql_common = " FROM a_sign_off as sign_off
                 LEFT JOIN a_mng AS mng ON sign_off.mng_id = mng.mng_id ";
 
 $mb_ids = $member['mb_id'];
+
+// [항목1] 첫 진입(파라미터 자체 없음)이면 "내 결재" 기본. "전체"는 빈 파라미터로 명시 제출되므로 구분됨.
+if(!isset($_GET['sign_off_status'])){
+    $sign_off_status = 'MY';
+}
 
 $mng_infos = get_manger($mb_ids);
 
@@ -65,6 +74,9 @@ if($sign_off_status == 'MY'){
 }else if($sign_off_status){
     $sql_search .= " and sign_off.sign_status = '{$sign_off_status}' ";
     $qstr .= '&sign_off_status='.$sign_off_status;
+}else{
+    // [항목1-옵션B] "전체"도 qstr 에 명시(빈값) → 상세→목록 복귀 시 '전체' 유지(다른 필터와 동일 동작)
+    $qstr .= '&sign_off_status=';
 }
 
 if($mng_department){
@@ -302,6 +314,11 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
 <?php echo get_paging(G5_IS_MOBILE ? $config['cf_mobile_pages'] : $config['cf_write_pages'], $page, $total_page, '?' . $qstr . '&amp;page='); ?>
 
 <script>
+// [항목5] BFCache 복원 시 강제 새로고침 (뒤로가기 최신화)
+window.addEventListener('pageshow', function(event){
+    if(event.persisted){ location.reload(); }
+});
+
 $(function(){
     $(".ipt_date").datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd", showButtonPanel: true, yearRange: "c-99:c+99", maxDate: "+365d" });
 });
