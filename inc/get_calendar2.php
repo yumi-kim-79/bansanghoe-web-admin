@@ -142,6 +142,13 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     </button>
 </section>
 
+<?php
+// [공휴일] 해당 월 공휴일 맵 (a_holiday 비어있거나 없으면 빈 배열 → 표시만 미적용, 회귀 없음)
+$cal_now_month = $year.'-'.sprintf('%02d', $month);
+$holiday_map = [];
+$hol_res = sql_query("SELECT holiday_date, holiday_name FROM a_holiday WHERE holiday_date LIKE '{$cal_now_month}%'");
+while($hol = sql_fetch_array($hol_res)) $holiday_map[$hol['holiday_date']] = $hol['holiday_name'];
+?>
 <section class="cal_tr cal_head">
 	<?php for( $i = 0; $i < count( $doms ); $i++ ) { ?>
 	<div class="cal_div cal_th<?php echo $i==0?' cal_sun':($i==6?' cal_sat':'');?>"><?php echo $doms[$i]?></div>
@@ -160,7 +167,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
 				$date2 = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($nowDayCount, 2, "0", STR_PAD_LEFT);
 	?>
         <!-- select_dates -->
-		<div class="cal_div cal_td cal_td_box <?php if($date2 == date("Y-m-d")){?>today <?php }?> <?php if($type == '2'){?>cal_td_box2 ver2<?php }else{?>cal_td_box1<?php }?><?php echo $cols==0?' cal_sun':($cols==6?' cal_sat':'');?>" data-date="<?php echo $date2; ?>">
+		<div class="cal_div cal_td cal_td_box <?php if($date2 == date("Y-m-d")){?>today <?php }?> <?php if($type == '2'){?>cal_td_box2 ver2<?php }else{?>cal_td_box1<?php }?><?php echo $cols==0?' cal_sun':($cols==6?' cal_sat':'');?><?php echo isset($holiday_map[$date2])?' cal_holiday':''; ?>" data-date="<?php echo $date2; ?>">
 			<div class="cal_day_box">
 				<?php echo $nowDayCount++?>
                 <?php

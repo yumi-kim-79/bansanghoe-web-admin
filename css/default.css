@@ -1215,6 +1215,8 @@ gap: 6px;width: 100%;height: 100%;font-weight: 500;}
 .cal_th.cal_sat {color: #1976d2;}
 .cal_td.cal_sun .cal_day_box {color: #e53935;}
 .cal_td.cal_sat .cal_day_box {color: #1976d2;}
+/* 공휴일: 요일색(sat/sun)보다 뒤에 정의 → 평일·토요일 공휴일도 빨강 */
+.cal_td.cal_holiday .cal_day_box {color: #e53935 !important;}
 .cal_td {display:flex;align-items:center;justify-content:center;height:58px;padding:0 5px;font-size:15px;}
 .cal_td + .cal_td {}
 .cal_td.select_dates {}

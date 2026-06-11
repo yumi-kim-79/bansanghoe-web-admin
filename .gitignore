@@ -1,6 +1,7 @@
 config.php
 config.php
 config/ncloud_config.php
+config/holiday_api_key.php
 sinbansang_fcm_key.json
 *firebase-adminsdk*.json
 sinbansang-key.pem
