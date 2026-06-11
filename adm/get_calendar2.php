@@ -93,6 +93,11 @@ foreach ($res2 as $r) {
 
 $res_date = array_values(array_unique($date_arr));
 sort($res_date);
+
+// [공휴일] 해당 월 공휴일 맵 (a_holiday 비어있거나 없으면 빈 배열 → 표시만 미적용, 회귀 없음)
+$holiday_map = [];
+$hol_res = sql_query("SELECT holiday_date, holiday_name FROM a_holiday WHERE holiday_date LIKE '{$now_month}%'");
+while($hol = sql_fetch_array($hol_res)) $holiday_map[$hol['holiday_date']] = $hol['holiday_name'];
 ?>
 
 <div class="cal_header_new" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
@@ -147,7 +152,7 @@ sort($res_date);
 			if ( $startDay <= $cellIndex && $nowDayCount <= $days ) {
 				$date2 = $year."-".str_pad($month, 2, "0", STR_PAD_LEFT)."-".str_pad($nowDayCount, 2, "0", STR_PAD_LEFT);
 	?>
-		<div class="cal_div cal_td cal_td_box <?php if($date2 == date("Y-m-d")){?>today <?php }?> <?php if($type == '2'){?>ver2<?php }?><?php echo $cols==0?' cal_sun':($cols==6?' cal_sat':'');?>" data-date="<?php echo $date2; ?>">
+		<div class="cal_div cal_td cal_td_box <?php if($date2 == date("Y-m-d")){?>today <?php }?> <?php if($type == '2'){?>ver2<?php }?><?php echo $cols==0?' cal_sun':($cols==6?' cal_sat':'');?><?php echo isset($holiday_map[$date2])?' cal_holiday':''; ?>" data-date="<?php echo $date2; ?>">
 			<div class="cal_day_box">
 				<?php echo $nowDayCount++?>
                 <?php
