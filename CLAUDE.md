@@ -217,6 +217,17 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **작업3 운영 검증 완료 + OPcache 회귀 해결** (2026-06-11)
+  - **검증 통과 — prefix 정상 적용**
+    - push_idx 2720(민원신청, push_type='complain'): `push_title = "[행복한팰리체 1동 203호] [민원신청] 세대주 이름 민원신청이 있습니다."`
+    - 매니저 10명 모두 동일 prefix 수신. 헬퍼 `build_push_prefix()` 운영 정상 동작 확인
+  - **⚠️ 회귀 발견 + 해결 — PHP-FPM OPcache**
+    - 배포 직후 push_idx 2702/2719 에는 prefix 미적용(옛 코드 동작)
+    - 원인: PHP-FPM 워커가 2026-03-04 시작(3개월 7일 운영), 코드 배포 2026-06-10 11:00. `opcache.validate_timestamps=On` + `revalidate_freq=2` 설정에도 일부 워커가 옛 OPcache 보유 → 신규 함수 미인식
+    - 해결: `systemctl reload php-fpm` → 즉시 다음 푸시(2720)부터 prefix 정상 적용 확인
+  - **영원 보장**: 헬퍼 영구 등록(`lib/common.lib.php`), 신규 입주민 발신 푸시 자동 prefix, 4파일(민원/전출/차량/가입) 모두 적용
+  - **후속 작업 (PENDING, 우선순위 높음)**: CI/CD `deploy.yml`에 배포 후 자동 reload 추가 — `systemctl reload php-fpm` + `systemctl reload httpd` → 향후 모든 배포의 OPcache 회귀 영구 차단
+    - ※ 참고: 2026-06-01 결재 도장 박스 작업에서도 동일 OPcache lag 현상 발생 이력 → deploy.yml 자동 reload 도입 시 양쪽 근본 해결
 - [x] **입주민→매니저 푸시 통일 + 버그 2개 + 차량 FCM 활성** (2026-06-10)
   - **배경**: 반상회 앱(입주민) 발신 푸시가 매니저 앱 도달 시 건물명/동/호 표기 없어 어느 단지/세대인지 식별 불가(호수만 표시).
   - **변경 (운영 배포 완료, merge `d5df4b84`)**
@@ -842,4 +853,4 @@ curl https://raw.githubusercontent.com/yumi-kim-79/{저장소}/main/{경로}/{�
 
 ---
 
-*최종 업데이트: 2026-06-10*
+*최종 업데이트: 2026-06-11*
