@@ -217,6 +217,9 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **작업2 날씨공유 — 취소(미개발, 개발계획 제외)** (2026-06-11)
+  - 웹/RN앱(매니저·입주민) 전수 grep 결과 코드 0건, DB 테이블 0건 → 개발된 적 없어 **삭제 대상 자체 없음**.
+  - 사용자 확인: "날씨는 개발계획에 없어" → 이전 보고서 "항목8 날씨공유 데이터 API" **영구 취소**.
 - [x] **작업3 운영 검증 완료 + OPcache 회귀 해결** (2026-06-11)
   - **검증 통과 — prefix 정상 적용**
     - push_idx 2720(민원신청, push_type='complain'): `push_title = "[행복한팰리체 1동 203호] [민원신청] 세대주 이름 민원신청이 있습니다."`
@@ -263,7 +266,7 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
     - `b65d54a2`: 어드민 `approval_document_list.php` + `complain_list.php` — `Cache-Control: no-store` 헤더(`_common.php` 직후) + `pageshow(persisted) reload` JS 이중 방어
     - `839677d8`: 매니저앱 `approval_document.php` — 동일 이중 방어. 묶음1 `my_approval` 기본과 결합 → 항목6 완결. RN postMessage 없이 PHP-only(재빌드 불필요)
   - **배포**: develop → test 사용자 검증 통과(묶음별 체크리스트) → main `--no-ff` 머지(`2b5fb45f`) → 운영 자동 배포. 운영 스모크 테스트는 사용자 진행
-  - **미진행(별도)**: 항목7 공휴일 캘린더 + 날씨공유 API(사용자 추후 결정), 항목8 날씨공유 기능 정의 추가 확인 필요
+  - **미진행(별도)**: 항목7 공휴일 캘린더(작업1로 진행 중), 항목8 날씨공유 API → **취소(2026-06-11, 미개발/개발계획 제외)**
 - [x] **결재 도장 박스 작업 완전 종료 — 잔여 재캡처 + 영원 보장 확인** (2026-06-01)
   - **배경**: 5/29 09:06 `default.css` 강제 로드 패치 운영 배포(`b9283381`) 직후에도 5/29 오후(10~17시) 사인된 결재 9건이 옛 포맷으로 PNG 저장됨
   - **강력 원인 추정 (OPcache)**: `opcache.enable=On` 확인. 패치 직후 PHP OPcache 가 옛 코드(default.css 미강제) 캐시를 보유 → 신규 결재 PNG 캡쳐 시점에 패치 미반영. 6/1 새벽 캐시 자연 만료 후 신규 결재(`sign_id=1909`) 가 자동으로 새 포맷 저장됨을 확인 → 코드 영원 보장 메커니즘 정상 동작 입증
