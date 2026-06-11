@@ -34,7 +34,7 @@
 | 환경 | URL | 서버 경로 | DB |
 |------|-----|-----------|-----|
 | **운영** | `smtm2017.com` | `/var/www/html/` | `sinbansang` |
-| **테스트** | `test.smtm2017.com` | `/var/www/html_test/` | `bansanghoe` |
+| **테스트** | `test.smtm2017.com` | `/var/www/html_test/` | `bansanghoe` ⚠️ **실제로는 운영 `sinbansang` 사용 중**(2026-06-11 확인, DB 분리 PENDING) |
 | **어드민** | `smtm2017.com/adm/` | - | - |
 
 ---
@@ -210,6 +210,8 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [x] Android 자동 빌드 GitHub Actions 설정 (반상회, SM매니저)
 
 ### 진행 중 / 예정 작업
+- [ ] 🚨 **[우선순위 매우 높음] test 환경 DB 분리** — `test.smtm2017.com` 이 현재 **운영 DB(sinbansang) 를 사용 중**(2026-06-10 공휴일 작업 중 확인). CLAUDE.md 의 "테스트=bansanghoe" 표기와 불일치. test 작업이 운영 데이터에 직접 영향 → `/var/www/html_test/data/dbconfig.php` 를 분리 DB(예: `sinbansang_test`/`bansanghoe`)로 교체 + 데이터 동기화 필요
+- [ ] 🚨 **[우선순위 높음] CI/CD 자동 reload (OPcache 회귀 차단)** — `deploy.yml` 배포 단계 뒤 `systemctl reload php-fpm` + `systemctl reload httpd` 추가. 2026-06-01(결재 도장)·2026-06-10(푸시 prefix) 동일 OPcache lag 반복 이력
 - [ ] 토스페이먼츠 실제 키 교체 (test_ck_placeholder / test_sk_placeholder → 운영키)
 - [ ] a_billing_card 테이블 생성 (서버 DB)
 - [ ] 운영 서버 서명 이미지 복원 필요 (`/data/file/approval/` 파일 없음, 테스트 서버에는 존재)
@@ -217,6 +219,16 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **공휴일 캘린더(작업1) 운영 배포** (2026-06-11)
+  - **변경 (merge `db49ddd3`)**
+    - 신규 `cron_holiday.php`(루트): 공공데이터포털 `getRestDeInfo` → `a_holiday` 적재. 올해+내년, `_type=json`, `isHoliday=Y` 필터, holiday_type(대체/임시/public). **연도별 12개월 수집 → API 성공 시에만 DELETE 후 재적재**(전체 실패 시 기존 유지). 실행 경로의 `common.php`(경로별 dbconfig)로 DB 자동 결정 → 환경분기 코드 불필요
+    - `adm/get_calendar2.php`(웹) + `inc/get_calendar2.php`(모바일): 월 그리드 진입 전 `$holiday_map` 조회, 공휴일 셀에 `.cal_holiday` 클래스. a_holiday 빈/미존재 시 빈 맵 → 회귀 없음
+    - `adm/css/admin.css` + `css/default.css`: `.cal_td.cal_holiday .cal_day_box {color:#e53935 !important}` (요일색 뒤 정의 → 평일·토요일 공휴일도 빨강). 옵션A(색칠만)
+    - 서비스키 `config/holiday_api_key.php`(Decoding 키, chmod 600, `.gitignore` 등록)
+  - **DB 작업(사용자 수행)**: `a_holiday` 테이블 생성(`CREATE TABLE` ENGINE=InnoDB), 44건 적재(2026-2027), API 24/24 성공
+  - **운영 cron(사용자 등록)**: 연 2회 `0 3 1 1 *` / `0 3 1 6 *` → `php /var/www/html/cron_holiday.php`
+  - **검증**: test 캘린더 6/3 지방선거·6/6 현충일 빨강 확인
+  - **🚨 발견**: `test.smtm2017.com` 이 **운영 DB(sinbansang) 사용 중**(a_holiday를 sinbansang에 생성했더니 test에서도 보임). CLAUDE.md "테스트=bansanghoe" 표기 부정확 → 진행중/예정에 "test DB 분리" PENDING 격상
 - [x] **작업2 날씨공유 — 취소(미개발, 개발계획 제외)** (2026-06-11)
   - 웹/RN앱(매니저·입주민) 전수 grep 결과 코드 0건, DB 테이블 0건 → 개발된 적 없어 **삭제 대상 자체 없음**.
   - 사용자 확인: "날씨는 개발계획에 없어" → 이전 보고서 "항목8 날씨공유 데이터 API" **영구 취소**.
