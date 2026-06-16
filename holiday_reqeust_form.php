@@ -161,10 +161,15 @@ $file_total = sql_num_rows($file_res);
                             <select name="holiday_day" id="holiday_day" class="bansang_sel">
                                 <option value="">선택</option>
                                 <option value="1" <?php echo $row['holiday_day'] == '1' ? 'selected' : '';?>>1일</option>
+                                <option value="1.5" <?php echo $row['holiday_day'] == '1.5' ? 'selected' : '';?>>1.5일</option>
                                 <option value="2" <?php echo $row['holiday_day'] == '2' ? 'selected' : '';?> >2일</option>
+                                <option value="2.5" <?php echo $row['holiday_day'] == '2.5' ? 'selected' : '';?>>2.5일</option>
                                 <option value="3" <?php echo $row['holiday_day'] == '3' ? 'selected' : '';?>>3일</option>
+                                <option value="3.5" <?php echo $row['holiday_day'] == '3.5' ? 'selected' : '';?>>3.5일</option>
                                 <option value="4" <?php echo $row['holiday_day'] == '4' ? 'selected' : '';?>>4일</option>
+                                <option value="4.5" <?php echo $row['holiday_day'] == '4.5' ? 'selected' : '';?>>4.5일</option>
                                 <option value="5" <?php echo $row['holiday_day'] == '5' ? 'selected' : '';?>>5일</option>
+                                <option value="5.5" <?php echo $row['holiday_day'] == '5.5' ? 'selected' : '';?>>5.5일</option>
                                 <option value="am_half" <?php echo $row['holiday_day'] == 'am_half' ? 'selected' : '';?>>오전반차</option>
                                 <option value="pm_half" <?php echo $row['holiday_day'] == 'pm_half' ? 'selected' : '';?>>오후반차</option>
                                 <option value="half_half" <?php echo $row['holiday_day'] == 'half_half' ? 'selected' : '';?>>반반차</option>
