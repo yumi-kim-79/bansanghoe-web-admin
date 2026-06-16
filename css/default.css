@@ -1699,3 +1699,6 @@ gap: 6px;width: 100%;height: 100%;font-weight: 500;}
     .idx_sc2_box {width: calc((100% / 3) - 5px);}
     .idx_sc2_tit_box {font-size: 12px;}
 }
+
+/* 사내용 캘린더 내용칸 높이 확대 (모바일) */
+#cal_content { height: 350px; }
