@@ -4,6 +4,12 @@ require_once "./_common.php";
 $today = date("Y-m-d H:i:s");
 $wdate = date("Y-m-d");
 
+// [종료일 안전망] holiday 카테고리: 1일/반차/공백 시 종료일=시작일 (JS 우회/legacy 방지)
+if($sign_off_category == "holiday"){
+    $_hday_half = in_array($holiday_day, ['am_half','pm_half','halfhalf','half_half']);
+    if($holiday_day === '1' || $_hday_half || !isset($holiday_edate) || $holiday_edate === '') $holiday_edate = $holiday_date;
+}
+
 // if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
 //     die(result_data(false, count($_FILES['approval_file']['name']), []));
 // }
@@ -64,7 +70,8 @@ if($w == "u"){
     }
 
     if($sign_off_category == "holiday"){
-        $sql_common = " holiday_date = '{$holiday_date}', 
+        $sql_common = " holiday_date = '{$holiday_date}',
+                        holiday_edate = '{$holiday_edate}',
                         holiday_day = '{$holiday_day}',
                         holiday_memo = '{$holiday_memo}' ";
     }
@@ -115,6 +122,10 @@ if($w == "u"){
 
             for($i=0;$i<count($hp_name);$i++){
 
+                // [종료일 안전망] 1일/반차/공백 시 종료일=시작일
+                $_hp_half = in_array($hp_day[$i], ['am_half','pm_half','halfhalf','half_half']);
+                if($hp_day[$i] === '1' || $_hp_half || !isset($hp_edate[$i]) || $hp_edate[$i] === '') $hp_edate[$i] = $hp_date[$i];
+
                 if($hp_idx[$i] != ""){
 
                     $del_sql = "";
@@ -129,6 +140,7 @@ if($w == "u"){
                                     hp_name = '{$hp_name[$i]}',
                                     hp_day = '{$hp_day[$i]}',
                                     hp_date = '{$hp_date[$i]}',
+                                    hp_edate = '{$hp_edate[$i]}',
                                     hp_memo = '{$hp_memo[$i]}'
                                     {$del_sql}
                                     WHERE hp_idx = '{$hp_idx[$i]}'";
@@ -140,6 +152,7 @@ if($w == "u"){
                                     hp_name = '{$hp_name[$i]}',
                                     hp_day = '{$hp_day[$i]}',
                                     hp_date = '{$hp_date[$i]}',
+                                    hp_edate = '{$hp_edate[$i]}',
                                     hp_memo = '{$hp_memo[$i]}',
                                     created_at = '{$today}'";
                 
@@ -176,7 +189,8 @@ if($w == "u"){
     if($sign_off_category == "holiday"){
         $sql_common = " mng_department = '{$mng_department}',
                         mng_grade = '{$mng_grade}',
-                        holiday_date = '{$holiday_date}', 
+                        holiday_date = '{$holiday_date}',
+                        holiday_edate = '{$holiday_edate}',
                         holiday_day = '{$holiday_day}',
                         holiday_memo = '{$holiday_memo}',
                         significant_memo = '{$significant_memo}',
@@ -240,6 +254,11 @@ if($w == "u"){
     //연차 유급 휴가 사용 계획서
     if($sign_off_category == "paid_holiday"){
         for($i=0;$i<count($hp_name);$i++){
+
+            // [종료일 안전망] 1일/반차/공백 시 종료일=시작일
+            $_hp_half = in_array($hp_day[$i], ['am_half','pm_half','halfhalf','half_half']);
+            if($hp_day[$i] === '1' || $_hp_half || !isset($hp_edate[$i]) || $hp_edate[$i] === '') $hp_edate[$i] = $hp_date[$i];
+
             if($hp_idx[$i] != ""){
 
                 $del_sql = "";
@@ -254,6 +273,7 @@ if($w == "u"){
                                 hp_name = '{$hp_name[$i]}',
                                 hp_day = '{$hp_day[$i]}',
                                 hp_date = '{$hp_date[$i]}',
+                                hp_edate = '{$hp_edate[$i]}',
                                 hp_memo = '{$hp_memo[$i]}'
                                 {$del_sql}
                                 WHERE hp_idx = '{$hp_idx[$i]}'";
@@ -265,6 +285,7 @@ if($w == "u"){
                                 hp_name = '{$hp_name[$i]}',
                                 hp_day = '{$hp_day[$i]}',
                                 hp_date = '{$hp_date[$i]}',
+                                hp_edate = '{$hp_edate[$i]}',
                                 hp_memo = '{$hp_memo[$i]}',
                                 created_at = '{$today}'";
             
