@@ -356,10 +356,15 @@ if($w == "u"){
                             <div class="paid_holiday_info_ipt">
                                 <select name="hp_day[]" class="bansang_sel" required>
                                     <option value="1">1일</option>
+                                    <option value="1.5">1.5일</option>
                                     <option value="2">2일</option>
+                                    <option value="2.5">2.5일</option>
                                     <option value="3">3일</option>
+                                    <option value="3.5">3.5일</option>
                                     <option value="4">4일</option>
+                                    <option value="4.5">4.5일</option>
                                     <option value="5">5일</option>
+                                    <option value="5.5">5.5일</option>
                                     <option value="am_half">오전반차</option>
                                     <option value="pm_half">오후반차</option>
                                     <option value="halfhalf">반반차</option>
