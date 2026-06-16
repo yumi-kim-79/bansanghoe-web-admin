@@ -277,10 +277,13 @@ $file_total = sql_num_rows($file_res);
                                     default:
                                         $days = $holiday_row['hp_day'];
 
-                                        $days2 = $days - 1;
-                                        $end_date = " ~ ".date('m월 d일',strtotime($holiday_row['hp_date']."+".$days2." day")); 
+                                        $is_half = (strpos($days, '.') !== false);   // 1.5, 2.5 등
+                                        $days_int = (int)floor($days);               // 1.5 → 1, 2.5 → 2
+                                        $days2 = $days_int - 1;                       // 1 → 0, 2 → 1
+                                        $end_date = " ~ ".date('m월 d일',strtotime($holiday_row['hp_date']."+".$days2." day"));
+                                        if($is_half) $end_date .= " (반일 포함)";
                                 }
-                                echo $days; 
+                                echo is_numeric($days) ? $days.'일' : $days;
                                 ?>
                             </div>
                             <div class="user_list_hd_box ver2"><?php echo date("m월 d일", strtotime($holiday_row['hp_date']))?><?php echo $days == '1' ? "" : $end_date; ?></div>
@@ -340,9 +343,9 @@ $file_total = sql_num_rows($file_res);
                                 }else if($sign_off_row['holiday_day'] == 'pm_half'){
                                     $holidays = '오후반차';
                                 }else{
-                                    $holidays = $sign_off_row['holiday_day'];
+                                    $holidays = is_numeric($sign_off_row['holiday_day']) ? $sign_off_row['holiday_day'].'일' : $sign_off_row['holiday_day'];
                                 }
-                                 echo $holidays; 
+                                 echo $holidays;
                                  ?>
                             </div>
                         </div>
