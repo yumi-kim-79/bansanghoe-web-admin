@@ -216,7 +216,6 @@ if($w == "u"){
                     <option value="4" <?php echo get_selected($row['holiday_day'], '4'); ?>>4일</option>
                     <option value="4.5" <?php echo get_selected($row['holiday_day'], '4.5'); ?>>4.5일</option>
                     <option value="5" <?php echo get_selected($row['holiday_day'], '5'); ?>>5일</option>
-                    <option value="5.5" <?php echo get_selected($row['holiday_day'], '5.5'); ?>>5.5일</option>
                     <option value="am_half" <?php echo get_selected($row['holiday_day'], 'am_half'); ?>>오전반차</option>
                     <option value="pm_half" <?php echo get_selected($row['holiday_day'], 'pm_half'); ?>>오후반차</option>
                     <option value="half_half" <?php echo get_selected($row['holiday_day'], 'half_half'); ?>>반반차</option>
