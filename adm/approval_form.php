@@ -323,7 +323,6 @@ $(document).on("click", ".paid_holiday_request_add", function(){
                                             <option value="4">4일</option>
                                             <option value="4.5">4.5일</option>
                                             <option value="5">5일</option>
-                                            <option value="5.5">5.5일</option>
                                             <option value="am_half">오전반차</option>
                                             <option value="pm_half">오후반차</option>
                                             <option value="halfhalf">반반차</option>

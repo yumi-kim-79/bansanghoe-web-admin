@@ -169,7 +169,6 @@ $file_total = sql_num_rows($file_res);
                                 <option value="4" <?php echo $row['holiday_day'] == '4' ? 'selected' : '';?>>4일</option>
                                 <option value="4.5" <?php echo $row['holiday_day'] == '4.5' ? 'selected' : '';?>>4.5일</option>
                                 <option value="5" <?php echo $row['holiday_day'] == '5' ? 'selected' : '';?>>5일</option>
-                                <option value="5.5" <?php echo $row['holiday_day'] == '5.5' ? 'selected' : '';?>>5.5일</option>
                                 <option value="am_half" <?php echo $row['holiday_day'] == 'am_half' ? 'selected' : '';?>>오전반차</option>
                                 <option value="pm_half" <?php echo $row['holiday_day'] == 'pm_half' ? 'selected' : '';?>>오후반차</option>
                                 <option value="half_half" <?php echo $row['holiday_day'] == 'half_half' ? 'selected' : '';?>>반반차</option>
@@ -295,7 +294,6 @@ $file_total = sql_num_rows($file_res);
                                                     <option value="4" <?php echo get_selected($holiday_row['hp_day'], '4'); ?>>4일</option>
                                                     <option value="4.5" <?php echo get_selected($holiday_row['hp_day'], '4.5'); ?>>4.5일</option>
                                                     <option value="5" <?php echo get_selected($holiday_row['hp_day'], '5'); ?>>5일</option>
-                                                    <option value="5.5" <?php echo get_selected($holiday_row['hp_day'], '5.5'); ?>>5.5일</option>
                                                     <option value="am_half" <?php echo get_selected($holiday_row['hp_day'], 'am_half'); ?>>오전반차</option>
                                                     <option value="pm_half" <?php echo get_selected($holiday_row['hp_day'], 'pm_half'); ?>>오후반차</option>
                                                     <option value="halfhalf" <?php echo get_selected($holiday_row['hp_day'], 'halfhalf'); ?>>반반차</option>
@@ -341,7 +339,6 @@ $file_total = sql_num_rows($file_res);
                                                     <option value="4" <?php echo get_selected($hp_row['hp_day'], '4'); ?>>4일</option>
                                                     <option value="4.5" <?php echo get_selected($hp_row['hp_day'], '4.5'); ?>>4.5일</option>
                                                     <option value="5" <?php echo get_selected($hp_row['hp_day'], '5'); ?>>5일</option>
-                                                    <option value="5.5" <?php echo get_selected($hp_row['hp_day'], '5.5'); ?>>5.5일</option>
                                                     <option value="am_half" <?php echo get_selected($hp_row['hp_day'], 'am_half'); ?>>오전반차</option>
                                                     <option value="pm_half" <?php echo get_selected($hp_row['hp_day'], 'pm_half'); ?>>오후반차</option>
                                                     <option value="halfhalf" <?php echo get_selected($hp_row['hp_day'], 'halfhalf'); ?>>반반차</option>
@@ -595,7 +592,6 @@ function request_info_add(){
                     <option value="4">4일</option>
                     <option value="4.5">4.5일</option>
                     <option value="5">5일</option>
-                    <option value="5.5">5.5일</option>
                     <option value="am_half">오전반차</option>
                     <option value="pm_half">오후반차</option>
                     <option value="halfhalf">반반차</option>

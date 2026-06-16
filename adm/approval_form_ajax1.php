@@ -307,7 +307,6 @@ if($w == "u"){
                                             <option value="4" <?php echo get_selected($hp_row['hp_day'], '4'); ?>>4일</option>
                                             <option value="4.5" <?php echo get_selected($hp_row['hp_day'], '4.5'); ?>>4.5일</option>
                                             <option value="5" <?php echo get_selected($hp_row['hp_day'], '5'); ?>>5일</option>
-                                            <option value="5.5" <?php echo get_selected($hp_row['hp_day'], '5.5'); ?>>5.5일</option>
                                             <option value="am_half" <?php echo get_selected($hp_row['hp_day'], 'am_half'); ?>>오전반차</option>
                                             <option value="pm_half" <?php echo get_selected($hp_row['hp_day'], 'pm_half'); ?>>오후반차</option>
                                             <option value="halfhalf" <?php echo get_selected($hp_row['hp_day'], 'halfhalf'); ?>>반반차</option>
@@ -364,7 +363,6 @@ if($w == "u"){
                                     <option value="4">4일</option>
                                     <option value="4.5">4.5일</option>
                                     <option value="5">5일</option>
-                                    <option value="5.5">5.5일</option>
                                     <option value="am_half">오전반차</option>
                                     <option value="pm_half">오후반차</option>
                                     <option value="halfhalf">반반차</option>
