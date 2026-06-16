@@ -203,7 +203,9 @@ if($w == "u"){
         </tr>
         <tr>
             <th>연차 기간</th>
-            <td><input type="text" name="holiday_date" id="holiday_date" class="bansang_ipt <?php echo $verCl;?> ipt_date" value="<?php echo $row['holiday_date']; ?>" required <?php echo $readonlys;?>></td>
+            <td><input type="text" name="holiday_date" id="holiday_date" class="bansang_ipt <?php echo $verCl;?> ipt_date" value="<?php echo $row['holiday_date']; ?>" required <?php echo $readonlys;?>>
+                <span class="holiday_date_tilde"> ~ </span>
+                <input type="text" name="holiday_edate" id="holiday_edate" class="bansang_ipt <?php echo $verCl;?> ipt_date" value="<?php echo $row['holiday_edate']; ?>" <?php echo $readonlys;?>></td>
             <th>연차 일수</th>
             <td>
                 <select name="holiday_day" id="holiday_day" class="bansang_sel" <?php echo $readonlys;?>>

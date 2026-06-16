@@ -511,7 +511,13 @@ $(document).on("click", ".paid_holiday_request_add", function(){
                                 <div class="paid_holiday_info_box">
                                     <div class="paid_holiday_info_label">사용일자</div>
                                     <div class="paid_holiday_info_ipt">
-                                        <input type="text" name="hp_date[]" class="bansang_ipt ver2 ipt_date" required>
+                                        <input type="text" name="hp_date[]" class="bansang_ipt ver2 ipt_date hp_sdate" required>
+                                    </div>
+                                </div>
+                                <div class="paid_holiday_info_box">
+                                    <div class="paid_holiday_info_label">종료일</div>
+                                    <div class="paid_holiday_info_ipt">
+                                        <input type="text" name="hp_edate[]" class="bansang_ipt ver2 ipt_date hp_edate">
                                     </div>
                                 </div>
                             </div>

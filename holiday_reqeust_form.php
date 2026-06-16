@@ -151,7 +151,9 @@ $file_total = sql_num_rows($file_res);
                     <li>
                         <p class="regi_list_title">연차기간 <span>*</span></p>
                         <div class="ipt_box">
-                            <input type="text" name="holiday_date" id="holiday_date" class="bansang_ipt ver2 ipt_date" value="<?php echo $row['holiday_date']; ?>" readonly>
+                            <input type="text" name="holiday_date" id="holiday_date" class="bansang_ipt ver2 ipt_date hp_sdate" value="<?php echo $row['holiday_date']; ?>" readonly>
+                            <span class="holiday_date_tilde"> ~ </span>
+                            <input type="text" name="holiday_edate" id="holiday_edate" class="bansang_ipt ver2 ipt_date" value="<?php echo $row['holiday_edate']; ?>" readonly>
                         </div>
                     </li>
                     
@@ -303,7 +305,13 @@ $file_total = sql_num_rows($file_res);
                                         <div class="holiday_boxs">
                                             <p class="holiday_box_labels mgb10">사용일자</p>
                                             <div class="holiday_boxs_inpus">
-                                                <input type="text" name="hp_date[]" class="bansang_ipt ver2 ipt_date" value="<?php echo $holiday_row['hp_date']; ?>" readonly>
+                                                <input type="text" name="hp_date[]" class="bansang_ipt ver2 ipt_date hp_sdate" value="<?php echo $holiday_row['hp_date']; ?>" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="holiday_boxs">
+                                            <p class="holiday_box_labels mgb10">종료일</p>
+                                            <div class="holiday_boxs_inpus">
+                                                <input type="text" name="hp_edate[]" class="bansang_ipt ver2 ipt_date hp_edate" value="<?php echo $holiday_row['hp_edate']; ?>" readonly>
                                             </div>
                                         </div>
                                         <div class="holiday_boxs">
@@ -348,7 +356,13 @@ $file_total = sql_num_rows($file_res);
                                         <div class="holiday_boxs">
                                             <p class="holiday_box_labels mgb10">사용일자</p>
                                             <div class="holiday_boxs_inpus">
-                                                <input type="text" name="hp_date[]" class="bansang_ipt ver2 ipt_date" value="<?php echo $hp_row['hp_date']; ?>" readonly>
+                                                <input type="text" name="hp_date[]" class="bansang_ipt ver2 ipt_date hp_sdate" value="<?php echo $hp_row['hp_date']; ?>" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="holiday_boxs">
+                                            <p class="holiday_box_labels mgb10">종료일</p>
+                                            <div class="holiday_boxs_inpus">
+                                                <input type="text" name="hp_edate[]" class="bansang_ipt ver2 ipt_date hp_edate" value="<?php echo $hp_row['hp_edate']; ?>" readonly>
                                             </div>
                                         </div>
                                         <div class="holiday_boxs">
@@ -601,7 +615,13 @@ function request_info_add(){
         <div class="holiday_boxs">
             <p class="holiday_box_labels mgb10">사용일자</p>
             <div class="holiday_boxs_inpus">
-                <input type="text" name="hp_date[]" class="bansang_ipt ver2 ipt_date" readonly>
+                <input type="text" name="hp_date[]" class="bansang_ipt ver2 ipt_date hp_sdate" readonly>
+            </div>
+        </div>
+        <div class="holiday_boxs">
+            <p class="holiday_box_labels mgb10">종료일</p>
+            <div class="holiday_boxs_inpus">
+                <input type="text" name="hp_edate[]" class="bansang_ipt ver2 ipt_date hp_edate" readonly>
             </div>
         </div>
         <div class="holiday_boxs">
