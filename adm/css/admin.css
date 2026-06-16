@@ -2207,3 +2207,6 @@ input[type="text"]{max-width:200px}
 /* Styles */
 input[type="text"]{max-width:200px}
 }
+
+/* 사내용 캘린더 내용칸 높이 확대 (#cal_content 전용, .ta 전역 미변경) */
+#cal_content { height: 500px; }
