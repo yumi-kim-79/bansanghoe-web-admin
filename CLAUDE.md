@@ -221,7 +221,14 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] **`holiday_request_sample.php` L324 변수 혼동** — holiday 카테고리(연차 신청서) "사용기간" 칸 default 분기가 `holiday_day` 가 아닌 `hp_day`(연차계획서 시스템 변수)를 echo. dead code(L325 종료일)와 달리 L331 echo 는 실제 출력 → holiday 카테고리에서 사용기간 일수가 빌 수 있음. 회귀 위험 있어 별도 작업으로 분리
 
 ### 최근 완료
-- [x] **연차신청서 연차일수 옵션 확대 (1.5/2.5/3.5/4.5/5.5)** (2026-06-16)
+- [x] **연차일수 5.5일 옵션 제거 (사용자 요청)** (2026-06-16)
+  - **배경**: 직전 옵션 확대(아래) 후 사용자 요청 — 5.5일은 실사용 케이스 없어 제거, **1.5/2.5/3.5/4.5 만 유지**
+  - **변경 (develop→main merge `c5de6181`, 운영 배포)**: 활성 9곳 select 에서 `<option value="5.5">5.5일</option>` 1줄씩 삭제 (5 files, -9)
+    - `adm/approval_form_ajax1.php` ×2(웹 수정/신규), `adm/approval_form_ajax2.php` ×1(웹 holiday), `adm/approval_form.php` ×1(+추가 JS), `adm/approval_info.php` ×1(상세), `holiday_reqeust_form.php` ×4(모바일 holiday/paid 수정/추가/+추가 JS)
+  - **DB**: 변경 없음. 운영 `a_holiday_person.hp_day` / `a_sign_off.holiday_day` 의 `5.5` 저장 데이터 **0건 확인**(사용자) → 무영향. (만약 있었다면 표시는 정상이나 해당 결재 수정 진입 시 5.5 옵션 없어 1일 기본선택 주의)
+  - **표시 로직 무변경**: `holiday_request_sample.php` 소수점 호환 로직 그대로(1.5~4.5 정상 표시)
+  - **검증**: test 통과(웹 paid/holiday·모바일 5.5 없음, 1.5/2.5/3.5/4.5 유지). 운영 OPcache reload 권장(PHP 변경)
+- [x] **연차신청서 연차일수 옵션 확대 (1.5/2.5/3.5/4.5/~~5.5~~)** (2026-06-16) — *※ 5.5 는 당일 사용자 요청으로 제거(위 항목). 현재 1.5/2.5/3.5/4.5 유지*
   - **배경**: 연차일수 select 가 정수(1~5)만 → 1.5일 신청 시 "1일 + 0.5일"을 두 번 작성해야 하는 불편. 0.5 단위 옵션 추가 요청
   - **변경 (develop→main merge `0afd3b0f`, 운영 배포)**: 일수 select **활성 9곳 전부** 1/**1.5**/2/**2.5**/3/**3.5**/4/**4.5**/5/**5.5** + 반차3 순으로 끼워넣기
     - 표시 로직 (커밋 `c1a51b3a`): `holiday_request_sample.php` switch1(paid_holiday) 종료일 소수점 호환 — `(int)floor($days)` 로 정수일 종료일 계산 + `strpos('.')` 시 `(반일 포함)` 표기 + `is_numeric ? .'일'` 접미사. switch2(holiday) 사용일수도 일 접미사. **switch2 종료일은 dead code 확정(L330 `$end_date=""` 리셋 후 `echo $days` 만)** → 소수점 처리 불필요
