@@ -217,8 +217,35 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] 운영 서버 서명 이미지 복원 필요 (`/data/file/approval/` 파일 없음, 테스트 서버에는 존재)
   - 원인: 2026-04-14 data/ 소실 사고로 추정
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
+- [ ] **`adm/approval_holiday_component.php` 미사용 파일(0 refs) 정리/삭제 검토** — 연차일수 옵션 확대(2026-06-16) 시 유일하게 미적용 파일. 전 프로젝트 grep 0 참조. 별도 정리 작업에서 삭제 판단
+- [ ] **`holiday_request_sample.php` L324 변수 혼동** — holiday 카테고리(연차 신청서) "사용기간" 칸 default 분기가 `holiday_day` 가 아닌 `hp_day`(연차계획서 시스템 변수)를 echo. dead code(L325 종료일)와 달리 L331 echo 는 실제 출력 → holiday 카테고리에서 사용기간 일수가 빌 수 있음. 회귀 위험 있어 별도 작업으로 분리
 
 ### 최근 완료
+- [x] **연차신청서 연차일수 옵션 확대 (1.5/2.5/3.5/4.5/5.5)** (2026-06-16)
+  - **배경**: 연차일수 select 가 정수(1~5)만 → 1.5일 신청 시 "1일 + 0.5일"을 두 번 작성해야 하는 불편. 0.5 단위 옵션 추가 요청
+  - **변경 (develop→main merge `0afd3b0f`, 운영 배포)**: 일수 select **활성 9곳 전부** 1/**1.5**/2/**2.5**/3/**3.5**/4/**4.5**/5/**5.5** + 반차3 순으로 끼워넣기
+    - 표시 로직 (커밋 `c1a51b3a`): `holiday_request_sample.php` switch1(paid_holiday) 종료일 소수점 호환 — `(int)floor($days)` 로 정수일 종료일 계산 + `strpos('.')` 시 `(반일 포함)` 표기 + `is_numeric ? .'일'` 접미사. switch2(holiday) 사용일수도 일 접미사. **switch2 종료일은 dead code 확정(L330 `$end_date=""` 리셋 후 `echo $days` 만)** → 소수점 처리 불필요
+    - 옵션 추가 (커밋 `29219e67` + 보강 3건):
+      - `adm/approval_form_ajax1.php` L300(웹 수정 `w=='u'`), L357(웹 신규 `else`)
+      - `adm/approval_form_ajax2.php` L209(웹 holiday=연차신청서, `holiday_day`)
+      - `adm/approval_form.php` L316(웹 "+추가" JS 템플릿)
+      - `adm/approval_info.php` L495(웹 상세보기)
+      - `holiday_reqeust_form.php` L161(모바일 holiday), L288(모바일 paid 수정), L334(모바일 paid 추가), L588(모바일 paid "+추가" JS) — **모바일 매니저앱**
+  - **DB**: `hp_day`/`holiday_day` 모두 VARCHAR → "1.5" 그대로 저장, **마이그레이션 불필요**. 잔여연차 차감 로직 없음
+  - **제외**: `adm/approval_holiday_component.php`(미사용, 0 refs) → PENDING 격상
+  - **⚠️ Phase 1 분석 누락 3건 → 보강 커밋 (교훈)**: 최초 `29219e67` 은 웹 4파일만 + ajax1 도 수정분기(L300)만 적용. test 검증 중 순차 발견:
+    - `137b4f5a`: **ajax2 `holiday_day` 누락** — Phase 1 이 `hp_day` 키워드로만 grep → `holiday_day` 쓰는 holiday 카테고리(ajax2) 빠짐
+    - `c6435c5c`: **ajax1 L357 신규 등록 분기 누락** — `if($w=='u'){...}else{...}` 양쪽 select 중 수정분기만 고침
+    - `c09c6f5a`: **모바일 paid_holiday 3곳 누락** — 웹만 보고 모바일(`holiday_reqeust_form.php`) paid_holiday hp_day[] 분기 미확인
+  - **최종 전수 재확인**: 일수 select 활성 9곳 = 1.5 옵션 보유 9곳 **완전 일치**(미사용 component 1곳만 제외)
+  - **검증**: test 통과(웹 paid 신규/수정/추가행·웹 holiday·모바일 paid 3곳·1.5일 종료일+반일포함 표기·1일 회귀 없음). 운영 OPcache reload 권장(PHP 변경)
+  - **🧭 분석 시 주의 (Phase 1 누락 패턴 영구 기록)** — 같은 의도의 select/input 이 여러 분기에 흩어진 경우 grep 전략:
+    1. **컬럼명 다중 grep**(관련 컬럼 전부: `hp_day`, `holiday_day` …) — 단일 키워드 금지
+    2. 같은 파일 내 동일 패턴 select 갯수 `grep -c` 로 카운트
+    3. **if/else 분기**(`w=='u'`/신규 등) **양쪽** 모두 확인
+    4. **웹/모바일** 양쪽 동일 카테고리 select 모두 확인
+    5. **AJAX 파일 + JS 템플릿 문자열** 안의 select 별도 확인
+    6. 분기 매트릭스 작성: (웹/모바일)×(컬럼명)×(수정/신규/JS). 이번엔 2×2×3=12 분기 중 실제 누락 4곳 발생
 - [x] **사내용 캘린더 #cal_content 내용칸 높이 확대** (2026-06-16)
   - **변경 (CSS only, merge `8ae52414`)**: `adm/css/admin.css` 끝 `#cal_content {height:500px}`(웹) + `css/default.css` 끝 `#cal_content {height:350px}`(모바일). 기존 160px → 확대
   - **방식**: `.bansang_ipt.ta`(height:160px)는 품의서·민원·게시판 등 25개+ 폼 공유라 전역 변경 금지. **`id=cal_content`(캘린더 4파일 전용: calendar_form/form2/schedule_add/schedule_add2)** 만 id 특정성으로 덮어씀
