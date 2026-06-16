@@ -219,6 +219,11 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 
 ### 최근 완료
+- [x] **사내용 캘린더 #cal_content 내용칸 높이 확대** (2026-06-16)
+  - **변경 (CSS only, merge `8ae52414`)**: `adm/css/admin.css` 끝 `#cal_content {height:500px}`(웹) + `css/default.css` 끝 `#cal_content {height:350px}`(모바일). 기존 160px → 확대
+  - **방식**: `.bansang_ipt.ta`(height:160px)는 품의서·민원·게시판 등 25개+ 폼 공유라 전역 변경 금지. **`id=cal_content`(캘린더 4파일 전용: calendar_form/form2/schedule_add/schedule_add2)** 만 id 특정성으로 덮어씀
+  - **PHP 무변경**(textarea가 이미 id=cal_content 보유). `calendar_schedule_list/list2`는 제목만 표시(내용 미표시)라 대상 아님
+  - **검증**: test 통과(웹 500px·모바일 350px), 다른 폼 textarea 160px 유지(회귀 없음). CSS라 OPcache 무관(브라우저 강력 새로고침만)
 - [x] **공휴일 캘린더(작업1) 운영 배포** (2026-06-11)
   - **변경 (merge `db49ddd3`)**
     - 신규 `cron_holiday.php`(루트): 공공데이터포털 `getRestDeInfo` → `a_holiday` 적재. 올해+내년, `_type=json`, `isHoliday=Y` 필터, holiday_type(대체/임시/public). **연도별 12개월 수집 → API 성공 시에만 DELETE 후 재적재**(전체 실패 시 기존 유지). 실행 경로의 `common.php`(경로별 dbconfig)로 DB 자동 결정 → 환경분기 코드 불필요
@@ -868,4 +873,4 @@ curl https://raw.githubusercontent.com/yumi-kim-79/{저장소}/main/{경로}/{�
 
 ---
 
-*최종 업데이트: 2026-06-11*
+*최종 업데이트: 2026-06-16*
