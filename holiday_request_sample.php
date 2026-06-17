@@ -4,6 +4,14 @@ include_once('./_common.php');
 //auth_check($auth[$sub_menu], "w");
 $page_arr = ["daily_paid", "onsite_expenses", "personal_signoff", "expenditure_plan", "builder_statement", "building_account", "mng_adjustment", "bill_payment", "household_refund"];
 
+// [연차 종료일] 한글 요일 표시 헬퍼
+if(!function_exists('kor_dow')){
+    function kor_dow($date){ $w=['일','월','화','수','목','금','토']; return $w[date('w', strtotime($date))]; }
+}
+if(!function_exists('fmt_day')){
+    function fmt_day($date){ return date('n월 j일', strtotime($date)).' ('.kor_dow($date).')'; }
+}
+
 $sign_off_sql = "SELECT * FROM a_sign_off WHERE sign_id = '{$sign_id}'";
 $sign_off_row = sql_fetch($sign_off_sql);
 
@@ -261,32 +269,34 @@ $file_total = sql_num_rows($file_res);
                         <div class="user_list_hd ver2">
                             <div class="user_list_hd_box ver1"><?php echo $holiday_row['hp_name']; ?></div>
                             <div class="user_list_hd_box ver1">
-                                <?php 
-                                $days = "";
-                                $end_date = "";
-                                switch($holiday_row['hp_day']){
-                                    case "am_half":
-                                        $days = "오전반차";
-                                        break;
-                                    case "pm_half":
-                                        $days = "오후반차";
-                                        break;
-                                    case "halfhalf":
-                                        $days = "반반차";
-                                        break;
-                                    default:
-                                        $days = $holiday_row['hp_day'];
-
-                                        $is_half = (strpos($days, '.') !== false);   // 1.5, 2.5 등
-                                        $days_int = (int)floor($days);               // 1.5 → 1, 2.5 → 2
-                                        $days2 = $days_int - 1;                       // 1 → 0, 2 → 1
-                                        $end_date = " ~ ".date('m월 d일',strtotime($holiday_row['hp_date']."+".$days2." day"));
-                                        if($is_half) $end_date .= " (반일 포함)";
+                                <?php
+                                $sd = $holiday_row['hp_date'];
+                                $ed = $holiday_row['hp_edate'];
+                                // legacy fallback: edate NULL → 기존 자동 계산
+                                if(empty($ed) || $ed == '0000-00-00'){
+                                    $days_int = (int)floor($holiday_row['hp_day']);
+                                    $ed = date('Y-m-d', strtotime($sd.' +'.max(0, $days_int - 1).' day'));
+                                }
+                                $half_labels = ['am_half'=>'오전반차','pm_half'=>'오후반차','halfhalf'=>'반반차','half_half'=>'반반차'];
+                                $is_half_label = isset($half_labels[$holiday_row['hp_day']]);
+                                $is_half = (strpos($holiday_row['hp_day'], '.') !== false);   // 1.5, 2.5 등
+                                if($is_half_label){
+                                    $days = $half_labels[$holiday_row['hp_day']];
+                                    $period = fmt_day($sd).' ('.$days.')';
+                                }elseif($holiday_row['hp_day'] == '1'){
+                                    $days = $holiday_row['hp_day'];
+                                    $period = fmt_day($sd);
+                                }elseif($is_half){
+                                    $days = $holiday_row['hp_day'];
+                                    $period = fmt_day($sd).' ~ '.fmt_day($ed).' (반일 포함)';
+                                }else{
+                                    $days = $holiday_row['hp_day'];
+                                    $period = fmt_day($sd).' ~ '.fmt_day($ed);
                                 }
                                 echo is_numeric($days) ? $days.'일' : $days;
                                 ?>
                             </div>
-                            <div class="user_list_hd_box ver2"><?php echo date("m월 d일", strtotime($holiday_row['hp_date']))?><?php echo $days == '1' ? "" : $end_date; ?></div>
+                            <div class="user_list_hd_box ver2"><?php echo $period; ?></div>
                             <div class="user_list_hd_box ver3"><?php echo $holiday_row['hp_memo']; ?></div>
                         </div>
                         <?php }?>
@@ -306,29 +316,26 @@ $file_total = sql_num_rows($file_res);
                         <div class="holiday_box_inner">
                             <div class="holiday_box_th">사용기간</div>
                             <div class="holiday_box_td">
-                                <?php echo date("m월 d일", strtotime($sign_off_row['holiday_date']));?>
-                                <?php 
-                                $days = "";
-                                $end_date = "";
-                                switch($sign_off_row['holiday_day']){
-                                    case "am_half":
-                                        $days = "오전반차";
-                                        break;
-                                    case "pm_half":
-                                        $days = "오후반차";
-                                        break;
-                                    case "halfhalf":
-                                        $days = "반반차";
-                                        break;
-                                    default:
-                                        $days = $holiday_row['hp_day'];
-                                        $end_date = " ~ ".date('m월 d일',strtotime($holiday_row['hp_date']."+".$days." day")); 
-                                }
-                               
-                                ?>
                                 <?php
-                                 $end_date = "";
-                                 echo $days; 
+                                $sd = $sign_off_row['holiday_date'];
+                                $ed = $sign_off_row['holiday_edate'];
+                                // legacy fallback: edate NULL → 기존 자동 계산
+                                if(empty($ed) || $ed == '0000-00-00'){
+                                    $days_int = (int)floor($sign_off_row['holiday_day']);
+                                    $ed = date('Y-m-d', strtotime($sd.' +'.max(0, $days_int - 1).' day'));
+                                }
+                                $half_labels2 = ['am_half'=>'오전반차','pm_half'=>'오후반차','halfhalf'=>'반반차','half_half'=>'반반차'];
+                                $hd = $sign_off_row['holiday_day'];
+                                if(isset($half_labels2[$hd])){
+                                    $period = fmt_day($sd).' ('.$half_labels2[$hd].')';
+                                }elseif($hd == '1'){
+                                    $period = fmt_day($sd);
+                                }elseif(strpos($hd, '.') !== false){
+                                    $period = fmt_day($sd).' ~ '.fmt_day($ed).' (반일 포함)';
+                                }else{
+                                    $period = fmt_day($sd).' ~ '.fmt_day($ed);
+                                }
+                                echo $period;
                                 ?>
                             </div>
                         </div>

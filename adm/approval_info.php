@@ -511,7 +511,13 @@ $(document).on("click", ".paid_holiday_request_add", function(){
                                 <div class="paid_holiday_info_box">
                                     <div class="paid_holiday_info_label">사용일자</div>
                                     <div class="paid_holiday_info_ipt">
-                                        <input type="text" name="hp_date[]" class="bansang_ipt ver2 ipt_date" required>
+                                        <input type="text" name="hp_date[]" class="bansang_ipt ver2 ipt_date hp_sdate" required>
+                                    </div>
+                                </div>
+                                <div class="paid_holiday_info_box">
+                                    <div class="paid_holiday_info_label">종료일</div>
+                                    <div class="paid_holiday_info_ipt">
+                                        <input type="text" name="hp_edate[]" class="bansang_ipt ver2 ipt_date hp_edate">
                                     </div>
                                 </div>
                             </div>
@@ -533,6 +539,54 @@ $(document).on("click", ".paid_holiday_request_add", function(){
 
     $(document).find(".ipt_date").removeClass('hasDatepicker').datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd", showButtonPanel: true, yearRange: "c-99:c+99", maxDate: "+365d", minDate:"0d" });
 });
+</script>
+<?php
+// [연차 종료일] 공휴일 PHP→JS 주입 (올해+내년)
+$_hol = [];
+$_hy = date('Y');
+$_hr = sql_query("SELECT holiday_date FROM a_holiday WHERE holiday_date >= '{$_hy}-01-01' AND holiday_date <= '".($_hy+1)."-12-31'");
+while($_hrow = sql_fetch_array($_hr)) $_hol[] = $_hrow['holiday_date'];
+?>
+<script>
+window.bansangHolidays = <?php echo json_encode($_hol); ?>;
+(function($){
+    const HALF_VALUES = ['am_half','pm_half','halfhalf','half_half'];
+    function fmtYmd(d){ const y=d.getFullYear(), m=('0'+(d.getMonth()+1)).slice(-2), dd=('0'+d.getDate()).slice(-2); return y+'-'+m+'-'+dd; }
+    function isBusinessDay(s){ if(!s) return false; const d=new Date(s), g=d.getDay(); if(g===0||g===6) return false; return !(window.bansangHolidays||[]).includes(s); }
+    function countBusinessDays(s,e){ let c=0,d=new Date(s); const end=new Date(e); while(d<=end){ if(isBusinessDay(fmtYmd(d))) c++; d.setDate(d.getDate()+1); } return c; }
+    function addBusinessDays(s,n){ let d=new Date(s),c=0; while(true){ if(isBusinessDay(fmtYmd(d))) c++; if(c>=n) break; d.setDate(d.getDate()+1); } return fmtYmd(d); }
+    let _syncing=false;
+    function applyDayChange($day,$sd,$ed){
+        const v=$day.val();
+        if(v==='1' || HALF_VALUES.includes(v)){ $ed.prop('readonly',true).addClass('disabled'); _syncing=true; if($sd.val()) $ed.val($sd.val()); _syncing=false; }
+        else if(['2','3','4','5'].includes(v)){ $ed.prop('readonly',false).removeClass('disabled'); if($sd.val()){ _syncing=true; $ed.val(addBusinessDays($sd.val(),parseInt(v))); _syncing=false; } }
+        else { $ed.prop('readonly',false).removeClass('disabled'); }
+    }
+    function applySdateChange($day,$sd,$ed){
+        if(_syncing) return; const v=$day.val();
+        if(v==='1' || HALF_VALUES.includes(v)){ _syncing=true; $ed.val($sd.val()); _syncing=false; }
+        else if(['2','3','4','5'].includes(v) && $sd.val()){ _syncing=true; $ed.val(addBusinessDays($sd.val(),parseInt(v))); _syncing=false; }
+    }
+    function applyEdateChange($day,$sd,$ed){
+        if(_syncing) return; const v=$day.val();
+        if(['2','3','4','5'].includes(v) && $sd.val() && $ed.val()){
+            const days=countBusinessDays($sd.val(),$ed.val());
+            if(days>=2 && days<=5){ _syncing=true; $day.val(String(days)); _syncing=false; }
+            else console.warn('평일 카운트 select 범위(2-5) 초과:', days);
+        }
+    }
+    var ROW='.paid_holiday_request_wrapper, .holiday_pay_wrap';
+    $(document).on('change','select[name="hp_day[]"]',function(){ var $r=$(this).closest(ROW); applyDayChange($(this), $r.find('input[name="hp_date[]"]'), $r.find('input[name="hp_edate[]"]')); });
+    $(document).on('change','input[name="hp_date[]"]',function(){ var $r=$(this).closest(ROW); applySdateChange($r.find('select[name="hp_day[]"]'), $(this), $r.find('input[name="hp_edate[]"]')); });
+    $(document).on('change','input[name="hp_edate[]"]',function(){ var $r=$(this).closest(ROW); applyEdateChange($r.find('select[name="hp_day[]"]'), $r.find('input[name="hp_date[]"]'), $(this)); });
+    $(document).on('change','#holiday_day',function(){ applyDayChange($(this),$('#holiday_date'),$('#holiday_edate')); });
+    $(document).on('change','#holiday_date',function(){ applySdateChange($('#holiday_day'),$(this),$('#holiday_edate')); });
+    $(document).on('change','#holiday_edate',function(){ applyEdateChange($('#holiday_day'),$('#holiday_date'),$(this)); });
+    $(function(){
+        $('select[name="hp_day[]"]').each(function(){ var $r=$(this).closest(ROW); applyDayChange($(this), $r.find('input[name="hp_date[]"]'), $r.find('input[name="hp_edate[]"]')); });
+        if($('#holiday_day').length) applyDayChange($('#holiday_day'),$('#holiday_date'),$('#holiday_edate'));
+    });
+})(jQuery);
 </script>
 <?php
 run_event('admin_member_form_after', $mb, $w);
