@@ -218,9 +218,22 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
   - 원인: 2026-04-14 data/ 소실 사고로 추정
   - 복구: `rsync -av /var/www/html_test/data/file/approval/ /var/www/html/data/file/approval/`
 - [ ] **`adm/approval_holiday_component.php` 미사용 파일(0 refs) 정리/삭제 검토** — 연차일수 옵션 확대(2026-06-16) 시 유일하게 미적용 파일. 전 프로젝트 grep 0 참조. 별도 정리 작업에서 삭제 판단
-- [ ] **`holiday_request_sample.php` L324 변수 혼동** — holiday 카테고리(연차 신청서) "사용기간" 칸 default 분기가 `holiday_day` 가 아닌 `hp_day`(연차계획서 시스템 변수)를 echo. dead code(L325 종료일)와 달리 L331 echo 는 실제 출력 → holiday 카테고리에서 사용기간 일수가 빌 수 있음. 회귀 위험 있어 별도 작업으로 분리
+- [ ] **연차 반차값 `half_half`/`halfhalf` 통일** — ajax2·표시(switch2)는 `half_half`, 그 외 select·저장·JS는 `halfhalf` 혼용. 현재는 양쪽 모두 커버(집합 처리)해 동작엔 문제없음. 향후 한쪽으로 통일 권장
+- [ ] **옛 결재 PNG 일괄 재캡처(puppeteer)** — 종료일 표시(커밋 C, 2026-06-16) 이전 캡처된 `a_sign_off_sample` PNG는 옛 포맷 스냅샷. 새 포맷 필요 시 과거 "결재 도장 박스 재캡처" 방식으로 일괄 재생성
 
 ### 최근 완료
+- [x] **연차신청서 종료일 직접 선택 + 평일 자동 갱신 (Phase 1·2·3 완료)** (2026-06-17)
+  - **의도**: 연차신청서/연차계획서에서 시작일만 입력하던 것 → **시작일+종료일 둘 다 선택**, 정수 일수는 **평일(주말·공휴일 제외) 자동 계산**. 예: 6/19(금)~6/22(월) = 2일
+  - **DB (커밋 A, 사용자 직접 ALTER)**: `a_holiday_person.hp_edate`, `a_sign_off.holiday_edate` (DATE NULL). `sql/add_holiday_edate_columns.sql`. test=운영 sinbansang 공유라 1회 실행으로 양쪽 반영
+  - **저장 (커밋 B `32f123ae`)**: `approval_form_update.php`(paid 8곳 + holiday 2 sql_common) + `holiday_reqeust_form_update.php`(모바일 동일). **PHP 안전망**: 1일/반차/공백 시 `edate=sdate` (JS 우회·legacy 방지). `approval_form_update2.php`(duty)는 무관
+  - **폼 UI (커밋 D `35f95317`)**: 종료일 datepicker **9곳** — `approval_form_ajax1`(수정/신규), `ajax2`(holiday), `approval_form`(+추가 JS), `approval_info`, `holiday_reqeust_form`(모바일 holiday + paid 수정/추가/JS). 시작일에 `hp_sdate`, 종료일에 `hp_edate` 클래스
+  - **표시 (커밋 C `c350a2dd`)**: `holiday_request_sample.php` switch1/2. 요일함수 `kor_dow`/`fmt_day`(한글). edate 우선 + **legacy fallback**(NULL→자동계산). switch2 **L324 변수혼동 버그**(`$holiday_row`→`$sign_off_row`) + dead code 정리(PENDING 해소). 분기: 1일=`6월16일(화)` / 정수=`~ 종료(요일)` / 0.5=`(반일 포함)` / 반차=`(오전반차)`
+  - **JS (커밋 E `806f40b7`)**: 공휴일 PHP→JS 주입(`window.bansangHolidays`, a_holiday 올해+내년). 평일함수(`isBusinessDay`/`countBusinessDays`/`addBusinessDays`). **자동갱신 매트릭스**: 1일·반차=종료일 비활성·=시작일 / 2~5=양방향 자동(평일) / 1.5~4.5=자유. `_syncing` 가드(무한루프 방지), 이벤트 위임(`.paid_holiday_request_wrapper, .holiday_pay_wrap` — 동적 +추가 행), 로드 시 초기 토글. 적용 3파일(approval_form/info, holiday_reqeust_form). 종료일 6평일+ → 일수 미변경+콘솔경고
+  - **검증**: test 사용자 직접 통과(비활성토글·자동채움·주말건너뜀·양방향·자유입력·+추가행·PNG새포맷·무한루프없음). 운영 merge `1b0a1e24`
+  - **🩺 디버그 교훈 (이번 세션 핵심)**:
+    1. **approval_info.php는 표시 코드 0건 — 캡처 PNG `<img>`만**(`a_sign_off_sample.sample_img`). 연차 기간 포맷의 실제 소스는 `holiday_request_sample.php`(등록 시 html2canvas 캡처). → **"표시 로직" grep 시 화면 파일이 PNG 표시일 수 있음을 의심, 캡처원본(sample) 우선 확인**
+    2. **GitHub Actions 배포가 SSH `dial tcp ...:22 i/o timeout`으로 실패 가능** — 커밋 C 1차 배포 실패로 서버가 직전 커밋(D)에 멈춰 sample.php 미반영. `gh run list --branch develop` 로 **배포 성공 여부 확인 습관**, 실패 시 `gh run rerun <id>` 재배포
+    3. Phase 1 분석 누락 5건(ajax2 holiday_day, ajax1 신규분기, 모바일 paid 3곳) — select/input 다분기 grep 전략 재확인
 - [x] **연차일수 5.5일 옵션 제거 (사용자 요청)** (2026-06-16)
   - **배경**: 직전 옵션 확대(아래) 후 사용자 요청 — 5.5일은 실사용 케이스 없어 제거, **1.5/2.5/3.5/4.5 만 유지**
   - **변경 (develop→main merge `c5de6181`, 운영 배포)**: 활성 9곳 select 에서 `<option value="5.5">5.5일</option>` 1줄씩 삭제 (5 files, -9)
@@ -907,4 +920,4 @@ curl https://raw.githubusercontent.com/yumi-kim-79/{저장소}/main/{경로}/{�
 
 ---
 
-*최종 업데이트: 2026-06-16*
+*최종 업데이트: 2026-06-17*
