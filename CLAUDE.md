@@ -220,8 +220,17 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] **`adm/approval_holiday_component.php` 미사용 파일(0 refs) 정리/삭제 검토** — 연차일수 옵션 확대(2026-06-16) 시 유일하게 미적용 파일. 전 프로젝트 grep 0 참조. 별도 정리 작업에서 삭제 판단
 - [ ] **연차 반차값 `half_half`/`halfhalf` 통일** — ajax2·표시(switch2)는 `half_half`, 그 외 select·저장·JS는 `halfhalf` 혼용. 현재는 양쪽 모두 커버(집합 처리)해 동작엔 문제없음. 향후 한쪽으로 통일 권장
 - [ ] **옛 결재 PNG 일괄 재캡처(puppeteer)** — 종료일 표시(커밋 C, 2026-06-16) 이전 캡처된 `a_sign_off_sample` PNG는 옛 포맷 스냅샷. 새 포맷 필요 시 과거 "결재 도장 박스 재캡처" 방식으로 일괄 재생성
+- [ ] **전출 정산 진짜 중복 일정 데이터 정리(운영팀 결정)** — 동일 작성자가 2회 등록한 중복(관리자 dedup으로 1건만 노출): 4/17 1205호(1764,1931 ansdufks) / 4/24 204호(2080,2081 gkstkfkd) / 6/15 202호(2493,2494 ghdtjsdud). 코드 정상, 데이터 측 삭제/병합 판단 필요
 
 ### 최근 완료
+- [x] **사내용 캘린더 전출 정산 dedup_key에 wid 추가 (협업 케이스 노출)** (2026-06-30)
+  - **증상**: 같은 단지/날짜/세대 전출정산이 **매니저앱엔 2건, 관리자웹엔 1건**만 표시
+  - **원인 (Claude 코드 분석으로 확정)**: `adm/calendar_schedule_list2.php` L287-297 **관리자 전용 dedup** — `cal_date+building_id+cal_code+cal_title` 같으면 cal_idx 큰 1건만 유지. 매니저앱(`inc/get_schedule2.php`)은 dedup 없음 → 비대칭. **mng_id 필터는 처음부터 존재하지 않음**(사용자 초기 가설 "빈 mng_id 필터/저장버그"는 오진 — 코드상 mng_id는 표시용 L358만, 폼 저장도 정상이며 담당자 select가 선택사항이라 빈 값이 정상)
+  - **변경 (merge `7ae715ab`)**: L292 dedup_key에 `. '_' . $item['wid']` 추가(한 줄). SELECT 무변경(`SELECT *`라 wid 이미 포함)
+  - **효과**: 작성자 다른 협업건은 둘 다 표시, 동일 작성자 진짜 중복은 1건 유지(dedup 의도 보존). 비반복(`noti_repeat='N'`)이라 원본+예외 엣지 무관
+  - **노출 변화**: 5/27 1104호·6/29 2-203호(사용자 보고) 2건 표시 / 진짜 중복 3건은 PENDING(데이터 정리)
+  - **🩺 교훈 (가설 검증의 함정)**: **DB 결과 차이(빈 mng_id)만 보고 원인 단정 금지.** 실제 원인은 코드 분기(dedup_key 충돌). WHERE/JOIN/dedup/표시루프를 직접 추적해야 진짜 원인 발견 — 데이터 상관 ≠ 인과
+
 - [x] **연차신청서 종료일 직접 선택 + 평일 자동 갱신 (Phase 1·2·3 완료)** (2026-06-17)
   - **의도**: 연차신청서/연차계획서에서 시작일만 입력하던 것 → **시작일+종료일 둘 다 선택**, 정수 일수는 **평일(주말·공휴일 제외) 자동 계산**. 예: 6/19(금)~6/22(월) = 2일
   - **DB (커밋 A, 사용자 직접 ALTER)**: `a_holiday_person.hp_edate`, `a_sign_off.holiday_edate` (DATE NULL). `sql/add_holiday_edate_columns.sql`. test=운영 sinbansang 공유라 1회 실행으로 양쪽 반영
@@ -920,4 +929,4 @@ curl https://raw.githubusercontent.com/yumi-kim-79/{저장소}/main/{경로}/{�
 
 ---
 
-*최종 업데이트: 2026-06-17*
+*최종 업데이트: 2026-06-30*
