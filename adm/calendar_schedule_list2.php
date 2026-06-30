@@ -289,7 +289,7 @@ while($row_y = sql_fetch_array($result_y)){
 $dedup_map = [];
 $deduped_array = [];
 foreach($total_array as $item){
-    $dedup_key = $item['cal_date'] . '_' . $item['building_id'] . '_' . $item['cal_code'] . '_' . $item['cal_title'];
+    $dedup_key = $item['cal_date'] . '_' . $item['building_id'] . '_' . $item['cal_code'] . '_' . $item['cal_title'] . '_' . $item['wid'];
     if(!isset($dedup_map[$dedup_key]) || $item['cal_idx'] > $dedup_map[$dedup_key]['cal_idx']){
         $dedup_map[$dedup_key] = $item;
     }
