@@ -46,6 +46,7 @@ if($building_name){   $sql_search .= " and building.building_name like '%{$build
 if($dong_id){         $sql_search .= " and complain.dong_id = '{$dong_id}' ";                  $qstr .= '&dong_id='.$dong_id; }
 if($ho_id){           $sql_search .= " and complain.ho_id = '{$ho_id}' ";                      $qstr .= '&ho_id='.$ho_id; }
 if($mng_department){  $sql_search .= " and complain.mng_department = '{$mng_department}' ";    $qstr .= '&mng_department='.$mng_department; }
+if($only_resident){   $sql_search .= " and complain.complain_type != 'admin' ";                $qstr .= '&only_resident=1'; }
 if ($is_admin != 'super') { $sql_search .= " and mb_level <= '{$member['mb_level']}' "; }
 
 $sql_order = " order by complain.complain_idx desc ";
@@ -101,6 +102,15 @@ $colspan = 16;
             <div class="sch_radios"><input type="radio" name="complain_status" id="status3" value="CA" <?php echo $complain_status == "CA" ? "checked" : ""?>><label for="status3">접수대기</label></div>
             <div class="sch_radios"><input type="radio" name="complain_status" id="status4" value="CC" <?php echo $complain_status == "CC" ? "checked" : ""?>><label for="status4">진행중</label></div>
             <div class="sch_radios"><input type="radio" name="complain_status" id="status5" value="CD" <?php echo $complain_status == "CD" ? "checked" : ""?>><label for="status5">완료</label></div>
+        </div>
+    </div>
+    <div class="serach_box">
+        <div class="sch_label">입주민접수건</div>
+        <div class="sch_selects ver_flex gap15">
+            <div class="sch_radios">
+                <input type="checkbox" name="only_resident" id="only_resident" value="1" <?php echo $only_resident ? "checked" : "";?>>
+                <label for="only_resident">입주민 접수건만 보기</label>
+            </div>
         </div>
     </div>
     <div class="serach_box">
