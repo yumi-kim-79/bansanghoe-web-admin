@@ -59,6 +59,17 @@ if($sdate != "" && $edate == ""){
     $qstr .= '&sdate='.$sdate.'&edate='.$edate;
 }
 
+if($ext_sdate != "" && $ext_edate == ""){
+    $sql_search .= " and sign_off.extension_date >= '{$ext_sdate}' ";
+    $qstr .= '&ext_sdate='.$ext_sdate;
+}else if($ext_sdate == "" && $ext_edate != ""){
+    $sql_search .= " and sign_off.extension_date <= '{$ext_edate}' ";
+    $qstr .= '&ext_edate='.$ext_edate;
+}else if($ext_sdate != "" && $ext_edate != ""){
+    $sql_search .= " and (sign_off.extension_date >= '{$ext_sdate}' and sign_off.extension_date <= '{$ext_edate}') ";
+    $qstr .= '&ext_sdate='.$ext_sdate.'&ext_edate='.$ext_edate;
+}
+
 if($sign_off_category){
     $sql_search .= " and sign_off.sign_off_category = '{$sign_off_category}' ";
     $qstr .= '&sign_off_category='.$sign_off_category;
@@ -146,6 +157,12 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         <div class="sch_label">날짜</div>
         <div class="sch_selects ver_flex">
             <input type="text" name="sdate" class="bansang_ipt ver2 ipt_date" value="<?php echo $sdate; ?>"> ~ <input type="text" name="edate" class="bansang_ipt ver2 ipt_date" value="<?php echo $edate; ?>">
+        </div>
+    </div>
+    <div class="serach_box">
+        <div class="sch_label">연장근무 기간</div>
+        <div class="sch_selects ver_flex">
+            <input type="text" name="ext_sdate" class="bansang_ipt ver2 ipt_date" value="<?php echo $ext_sdate; ?>"> ~ <input type="text" name="ext_edate" class="bansang_ipt ver2 ipt_date" value="<?php echo $ext_edate; ?>">
         </div>
     </div>
     <div class="serach_box">
