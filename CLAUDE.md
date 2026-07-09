@@ -223,6 +223,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] **전출 정산 진짜 중복 일정 데이터 정리(운영팀 결정)** — 동일 작성자가 2회 등록한 중복(관리자 dedup으로 1건만 노출): 4/17 1205호(1764,1931 ansdufks) / 4/24 204호(2080,2081 gkstkfkd) / 6/15 202호(2493,2494 ghdtjsdud). 코드 정상, 데이터 측 삭제/병합 판단 필요
 
 ### 최근 완료
+- [x] **관리자웹 민원 목록 '입주민접수건' 필터 추가** (2026-06-30)
+  - **요청**: 민원 목록에서 입주민 등록건(화면 회색)만 조회하는 토글
+  - **구분 컬럼**: `a_online_complain.complain_type` — `'user'`(입주민앱, 회색 `status_n`) / `'admin'`(관리자, 흰색). `complain_list.php:242` 행 클래스 로직 기준
+  - **변경 (merge `580de4b6`)**: `adm/complain_list.php` 1파일 — 체크박스 '입주민 접수건만 보기'(`only_resident`) + `if($only_resident){ $sql_search .= " and complain.complain_type != 'admin' "; $qstr .= ... }`(L49). 화면 회색 로직(`!= 'admin'`)과 동일 기준
+  - **엑셀 무변경**: `ALL_IDX`(L63 `$all_idx_sql`)가 필터된 `$sql_search` 기반 → 엑셀 다운로드 자동 반영. `complain_excel.php`는 idx 목록 기반이라 손댈 필요 없음
+  - **컨벤션**: `#fsearch` 폼 내 검색버튼 제출(상태 라디오와 동일), qstr 누적으로 페이지네이션 유지. 미체크 기본 = 현재 동작(회귀 없음)
 - [x] **사내용 캘린더 전출 정산 dedup_key에 wid 추가 (협업 케이스 노출)** (2026-06-30)
   - **증상**: 같은 단지/날짜/세대 전출정산이 **매니저앱엔 2건, 관리자웹엔 1건**만 표시
   - **원인 (Claude 코드 분석으로 확정)**: `adm/calendar_schedule_list2.php` L287-297 **관리자 전용 dedup** — `cal_date+building_id+cal_code+cal_title` 같으면 cal_idx 큰 1건만 유지. 매니저앱(`inc/get_schedule2.php`)은 dedup 없음 → 비대칭. **mng_id 필터는 처음부터 존재하지 않음**(사용자 초기 가설 "빈 mng_id 필터/저장버그"는 오진 — 코드상 mng_id는 표시용 L358만, 폼 저장도 정상이며 담당자 select가 선택사항이라 빈 값이 정상)
