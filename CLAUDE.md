@@ -223,6 +223,12 @@ develop 브랜치 → 자동 배포 → test.smtm2017.com 검증
 - [ ] **전출 정산 진짜 중복 일정 데이터 정리(운영팀 결정)** — 동일 작성자가 2회 등록한 중복(관리자 dedup으로 1건만 노출): 4/17 1205호(1764,1931 ansdufks) / 4/24 204호(2080,2081 gkstkfkd) / 6/15 202호(2493,2494 ghdtjsdud). 코드 정상, 데이터 측 삭제/병합 판단 필요
 
 ### 최근 완료
+- [x] **관리자웹 결재 목록 '연장근무 기간' 검색 필터 추가** (2026-06-30)
+  - **요청**: 결재서류함에서 연장근무보고서를 실제 근무기간(`extension_date`)으로 검색 (예: 6월 한 달 연장근무 리스트)
+  - **파일 구조**: `adm/approval_document_list.php` = **전 카테고리 통합 결재 목록**(종류 드롭다운 `sign_off_category`로 필터). `$sql_search` 문자열 축적 + `$qstr` 누적 컨벤션
+  - **변경 (merge `53b13412`)**: 1파일 — UI '연장근무 기간' 검색박스(`ext_sdate`~`ext_edate`, `.ipt_date` datepicker 자동) + WHERE `sign_off.extension_date` 3분기(>= / <= / BETWEEN). 등록일 검색(`sdate`/`edate`=`wdate`)과 **독립 파라미터**
+  - **필터 독립 방식(X)**: ext 필터 단독이면 `extension_date` 보유한 **연장근무 신청서(overtime_work_request)+보고서(overtime_work_report) 둘 다** 매칭(비-연장근무는 NULL이라 자동 제외). "보고서만"은 **종류 드롭다운 병행 선택**으로. 하드코딩 안 함(신청서 기간검색도 가능)
+  - **정렬 유지(A)**: `sign_id desc` 무변경 → 회귀 없음. qstr 누적으로 페이지네이션 유지, 엑셀 `$sql_search` 기반 자동 반영
 - [x] **관리자웹 민원 목록 '입주민접수건' 필터 추가** (2026-06-30)
   - **요청**: 민원 목록에서 입주민 등록건(화면 회색)만 조회하는 토글
   - **구분 컬럼**: `a_online_complain.complain_type` — `'user'`(입주민앱, 회색 `status_n`) / `'admin'`(관리자, 흰색). `complain_list.php:242` 행 클래스 로직 기준
