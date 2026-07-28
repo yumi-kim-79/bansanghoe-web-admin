@@ -7,7 +7,7 @@ auth_check_menu($auth, $sub_menu, 'r');
 
 $sql_common = " from a_senior as sn left join a_contract as ct on sn.ct_idx = ct.ct_idx left join a_building as building on ct.building_id = building.building_id ";
 
-$sql_search = " where (1) and sn.not_use = '0' and sn.sn_name != '' ";
+$sql_search = " where (1) and sn.not_use = '0' and sn.sn_name != '' and ct.ct_status = '0' and ct.is_del = '0' and ct.is_temp = '0' ";
 
 
 if ($stx) {

@@ -317,58 +317,60 @@ if($w == "u"){
 
   
 
-     //선임자 정보 미사용 체크 안했을 때
-     if(!$sn_use){
+     if($ct_status_no != 'Y'){
+         //선임자 정보 미사용 체크 안했을 때
+         if(!$sn_use){
 
-        $sn_use_chk = sql_fetch("SELECT COUNT(*) as cnt FROM a_senior WHERE ct_idx = '{$ct_idx}'");
+            $sn_use_chk = sql_fetch("SELECT COUNT(*) as cnt FROM a_senior WHERE ct_idx = '{$ct_idx}'");
 
-        if($sn_use_chk['cnt'] > 0){
+            if($sn_use_chk['cnt'] > 0){
 
-            $s_sql_up = "UPDATE a_senior SET
-                        sn_name = '{$sn_name}',
-                        sn_hp = '{$sn_hp}',
-                        sn_date = '{$sn_date}',
-                        sn_sdate = '{$sn_sdate}',
-                        sn_edate = '{$sn_edate}',
-                        edu_sdate = '{$edu_sdate}',
-                        edu_edate = '{$edu_edate}',
-                        insurance_name = '{$insurance_name}',
-                        insurance_date = '{$insurance_date}',
-                        insurance_price = '{$insurance_price}',
-                        insurance_mng = '{$insurance_mng}',
-                        sn_memo = '{$sn_memo}',
-                        not_use = 0
-                        WHERE ct_idx = '{$ct_idx}'";
-            sql_query($s_sql_up);
+                $s_sql_up = "UPDATE a_senior SET
+                            sn_name = '{$sn_name}',
+                            sn_hp = '{$sn_hp}',
+                            sn_date = '{$sn_date}',
+                            sn_sdate = '{$sn_sdate}',
+                            sn_edate = '{$sn_edate}',
+                            edu_sdate = '{$edu_sdate}',
+                            edu_edate = '{$edu_edate}',
+                            insurance_name = '{$insurance_name}',
+                            insurance_date = '{$insurance_date}',
+                            insurance_price = '{$insurance_price}',
+                            insurance_mng = '{$insurance_mng}',
+                            sn_memo = '{$sn_memo}',
+                            not_use = 0
+                            WHERE ct_idx = '{$ct_idx}'";
+                sql_query($s_sql_up);
 
+            }else{
+                $s_sql = "INSERT INTO a_senior SET
+                            ct_idx = '{$ct_idx}',
+                            sn_name = '{$sn_name}',
+                            sn_hp = '{$sn_hp}',
+                            sn_date = '{$sn_date}',
+                            sn_sdate = '{$sn_sdate}',
+                            sn_edate = '{$sn_edate}',
+                            edu_sdate = '{$edu_sdate}',
+                            edu_edate = '{$edu_edate}',
+                            insurance_name = '{$insurance_name}',
+                            insurance_date = '{$insurance_date}',
+                            insurance_price = '{$insurance_price}',
+                            insurance_mng = '{$insurance_mng}',
+                            sn_memo = '{$sn_memo}',
+                            created_at = '{$today}'";
+                //echo $s_sql.'<br>';
+                sql_query($s_sql);
+            }
         }else{
-            $s_sql = "INSERT INTO a_senior SET
-                        ct_idx = '{$ct_idx}',
-                        sn_name = '{$sn_name}',
-                        sn_hp = '{$sn_hp}',
-                        sn_date = '{$sn_date}',
-                        sn_sdate = '{$sn_sdate}',
-                        sn_edate = '{$sn_edate}',
-                        edu_sdate = '{$edu_sdate}',
-                        edu_edate = '{$edu_edate}',
-                        insurance_name = '{$insurance_name}',
-                        insurance_date = '{$insurance_date}',
-                        insurance_price = '{$insurance_price}',
-                        insurance_mng = '{$insurance_mng}',
-                        sn_memo = '{$sn_memo}',
-                        created_at = '{$today}'";
-            //echo $s_sql.'<br>';
-            sql_query($s_sql);
-        }
-    }else{
 
-        //미사용 체크시 선임자 정보 미사용
-        $s_sql_up = "UPDATE a_senior SET
-                    sn_memo = '{$sn_memo}',
-                    not_use = 1
-                    WHERE ct_idx = '{$ct_idx}'";
-        
-        sql_query($s_sql_up);
+            //미사용 체크시 선임자 정보 미사용
+            $s_sql_up = "UPDATE a_senior SET
+                        sn_memo = '{$sn_memo}',
+                        not_use = 1
+                        WHERE ct_idx = '{$ct_idx}'";
+
+            sql_query($s_sql_up);
+        }
     }
 
     if($ct_status_no == 'Y'){
