@@ -114,12 +114,15 @@ sql_query($payment_list_query);
 //계약해지
 if($ct_status_per){
 
-    $extract_sql = "UPDATE a_contract SET 
+    $extract_sql = "UPDATE a_contract SET
                     ct_status = '1',
                     ct_status_year = '{$ct_status_year}',
                     ct_status_month = '{$ct_status_month}'
                     WHERE ct_idx = '{$ct_idx}'";
     sql_query($extract_sql);
+
+    $senior_off_sql = "UPDATE a_senior SET not_use = 1 WHERE ct_idx = '{$ct_idx}'";
+    sql_query($senior_off_sql);
 }
 
 alert("계산서 처리 및 지급처리가 완료되었습니다.");
