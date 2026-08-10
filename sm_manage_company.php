@@ -7,13 +7,10 @@ $building_sql = "SELECT building.*, post.post_name FROM a_building as building
                  WHERE building.building_id = '{$building_id}'";
 $building_row = sql_fetch($building_sql);
 
-$company_sql = "SELECT ct.*, building.building_name, industry.indutry_icon, cmp.company_tel FROM a_contract as ct
-                LEFT JOIN a_building as building on ct.building_id = building.building_id
-                LEFT JOIN a_industry_list as industry on ct.industry_idx = industry.industry_idx
-                LEFT JOIN a_manage_company as cmp on ct.company_idx = cmp.company_idx
-                WHERE ct.is_del = 0 and ct.ct_status = 0 and ct.is_temp = 0 and ct.resident_release = 0 and ct.building_id = '{$building_id}' ORDER BY ct.company_recom desc, ct.company_name asc";
-
-$company_res = sql_query($company_sql);
+// ★업체 목록 조회는 sm_manage_company_ajax.php 한 곳에서만 한다(2026-08).
+//   이 페이지는 로드 직후 tab_handler()가 ajax 결과로 .content_box_wrap 을 통째로 덮어쓰므로
+//   여기서 목록을 한 번 더 그려봐야 화면에 남지 않는다. 그런데도 조건이 두 벌로 갈라져 있어
+//   "관리자엔 있는데 앱엔 없다"는 혼선의 원인이 됐다(조건 불일치). → 목록 쿼리 제거.
 ?>
 <div id="wrappers">
     <div class="wrap_container">
@@ -49,29 +46,8 @@ $company_res = sql_query($company_sql);
                 <p>금액, 계약기간 등을 안내할 경우<br />문제 발생 할 수 있으므로 상급자 확인 필요</p>
                 </div>
                 <div class="inner content_box_wrap">
-                    <?php for($i=0;$company_row = sql_fetch_array($company_res);$i++){
-                    $indutry_icon_img = $company_row['indutry_icon'] != '' ? $company_row['indutry_icon'] : 'more_icon_sm.svg';        
-                    ?>
-                    <a href="/sm_mng_company_info.php" class="mng_boxs">
-                        <div class="mng_cate_box">
-                            <div class="mng_cate_img_box">
-                                <img src="/images/<?php echo $indutry_icon_img;?>" alt="소방">
-                            </div>
-                            <div class="mng_cate"><?php echo $company_row['industry_name']; ?></div>
-                        </div>
-                        <div class="mng_infos ver2">
-                            <div class="mng_info_boxs ver2">
-                                <div class="mng_info_tit_box ver2">
-                                    <div class="mng_info_tit ver2"><?php echo $company_row['company_name']; ?></div>
-                                </div>
-                                <div class="mng_info_ct">
-                                    <div class="mng_info_ct_text">담당자 : <?php echo $company_row['mng_name1']; ?></div>
-                                    <div class="mng_info_ct_text">연락처 : <?php echo $company_row['mng_hp1']; ?></div>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                    <?php }?>
+                    <!-- 목록은 sm_manage_company_ajax.php 가 채운다(로드 직후 tab_handler 실행) -->
+                    <div class="faq_empty_box">불러오는 중...</div>
                 </div>
             </div>
         </div>

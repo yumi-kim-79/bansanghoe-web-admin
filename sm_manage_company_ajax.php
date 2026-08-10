@@ -4,7 +4,17 @@ require_once "./_common.php";
 $start_date = date('Y-m-01');
 $end_date = date('Y-m-t');
 
-$sql_release = " and ct.ct_sdate <= '{$end_date}' and ct.ct_edate >= '{$start_date}' ";
+// ★관리자에서 등록한 계약은 앱에도 모두 보여야 한다(2026-08 요청).
+//   예전에는 아래 두 조건 때문에 관리자 웹에는 있는데 앱에서만 조용히 사라지는 업체가 있었다.
+//   ① 계약기간이 당월과 겹칠 것
+//      → 계약 종료일이 지났어도 [계약해지] 처리 전이면 여전히 관리 대상이다.
+//        노출 중단은 아래 루프의 **계약해지(ct_status) 판정 한 곳**으로만 결정한다.
+//   ② mc.transaction_status = 'Y'
+//      → a_manage_company를 LEFT JOIN 해놓고 WHERE에서 값을 비교해 사실상 INNER JOIN이었다.
+//        업체관리에 연결된 업체 정보가 없거나(company_idx 불일치·업체 삭제) 거래상태가 'N'이면
+//        계약이 멀쩡해도 행 자체가 빠졌다. 업체 마스터 상태로 계약 노출을 막지 않는다.
+//   유지하는 조건: is_del(삭제) / is_temp(임시저장=미완성) / resident_release(공개·비공개 탭 분기)
+$sql_release = "";
 
 if($code == 'out'){
     $sql_release .= " and ct.resident_release = 0 ";
@@ -16,7 +26,7 @@ $company_sql = "SELECT ct.*, building.building_name, industry.indutry_icon, mc.t
                 LEFT JOIN a_building as building on ct.building_id = building.building_id
                 LEFT JOIN a_industry_list as industry on ct.industry_idx = industry.industry_idx
                 LEFT JOIN a_manage_company as mc on mc.company_idx = ct.company_idx
-                WHERE ct.is_del = 0 and ct.is_temp = 0 and ct.building_id = '{$building_id}' and mc.transaction_status = 'Y' {$sql_release} ORDER BY ct.company_recom desc, ct.company_name asc";
+                WHERE ct.is_del = 0 and ct.is_temp = 0 and ct.building_id = '{$building_id}' {$sql_release} ORDER BY ct.company_recom desc, ct.company_name asc";
 // echo $company_sql;
 if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     // echo $company_sql;
