@@ -182,6 +182,9 @@ function get_location($addr){
         $b_code = $data->documents[0]->address->b_code;
         $main_address_no = $data->documents[0]->address->main_address_no;
         $sub_address_no = $data->documents[0]->address->sub_address_no;
+        // ★법정동명 — 행정구역 개편 지역에서 옛 법정동코드를 되찾는 열쇠(2026-08)
+        $dong_name = isset($data->documents[0]->address->region_3depth_name)
+                   ? $data->documents[0]->address->region_3depth_name : '';
         //echo "Latitude: $latitude<br>";
         //echo "Longitude: $longitude<br>";
     } else {
@@ -201,48 +204,73 @@ function get_location($addr){
     $addr_data['bcode'] = substr($b_code, 5, 10);
     $addr_data['main_building_no'] = $main_address_no;
     $addr_data['sub_building_no'] = $sub_address_no;
+    $addr_data['dong_name'] = $dong_name;
 
     return $addr_data;
 }
 
 /**
- * ★행정구역 개편 대응 — 건축물대장 조회에 쓸 시군구코드 후보 목록 (2026-08)
+ * ★행정구역 개편 대응 — 건축물대장 조회 후보 (시군구코드, 법정동코드) 목록 (2026-08)
  *
- * 2026-07-01 인천 중구·동구·서구가 폐지되고 제물포구·영종구·서해구·검단구가 신설되면서
- * 시군구코드가 새로 부여됐다. 도로명주소·카카오는 새 코드를 반영했지만(카카오 2026-07-02 완료),
- * 국토부 건축물대장은 지자체가 대장 소재지를 정정해야 새 코드로 넘어오기 때문에 시차가 있다.
- * → 새 코드로 0건이면 개편 前 코드로 재시도한다.
+ * 2026-07-01 인천 중구·동구·서구 폐지 → 제물포구·영종구·서해구·검단구 신설.
+ * 도로명주소·카카오는 새 코드를 쓰지만(카카오 2026-07-02 완료) 국토부 건축물대장은
+ * 지자체가 대장 소재지를 정정해야 넘어오므로 시차가 있다.
  *
- * 신설 구의 코드값을 하드코딩하지 않는 이유: 값을 몰라도 "기존 목록에 없는 28xxx = 신설 코드"로
- * 판정할 수 있고, 나중에 코드가 또 바뀌어도 이 함수를 고칠 필요가 없다.
- * 국토부가 이관을 마치면 첫 번째 시도에서 바로 성공하므로 이 폴백은 자연히 쓰이지 않게 된다.
+ * ★주의: 개편 시 **시군구코드뿐 아니라 법정동 3자리도 재부여**된다.
+ *   예) 불로동  개편후 2829011000(검단구·110)  /  개편전 2826012100(서구·121)
+ *   그래서 시군구코드만 되돌리면 여전히 0건이다. 법정동명으로 옛 코드를 찾아 함께 되돌린다.
+ *
+ * 국토부가 이관을 마치면 첫 후보에서 바로 성공하므로 이 폴백은 자연히 안 쓰이게 된다.
  */
-function building_sigungu_candidates($scode){
-    $list = array($scode);
+function building_lookup_candidates($scode, $bcode, $dong_name = ''){
+    $list = array(array($scode, $bcode)); // ① 카카오가 준 현행 코드
 
     // 개편 前부터 존재하던 인천 시군구코드
-    $incheon_known = array(
-        '28110', // 중구(폐지)
-        '28140', // 동구(폐지)
-        '28177', // 미추홀구
-        '28185', // 연수구
-        '28200', // 남동구
-        '28237', // 부평구
-        '28245', // 계양구
-        '28260', // 서구(폐지·서해구로 개칭)
-        '28710', // 강화군
-        '28720', // 옹진군
-    );
+    $incheon_known = array('28110','28140','28177','28185','28200','28237','28245','28260','28710','28720');
 
-    if (substr($scode, 0, 2) === '28' && !in_array($scode, $incheon_known, true)) {
-        // 인천인데 기존 코드가 아니다 = 개편으로 새로 부여된 코드
-        // 서구(서해구·검단구) → 중구(제물포·영종구) → 동구(제물포구) 순으로 재시도
-        foreach (array('28260', '28110', '28140') as $legacy) {
-            if ($legacy !== $scode) $list[] = $legacy;
+    if (substr($scode, 0, 2) !== '28' || in_array($scode, $incheon_known, true)) {
+        return $list; // 인천 신설 구가 아니면 폴백 불필요
+    }
+
+    // 서구(서해구·검단구) → 중구(제물포·영종구) → 동구(제물포구) 순
+    foreach (array('28260', '28110', '28140') as $legacy) {
+        if ($legacy === $scode) continue;
+        $legacy_b = legacy_bjdong_code($legacy, $dong_name);
+        if ($legacy_b !== '') {
+            $list[] = array($legacy, $legacy_b);   // ② 이름으로 찾은 옛 법정동코드
+        } else {
+            $list[] = array($legacy, $bcode);      // ③ 매핑 없으면 법정동은 그대로 시도
         }
     }
 
     return $list;
+}
+
+/**
+ * 개편 前 법정동코드(뒤 5자리) 조회 — (옛 시군구코드, 법정동명) 기준.
+ *
+ * ★이 표는 행정안전부 법정동코드 전체자료의 **폐지 코드**에서 옮겨 적는다.
+ *   https://www.code.go.kr/stdcode/regCodeL.do 에서 "인천광역시 서구/중구/동구"로 조회.
+ *   지금은 검증용으로 확인된 항목만 넣었다 — 확인되는 대로 계속 추가할 것.
+ */
+function legacy_bjdong_code($legacy_sigungu, $dong_name){
+    static $map = array(
+        // 인천 서구(28260) → 서해구·검단구로 분리
+        '28260' => array(
+            '불로동' => '12100',   // 2826012100 (검증됨)
+            // TODO 추가: 검암동/시천동/오류동/왕길동/마전동/당하동/원당동/대곡동/금곡동 등
+        ),
+        // 인천 중구(28110) → 제물포구·영종구로 분리
+        '28110' => array(
+        ),
+        // 인천 동구(28140) → 제물포구로 편입
+        '28140' => array(
+        ),
+    );
+
+    $dong_name = trim((string)$dong_name);
+    if ($dong_name === '') return '';
+    return isset($map[$legacy_sigungu][$dong_name]) ? $map[$legacy_sigungu][$dong_name] : '';
 }
 
 /** 건축물대장 표제부 1회 호출 (raw) */
@@ -262,33 +290,36 @@ function building_api_call($scode, $bcode, $bun = '', $ji = ''){
 
 /**
  * 건축물대장 표제부 조회.
- * ★행정구역 개편으로 시군구코드가 바뀐 지역은 개편 前 코드로 자동 재시도한다(2026-08).
- * @param array|null $tried 시도 내역(진단·화면 표시용)이 여기에 담긴다.
+ * ★행정구역 개편 지역은 개편 前 (시군구코드, 법정동코드) 조합으로 자동 재시도한다(2026-08).
+ * @param string $dong_name 법정동명(get_location 반환값). 옛 법정동코드를 찾는 데 쓴다.
+ * @param array|null $tried 시도 내역(화면 표시·진단용)
  */
-function building_api($scode, $bcode, $bun = '', $ji = '', &$tried = null){
+function building_api($scode, $bcode, $bun = '', $ji = '', $dong_name = '', &$tried = null){
     $tried = array();
     $last  = null;
 
-    foreach (building_sigungu_candidates($scode) as $code) {
-        $data  = building_api_call($code, $bcode, $bun, $ji);
-        $last  = $data;
+    foreach (building_lookup_candidates($scode, $bcode, $dong_name) as $cand) {
+        list($try_s, $try_b) = $cand;
+
+        $data = building_api_call($try_s, $try_b, $bun, $ji);
+        $last = $data;
 
         $rcode = isset($data['response']['header']['resultCode']) ? $data['response']['header']['resultCode'] : '';
         $total = isset($data['response']['body']['totalCount'])   ? (int)$data['response']['body']['totalCount'] : 0;
 
         $tried[] = array(
-            'sigunguCd'  => $code,
+            'sigunguCd'  => $try_s,
+            'bjdongCd'   => $try_b,
             'resultCode' => $rcode,
-            'resultMsg'  => isset($data['response']['header']['resultMsg']) ? $data['response']['header']['resultMsg'] : '',
             'totalCount' => $total,
-            'fallback'   => ($code !== $scode),
+            'fallback'   => ($try_s !== $scode || $try_b !== $bcode),
         );
 
-        // 건이 실제로 있어야 성공 — resultCode만 '00'이고 0건인 경우가 개편 지역의 증상이다
+        // resultCode만 '00'이고 0건인 경우가 개편 지역의 증상이다 — 실제 건수까지 확인
         if ($rcode === '00' && $total > 0) return $data;
     }
 
-    return $last; // 전부 실패 — 마지막 응답을 그대로 돌려준다(호출부가 사유 표시)
+    return $last;
 }
 
 function building_api2($scode, $bcode, $bun = '', $ji = ''){

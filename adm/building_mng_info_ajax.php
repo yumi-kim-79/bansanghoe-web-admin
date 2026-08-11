@@ -26,6 +26,7 @@ $tried = array();
 $building_info = building_api(
     $addr_info['scode'], $addr_info['bcode'],
     $addr_info['main_building_no'], $addr_info['sub_building_no'],
+    isset($addr_info['dong_name']) ? $addr_info['dong_name'] : '',
     $tried
 );
 
@@ -41,13 +42,14 @@ if ($result_code !== '00' || $total_found < 1) {
 
     $lines = array();
     foreach ($tried as $t) {
-        $lines[] = '시군구코드 ' . $t['sigunguCd'] . ($t['fallback'] ? '(개편 前)' : '')
+        $lines[] = $t['sigunguCd'] . '-' . $t['bjdongCd'] . ($t['fallback'] ? '(개편 前)' : '(현행)')
                  . ' → ' . ($t['resultCode'] !== '' ? $t['resultCode'] : '응답없음')
-                 . ' / ' . $t['totalCount'] . '건';
+                 . '/' . $t['totalCount'] . '건';
     }
     $detail = '주소: ' . $addr . ' · 법정동코드 ' . $addr_info['b_code']
+            . '(' . (isset($addr_info['dong_name']) ? $addr_info['dong_name'] : '?') . ')'
             . ' · 본번 ' . $addr_info['main_building_no'] . ' 부번 ' . $addr_info['sub_building_no']
-            . "\n" . implode(' / ', $lines);
+            . "\n시도: " . implode(' / ', $lines);
 
     // 인천 개편 지역 안내 — 담당자가 원인을 바로 알 수 있게
     if (substr($addr_info['scode'], 0, 2) === '28') {
