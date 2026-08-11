@@ -7,18 +7,59 @@ $addr_info = get_location($addr);
 
 //print_r2($addr_info);
 
-$building_info = 
-building_api($addr_info['scode'], $addr_info['bcode'], $addr_info['main_building_no'], $addr_info['sub_building_no']);
+// ★조용한 실패 금지(2026-08) — 예전에는 조회가 안 되면 아무것도 출력하지 않아
+//   사용자도 담당자도 어디서 끊겼는지 알 수 없었다. 반드시 사유를 보여준다.
+function building_api_notice($msg, $detail = ''){
+    echo '<div class="building_api_error" style="padding:10px 12px;margin-bottom:10px;'
+       . 'background:#fdecea;border:1px solid #f5c6cb;border-radius:4px;color:#a3252c;font-size:13px;line-height:1.6;">'
+       . '<strong>' . htmlspecialchars($msg) . '</strong>'
+       . ($detail !== '' ? '<br><span style="color:#7a5c5f;font-size:12px;">' . htmlspecialchars($detail) . '</span>' : '')
+       . '<br>아래 건물 정보는 <strong>직접 입력</strong>해 주세요.</div>';
+}
 
-//$building_info2 = building_api2($addr_info['scode'], $addr_info['bcode'], $addr_info['main_building_no'], $addr_info['sub_building_no']);
+if (!empty($addr_info['error'])) {
+    building_api_notice('주소를 찾지 못했습니다.', $addr_info['error']);
+    return;
+}
+
+$tried = array();
+$building_info = building_api(
+    $addr_info['scode'], $addr_info['bcode'],
+    $addr_info['main_building_no'], $addr_info['sub_building_no'],
+    $tried
+);
+
+$result_code = isset($building_info['response']['header']['resultCode'])
+    ? $building_info['response']['header']['resultCode'] : '';
+$total_found = isset($building_info['response']['body']['totalCount'])
+    ? (int)$building_info['response']['body']['totalCount'] : 0;
+
+if ($result_code !== '00' || $total_found < 1) {
+    $msg = ($result_code === '00')
+        ? '건축물대장에 등록된 건물 정보가 없습니다.'
+        : '건축물대장 조회에 실패했습니다.';
+
+    $lines = array();
+    foreach ($tried as $t) {
+        $lines[] = '시군구코드 ' . $t['sigunguCd'] . ($t['fallback'] ? '(개편 前)' : '')
+                 . ' → ' . ($t['resultCode'] !== '' ? $t['resultCode'] : '응답없음')
+                 . ' / ' . $t['totalCount'] . '건';
+    }
+    $detail = '주소: ' . $addr . ' · 법정동코드 ' . $addr_info['b_code']
+            . ' · 본번 ' . $addr_info['main_building_no'] . ' 부번 ' . $addr_info['sub_building_no']
+            . "\n" . implode(' / ', $lines);
+
+    // 인천 개편 지역 안내 — 담당자가 원인을 바로 알 수 있게
+    if (substr($addr_info['scode'], 0, 2) === '28') {
+        $detail .= "\n※ 2026-07 인천 행정구역 개편 지역입니다. 구청의 건축물대장 소재지 정정이 끝나기 전까지는 조회되지 않을 수 있습니다.";
+    }
+
+    building_api_notice($msg, $detail);
+    return;
+}
 
 $body = $building_info['response']['body']['items']['item'][0]; // getBrTitleInfo 단지정보
-//$body2 = $building_info2['response']['body']['items']['item'][0]; // getBrRecapTitleInfo 주차 관련
-if($_SERVER['REMOTE_ADDR'] == '59.16.155.80'){
-    // print_r2($body);
-}
-//print_r2($body2);
-if($building_info['response']['header']['resultCode'] == '00'){
+{
 ?>
 <input type="hidden" name="building_api" value="Y">
 <div class="builiding_info_tr">

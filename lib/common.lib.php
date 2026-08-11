@@ -185,7 +185,9 @@ function get_location($addr){
         //echo "Latitude: $latitude<br>";
         //echo "Longitude: $longitude<br>";
     } else {
-        echo "제공된 주소에 대한 단지 정보를 찾을 수 없습니다.";
+        // ★echo 금지 — ajax 응답에 문구가 섞여 HTML이 깨진다. 호출부가 error로 판단하게 한다.
+        $addr_data['error'] = '카카오 주소검색에서 이 주소를 찾지 못했습니다. (주소: '.$addr.')';
+        return $addr_data;
     }
 
     //0014 형식으로 4자리로 만듬 빈자리는 0
@@ -203,23 +205,90 @@ function get_location($addr){
     return $addr_data;
 }
 
-function building_api($scode, $bcode, $bun = '', $ji = ''){
-    $apiKey = BUILDING_PUBLIC_KEY;
+/**
+ * ★행정구역 개편 대응 — 건축물대장 조회에 쓸 시군구코드 후보 목록 (2026-08)
+ *
+ * 2026-07-01 인천 중구·동구·서구가 폐지되고 제물포구·영종구·서해구·검단구가 신설되면서
+ * 시군구코드가 새로 부여됐다. 도로명주소·카카오는 새 코드를 반영했지만(카카오 2026-07-02 완료),
+ * 국토부 건축물대장은 지자체가 대장 소재지를 정정해야 새 코드로 넘어오기 때문에 시차가 있다.
+ * → 새 코드로 0건이면 개편 前 코드로 재시도한다.
+ *
+ * 신설 구의 코드값을 하드코딩하지 않는 이유: 값을 몰라도 "기존 목록에 없는 28xxx = 신설 코드"로
+ * 판정할 수 있고, 나중에 코드가 또 바뀌어도 이 함수를 고칠 필요가 없다.
+ * 국토부가 이관을 마치면 첫 번째 시도에서 바로 성공하므로 이 폴백은 자연히 쓰이지 않게 된다.
+ */
+function building_sigungu_candidates($scode){
+    $list = array($scode);
 
-    //$apiUrl = "http://apis.data.go.kr/1613000/BldRgstHubService/getBrRecapTitleInfo?sigunguCd=".$scode."&bjdongCd=".$bcode."&bun=".$bun."&ji=".$ji."&_type=json&serviceKey=".$apiKey;
+    // 개편 前부터 존재하던 인천 시군구코드
+    $incheon_known = array(
+        '28110', // 중구(폐지)
+        '28140', // 동구(폐지)
+        '28177', // 미추홀구
+        '28185', // 연수구
+        '28200', // 남동구
+        '28237', // 부평구
+        '28245', // 계양구
+        '28260', // 서구(폐지·서해구로 개칭)
+        '28710', // 강화군
+        '28720', // 옹진군
+    );
+
+    if (substr($scode, 0, 2) === '28' && !in_array($scode, $incheon_known, true)) {
+        // 인천인데 기존 코드가 아니다 = 개편으로 새로 부여된 코드
+        // 서구(서해구·검단구) → 중구(제물포·영종구) → 동구(제물포구) 순으로 재시도
+        foreach (array('28260', '28110', '28140') as $legacy) {
+            if ($legacy !== $scode) $list[] = $legacy;
+        }
+    }
+
+    return $list;
+}
+
+/** 건축물대장 표제부 1회 호출 (raw) */
+function building_api_call($scode, $bcode, $bun = '', $ji = ''){
+    $apiKey = BUILDING_PUBLIC_KEY;
 
     $apiUrl = "https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo?serviceKey=".$apiKey."&sigunguCd=".$scode."&bjdongCd=".$bcode."&platGbCd=0&bun=".$bun."&ji=".$ji."&_type=json&numOfRows=10&pageNo=1";
 
-    //echo $apiUrl;
-
     $ch = curl_init($apiUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     $response = curl_exec($ch);
     curl_close($ch);
 
-    $data = json_decode($response, true);
+    return json_decode($response, true);
+}
 
-    return $data;
+/**
+ * 건축물대장 표제부 조회.
+ * ★행정구역 개편으로 시군구코드가 바뀐 지역은 개편 前 코드로 자동 재시도한다(2026-08).
+ * @param array|null $tried 시도 내역(진단·화면 표시용)이 여기에 담긴다.
+ */
+function building_api($scode, $bcode, $bun = '', $ji = '', &$tried = null){
+    $tried = array();
+    $last  = null;
+
+    foreach (building_sigungu_candidates($scode) as $code) {
+        $data  = building_api_call($code, $bcode, $bun, $ji);
+        $last  = $data;
+
+        $rcode = isset($data['response']['header']['resultCode']) ? $data['response']['header']['resultCode'] : '';
+        $total = isset($data['response']['body']['totalCount'])   ? (int)$data['response']['body']['totalCount'] : 0;
+
+        $tried[] = array(
+            'sigunguCd'  => $code,
+            'resultCode' => $rcode,
+            'resultMsg'  => isset($data['response']['header']['resultMsg']) ? $data['response']['header']['resultMsg'] : '',
+            'totalCount' => $total,
+            'fallback'   => ($code !== $scode),
+        );
+
+        // 건이 실제로 있어야 성공 — resultCode만 '00'이고 0건인 경우가 개편 지역의 증상이다
+        if ($rcode === '00' && $total > 0) return $data;
+    }
+
+    return $last; // 전부 실패 — 마지막 응답을 그대로 돌려준다(호출부가 사유 표시)
 }
 
 function building_api2($scode, $bcode, $bun = '', $ji = ''){
