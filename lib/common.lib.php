@@ -182,10 +182,15 @@ function get_location($addr){
         $b_code = $data->documents[0]->address->b_code;
         $main_address_no = $data->documents[0]->address->main_address_no;
         $sub_address_no = $data->documents[0]->address->sub_address_no;
+        // ★법정동명 — 행정구역 개편 지역에서 옛 법정동코드를 되찾는 열쇠(2026-08)
+        $dong_name = isset($data->documents[0]->address->region_3depth_name)
+                   ? $data->documents[0]->address->region_3depth_name : '';
         //echo "Latitude: $latitude<br>";
         //echo "Longitude: $longitude<br>";
     } else {
-        echo "제공된 주소에 대한 단지 정보를 찾을 수 없습니다.";
+        // ★echo 금지 — ajax 응답에 문구가 섞여 HTML이 깨진다. 호출부가 error로 판단하게 한다.
+        $addr_data['error'] = '카카오 주소검색에서 이 주소를 찾지 못했습니다. (주소: '.$addr.')';
+        return $addr_data;
     }
 
     //0014 형식으로 4자리로 만듬 빈자리는 0
@@ -199,27 +204,122 @@ function get_location($addr){
     $addr_data['bcode'] = substr($b_code, 5, 10);
     $addr_data['main_building_no'] = $main_address_no;
     $addr_data['sub_building_no'] = $sub_address_no;
+    $addr_data['dong_name'] = $dong_name;
 
     return $addr_data;
 }
 
-function building_api($scode, $bcode, $bun = '', $ji = ''){
-    $apiKey = BUILDING_PUBLIC_KEY;
+/**
+ * ★행정구역 개편 대응 — 건축물대장 조회 후보 (시군구코드, 법정동코드) 목록 (2026-08)
+ *
+ * 2026-07-01 인천 중구·동구·서구 폐지 → 제물포구·영종구·서해구·검단구 신설.
+ * 도로명주소·카카오는 새 코드를 쓰지만(카카오 2026-07-02 완료) 국토부 건축물대장은
+ * 지자체가 대장 소재지를 정정해야 넘어오므로 시차가 있다.
+ *
+ * ★주의: 개편 시 **시군구코드뿐 아니라 법정동 3자리도 재부여**된다.
+ *   예) 불로동  개편후 2829011000(검단구·110)  /  개편전 2826012100(서구·121)
+ *   그래서 시군구코드만 되돌리면 여전히 0건이다. 법정동명으로 옛 코드를 찾아 함께 되돌린다.
+ *
+ * 국토부가 이관을 마치면 첫 후보에서 바로 성공하므로 이 폴백은 자연히 안 쓰이게 된다.
+ */
+function building_lookup_candidates($scode, $bcode, $dong_name = ''){
+    $list = array(array($scode, $bcode)); // ① 카카오가 준 현행 코드
 
-    //$apiUrl = "http://apis.data.go.kr/1613000/BldRgstHubService/getBrRecapTitleInfo?sigunguCd=".$scode."&bjdongCd=".$bcode."&bun=".$bun."&ji=".$ji."&_type=json&serviceKey=".$apiKey;
+    // 개편 前부터 존재하던 인천 시군구코드
+    $incheon_known = array('28110','28140','28177','28185','28200','28237','28245','28260','28710','28720');
+
+    if (substr($scode, 0, 2) !== '28' || in_array($scode, $incheon_known, true)) {
+        return $list; // 인천 신설 구가 아니면 폴백 불필요
+    }
+
+    // 서구(서해구·검단구) → 중구(제물포·영종구) → 동구(제물포구) 순
+    foreach (array('28260', '28110', '28140') as $legacy) {
+        if ($legacy === $scode) continue;
+        $legacy_b = legacy_bjdong_code($legacy, $dong_name);
+        if ($legacy_b !== '') {
+            $list[] = array($legacy, $legacy_b);   // ② 이름으로 찾은 옛 법정동코드
+        } else {
+            $list[] = array($legacy, $bcode);      // ③ 매핑 없으면 법정동은 그대로 시도
+        }
+    }
+
+    return $list;
+}
+
+/**
+ * 개편 前 법정동코드(뒤 5자리) 조회 — (옛 시군구코드, 법정동명) 기준.
+ *
+ * ★이 표는 행정안전부 법정동코드 전체자료의 **폐지 코드**에서 옮겨 적는다.
+ *   https://www.code.go.kr/stdcode/regCodeL.do 에서 "인천광역시 서구/중구/동구"로 조회.
+ *   지금은 검증용으로 확인된 항목만 넣었다 — 확인되는 대로 계속 추가할 것.
+ */
+function legacy_bjdong_code($legacy_sigungu, $dong_name){
+    static $map = array(
+        // 인천 서구(28260) → 서해구·검단구로 분리
+        '28260' => array(
+            '불로동' => '12100',   // 2826012100 (검증됨)
+            // TODO 추가: 검암동/시천동/오류동/왕길동/마전동/당하동/원당동/대곡동/금곡동 등
+        ),
+        // 인천 중구(28110) → 제물포구·영종구로 분리
+        '28110' => array(
+        ),
+        // 인천 동구(28140) → 제물포구로 편입
+        '28140' => array(
+        ),
+    );
+
+    $dong_name = trim((string)$dong_name);
+    if ($dong_name === '') return '';
+    return isset($map[$legacy_sigungu][$dong_name]) ? $map[$legacy_sigungu][$dong_name] : '';
+}
+
+/** 건축물대장 표제부 1회 호출 (raw) */
+function building_api_call($scode, $bcode, $bun = '', $ji = ''){
+    $apiKey = BUILDING_PUBLIC_KEY;
 
     $apiUrl = "https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo?serviceKey=".$apiKey."&sigunguCd=".$scode."&bjdongCd=".$bcode."&platGbCd=0&bun=".$bun."&ji=".$ji."&_type=json&numOfRows=10&pageNo=1";
 
-    //echo $apiUrl;
-
     $ch = curl_init($apiUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     $response = curl_exec($ch);
     curl_close($ch);
 
-    $data = json_decode($response, true);
+    return json_decode($response, true);
+}
 
-    return $data;
+/**
+ * 건축물대장 표제부 조회.
+ * ★행정구역 개편 지역은 개편 前 (시군구코드, 법정동코드) 조합으로 자동 재시도한다(2026-08).
+ * @param string $dong_name 법정동명(get_location 반환값). 옛 법정동코드를 찾는 데 쓴다.
+ * @param array|null $tried 시도 내역(화면 표시·진단용)
+ */
+function building_api($scode, $bcode, $bun = '', $ji = '', $dong_name = '', &$tried = null){
+    $tried = array();
+    $last  = null;
+
+    foreach (building_lookup_candidates($scode, $bcode, $dong_name) as $cand) {
+        list($try_s, $try_b) = $cand;
+
+        $data = building_api_call($try_s, $try_b, $bun, $ji);
+        $last = $data;
+
+        $rcode = isset($data['response']['header']['resultCode']) ? $data['response']['header']['resultCode'] : '';
+        $total = isset($data['response']['body']['totalCount'])   ? (int)$data['response']['body']['totalCount'] : 0;
+
+        $tried[] = array(
+            'sigunguCd'  => $try_s,
+            'bjdongCd'   => $try_b,
+            'resultCode' => $rcode,
+            'totalCount' => $total,
+            'fallback'   => ($try_s !== $scode || $try_b !== $bcode),
+        );
+
+        // resultCode만 '00'이고 0건인 경우가 개편 지역의 증상이다 — 실제 건수까지 확인
+        if ($rcode === '00' && $total > 0) return $data;
+    }
+
+    return $last;
 }
 
 function building_api2($scode, $bcode, $bun = '', $ji = ''){
