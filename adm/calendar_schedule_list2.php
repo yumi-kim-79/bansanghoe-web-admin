@@ -284,17 +284,47 @@ while($row_y = sql_fetch_array($result_y)){
     array_push($total_array, $row_y);
 }
 
-// 중복 제거: 같은 날짜+단지+캘린더종류에 여러 건이 있으면 최신(cal_idx 큰) 것만 유지
-// (원본+예외가 동시에 반복 쿼리에 포함되는 경우 방지)
-$dedup_map = [];
-$deduped_array = [];
+// ★중복 제거 — "같은 일정이 두 번 펼쳐진 경우"만 제거한다 (2026-08 수정)
+//
+// 기존: 날짜+단지+종류+제목+작성자가 같으면 **무조건 1건만** 남겼다(cal_idx 큰 것).
+//   → 같은 호실 건을 전출/전입으로 나눠 등록하면 제목이 같아서 별개 일정이 통째로 사라졌다.
+//     실제로 전출정산에서 **미처리 건이 화면에 안 보여** 업무 누락 위험이 있었고,
+//     엑셀 다운로드(dedup 없음)와 건수가 어긋나는 원인이기도 했다.
+//
+// 수정: 같은 그룹 안에서도 아래 둘만 제거한다.
+//   ① 예외 레코드(exception_idx)가 대체하는 **부모 반복 일정**
+//   ② 같은 cal_idx 가 두 번 펼쳐진 경우
+//   부모-예외 관계가 아닌 별개 일정(cal_idx 다름)은 모두 남긴다.
+$dedup_groups = [];
 foreach($total_array as $item){
     $dedup_key = $item['cal_date'] . '_' . $item['building_id'] . '_' . $item['cal_code'] . '_' . $item['cal_title'] . '_' . $item['wid'];
-    if(!isset($dedup_map[$dedup_key]) || $item['cal_idx'] > $dedup_map[$dedup_key]['cal_idx']){
-        $dedup_map[$dedup_key] = $item;
+    $dedup_groups[$dedup_key][] = $item;
+}
+
+$deduped_array = [];
+foreach($dedup_groups as $items){
+    if(count($items) === 1){
+        $deduped_array[] = $items[0];
+        continue;
+    }
+
+    // 이 그룹의 예외 레코드가 대체하는 부모 cal_idx 수집
+    $overridden = [];
+    foreach($items as $it){
+        $ex = isset($it['exception_idx']) ? trim((string)$it['exception_idx']) : '';
+        if($ex !== '' && $ex !== '0') $overridden[$ex] = true;
+    }
+
+    $seen_idx = [];
+    foreach($items as $it){
+        $idx = (string)$it['cal_idx'];
+        if(isset($overridden[$idx])) continue; // ① 예외로 대체된 부모
+        if(isset($seen_idx[$idx]))  continue;  // ② 같은 레코드 중복 펼침
+        $seen_idx[$idx] = true;
+        $deduped_array[] = $it;
     }
 }
-$total_array = array_values($dedup_map);
+$total_array = $deduped_array;
 
 // 처리상태 필터 (②): is_process 는 occurrence별로 이미 계산됨 → dedup 후·페이징 전에 거르기만
 //  (펼침/예외/부모/dedup·연간 로직 무변경. 월/연간/연도전체 모든 모드 공통 적용)
