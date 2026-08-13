@@ -555,12 +555,16 @@ function loadTableData() {
 
     console.log('xhr', xhr);
     if (xhr.status === 200) {
-      $(".empty_table").hide();
       const [fixedHtml, scrollHtml] = xhr.responseText.split("<!-- SPLIT -->");
-      document.getElementById("fixedTableBody").innerHTML = fixedHtml;
-      document.getElementById("scrollTableBody").innerHTML = scrollHtml;
+      document.getElementById("fixedTableBody").innerHTML = fixedHtml || "";
+      document.getElementById("scrollTableBody").innerHTML = scrollHtml || "";
 
-      
+      // ★검색 결과 0건도 정상 응답(200)이므로 여기서 판단한다(2026-08).
+      //   예전에는 서버가 0건에 400을 던져 아래 else 로 빠졌다.
+      //   fixedHtml 에는 ct_idx_arr hidden input 이 항상 들어가므로 <tr> 유무로 본다.
+      const hasRow = /<tr[\s>]/i.test(fixedHtml || "");
+      if (hasRow) { $(".empty_table").hide(); } else { $(".empty_table").show(); }
+
       syncRowHeights(); // 동기화 호출
     }else{
 

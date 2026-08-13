@@ -25,7 +25,12 @@ $end_date = date('Y-m-t',strtotime($month_start."+1 month"));
 // $sql_where = " where (1) and ct.is_del = '0' and building.is_use = 1 and ch.ct_sdate <= '{$end_date}' and ch.ct_edate >= '{$start_date}' ";
 $sql_where = " where (1) and ct.is_del = '0' and ch.ct_sdate <= '{$end_date}' and ch.ct_edate >= '{$start_date}' ";
 
-$sql_where2 = ' and ct.is_temp = 1 ';
+// ★기본값을 "전체"로 (2026-08 수정)
+//   예전에는 업종·업체·단지를 하나도 고르지 않으면 이 조건이 남아
+//   **임시저장 계약만** 조회됐다. 그래서 지급방식·지급여부·계산서만 골라 검색하면
+//   결과가 0건이 되고(=아무것도 안 나오고), 사용자는 이유를 알 수 없었다.
+//   아래 세 필터를 고르면 어차피 이 조건은 비워지던 값이라, 기본값만 ''로 되돌린다.
+$sql_where2 = '';
 
 // if($_SERVER['REMOTE_ADDR'] != ADMIN_IP){
 //     if($transactionStatusValue){
@@ -634,9 +639,11 @@ $totals = count($ct_arr);
 
 
 // echo $totals.'<br>';
+// ★검색 결과 0건은 "잘못된 요청"이 아니다(2026-08 수정).
+//   예전에는 400 Bad Request 를 던져 콘솔에 에러가 찍혔고, 응답 본문도 버려졌다.
+//   정상 200 으로 빈 목록을 응답하고, "결과 없음" 안내는 화면(JS)이 판단해 띄운다.
 if ($totals == 0) {
-    http_response_code(400);
-    echo '요청 값이 부족합니다.';
+    echo "<!-- SPLIT -->";
     exit;
 }
 
