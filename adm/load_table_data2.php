@@ -245,24 +245,33 @@ foreach ($res as $idx => $row) {
         $company_bill_row = sql_fetch($company_bill_sql);
         // echo $company_bill_sql.'<br>';
 
+        // ★지급 레코드가 없는 달 = 미지급(1) 로 정규화한다 (2026-08 수정)
+        //   a_payment_list 는 **지급 처리를 해야 행이 생긴다**. 처리 전에는 행이 없어
+        //   payment_status 가 빈 값으로 남았고, "미지급"(=1) 필터와 매칭되지 않아
+        //   지급여부로 검색하면 결과가 0건이 됐다.
+        //   최상위 쿼리의 IFNULL(payment_list.payment_status, 1) 과 같은 규칙을 여기에도 적용한다.
+        $pay_status_norm = (isset($payment_list_now_row['payment_status']) && $payment_list_now_row['payment_status'] !== '' && $payment_list_now_row['payment_status'] !== null)
+                         ? $payment_list_now_row['payment_status']
+                         : 1;
+
         //세번째 셀 값
         if($payment_list_now_row['is_services']){
 
             $ct_arr[$idx]['data'][$i]['thrid_date'] = '서비스';
-            $ct_arr[$idx]['data'][$i]['payment_status'] = $payment_list_now_row['payment_status'];
+            $ct_arr[$idx]['data'][$i]['payment_status'] = $pay_status_norm;
             $ct_arr[$idx]['data'][$i]['payment_type'] = $company_bill_row['payment_type'];
 
         }else{
             if($payment_list_now_row['payment_date'] != ""){
 
                 $ct_arr[$idx]['data'][$i]['thrid_date'] = $payment_list_now_row['payment_date'];
-                $ct_arr[$idx]['data'][$i]['payment_status'] = $payment_list_now_row['payment_status'];
+                $ct_arr[$idx]['data'][$i]['payment_status'] = $pay_status_norm;
                 $ct_arr[$idx]['data'][$i]['payment_type'] = $company_bill_row['payment_type'];
                
             }else{
 
                 $ct_arr[$idx]['data'][$i]['thrid_date'] = "-";
-                $ct_arr[$idx]['data'][$i]['payment_status'] = $payment_list_now_row['payment_status'];
+                $ct_arr[$idx]['data'][$i]['payment_status'] = $pay_status_norm;
                 $ct_arr[$idx]['data'][$i]['payment_type'] = $company_bill_row['payment_type'];
             }
         }
