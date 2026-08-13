@@ -171,14 +171,18 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             <div class="sch_label">업종</div>
             <div class="sch_selects">
                 <?php
-                $contract_industry_sql = "SELECT ct.industry_idx, ind.industry_name FROM a_contract as ct
-                LEFT JOIN a_industry_list as ind on ct.industry_idx = ind.industry_idx
-                WHERE ct.is_del = 0 GROUP BY ct.industry_idx ORDER BY ct.ct_idx asc";
+                // ★업종 마스터 기준으로 전체를 보여준다 (2026-08 수정)
+                //   예전에는 a_contract 에 **실제 계약이 있는 업종만** 뽑아서,
+                //   신규 업종(예: 저수조)은 계약이 하나 생기기 전까지 검색 목록에 아예 없었다.
+                //   다른 화면(선임자정보·점검일지 등)은 모두 a_industry_list 기준이라 이쪽만 달랐다.
+                $contract_industry_sql = "SELECT industry_idx, industry_name FROM a_industry_list
+                WHERE is_del = 0 and is_use = 1 ORDER BY is_fixed desc, industry_idx asc";
                 $contract_industry_res = sql_query($contract_industry_sql);
                 ?>
                 <div class="multi_select_wrap">
                     <select multiple class="select" id="industry_idx_sch" name="industry_idx_sch[]" style="min-width:335px;" multiple="multiple">
-                        <option value="">선택</option>
+                        <option value=""></option>
+                        <option value="ALL">전체</option>
                         <?php while($contract_industry_row = sql_fetch_array($contract_industry_res)){ ?>
                             <option value="<?php echo $contract_industry_row['industry_idx']; ?>"><?php echo $contract_industry_row['industry_name']; ?></option>
                         <?php }?>
@@ -197,7 +201,8 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             <div class="sch_selects ver_flex">
                 <div class="multi_select_wrap">
                     <select multiple class="select" id="company_idx_sch" name="company_idx_sch[]" style="min-width:335px;" multiple="multiple">
-                        <option value="">선택</option>
+                        <option value=""></option>
+                        <option value="ALL">전체</option>
                         <?php while($mng_company_row = sql_fetch_array($mng_company_res)){ ?>
                             <option value="<?php echo $mng_company_row['company_idx']; ?>"><?php echo $mng_company_row['company_name']; ?></option>
                         <?php }?>
@@ -218,7 +223,8 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             <div class="sch_selects">
                 <div class="multi_select_wrap">
                     <select multiple class="select" id="building_id_sch" name="building_id_sch[]" style="min-width:335px;" multiple="multiple">
-                        <option value="">선택</option>
+                        <option value=""></option>
+                        <option value="ALL">전체</option>
                         <?php while($building_sel_row = sql_fetch_array($building_res)){ ?>
                             <option value="<?php echo $building_sel_row['building_id']; ?>"><?php echo $building_sel_row['building_name']; ?></option>
                         <?php }?>
@@ -334,7 +340,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
 $(document).ready(function() {
 	$("#industry_idx_sch").select2(
         {
-            placeholder: "업종을 선택하세요", // 기본 placeholder 설정
+            placeholder: "전체 (또는 업종 선택)", // 기본 placeholder 설정
             language: {
                 noResults: function() {
                     return "검색 결과가 없습니다."; // 원하는 문구로 변경
@@ -342,6 +348,26 @@ $(document).ready(function() {
             }
         }
     );
+
+    // ★"전체(ALL)" 와 개별 항목은 함께 선택되지 않게 한다(2026-08).
+    //   ALL 을 고르면 나머지 해제, 개별을 고르면 ALL 해제. ALL 은 서버로 보내지 않으므로 = 조건 없음.
+    function bindAllOption(id){
+        const $el = $("#" + id);
+        if(!$el.length) return;
+        $el.on("select2:select", function(e){
+            const picked = e.params && e.params.data ? e.params.data.id : "";
+            let vals = $el.val() || [];
+            if(picked === "ALL"){
+                vals = ["ALL"];
+            }else{
+                vals = vals.filter(v => v !== "ALL");
+            }
+            $el.val(vals).trigger("change.select2");
+        });
+    }
+    bindAllOption("industry_idx_sch");
+    bindAllOption("company_idx_sch");
+    bindAllOption("building_id_sch");
 
     // URL 파라미터에서 선택값 가져오기
     const urlParams = new URLSearchParams(window.location.search);
@@ -354,7 +380,7 @@ $(document).ready(function() {
 
     $("#company_idx_sch").select2(
         {
-            placeholder: "업체를 선택하세요", // 기본 placeholder 설정
+            placeholder: "전체 (또는 업체 선택)", // 기본 placeholder 설정
             language: {
                 noResults: function() {
                     return "검색 결과가 없습니다."; // 원하는 문구로 변경
@@ -371,7 +397,7 @@ $(document).ready(function() {
 
     $("#building_id_sch").select2(
         {
-            placeholder: "단지를 선택하세요", // 기본 placeholder 설정
+            placeholder: "전체 (또는 단지 선택)", // 기본 placeholder 설정
             language: {
                 noResults: function() {
                     return "검색 결과가 없습니다."; // 원하는 문구로 변경
@@ -548,17 +574,17 @@ function loadTableData() {
   //검색필터
   // 업종 셀렉트 값들을 가져오기
   const industryIdxschSelect = document.getElementById("industry_idx_sch");
-  const industryIdxschselectedValues = Array.from(industryIdxschSelect.selectedOptions).map(option => option.value);
+  const industryIdxschselectedValues = Array.from(industryIdxschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
   const industryfilterParams = industryIdxschselectedValues.map(val => `industry_idx_sch[]=${encodeURIComponent(val)}`).join("&");
 
   // 업체 셀렉트 값들을 가져오기
   const companyIdxschSelect = document.getElementById("company_idx_sch");
-  const companyIdxschselectedValues = Array.from(companyIdxschSelect.selectedOptions).map(option => option.value);
+  const companyIdxschselectedValues = Array.from(companyIdxschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
   const companyfilterParams = companyIdxschselectedValues.map(val => `company_idx_sch[]=${encodeURIComponent(val)}`).join("&");
 
   // 단지 셀렉트 값들을 가져오기
   const buildingIdschSelect = document.getElementById("building_id_sch");
-  const buildingIdschselectedValues = Array.from(buildingIdschSelect.selectedOptions).map(option => option.value);
+  const buildingIdschselectedValues = Array.from(buildingIdschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
   const buildingfilterParams = buildingIdschselectedValues.map(val => `building_id_sch[]=${encodeURIComponent(val)}`).join("&");
 
   //해지포함 / 지급여부 / 지급방식 / 계산서 / 계산서 종류 — 모두 화면 값에서 읽는다
@@ -609,17 +635,17 @@ const loadSumData = () => {
   //검색필터
   // 업종 셀렉트 값들을 가져오기
   const industryIdxschSelect = document.getElementById("industry_idx_sch");
-  const industryIdxschselectedValues = Array.from(industryIdxschSelect.selectedOptions).map(option => option.value);
+  const industryIdxschselectedValues = Array.from(industryIdxschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
   const industryfilterParams = industryIdxschselectedValues.map(val => `industry_idx_sch[]=${encodeURIComponent(val)}`).join("&");
 
   // 업체 셀렉트 값들을 가져오기
   const companyIdxschSelect = document.getElementById("company_idx_sch");
-  const companyIdxschselectedValues = Array.from(companyIdxschSelect.selectedOptions).map(option => option.value);
+  const companyIdxschselectedValues = Array.from(companyIdxschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
   const companyfilterParams = companyIdxschselectedValues.map(val => `company_idx_sch[]=${encodeURIComponent(val)}`).join("&");
 
   // 단지 셀렉트 값들을 가져오기
   const buildingIdschSelect = document.getElementById("building_id_sch");
-  const buildingIdschselectedValues = Array.from(buildingIdschSelect.selectedOptions).map(option => option.value);
+  const buildingIdschselectedValues = Array.from(buildingIdschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
   const buildingfilterParams = buildingIdschselectedValues.map(val => `building_id_sch[]=${encodeURIComponent(val)}`).join("&");
 
   //해지포함 / 지급여부 / 지급방식 / 계산서 / 계산서 종류 — 모두 화면 값에서 읽는다
@@ -762,17 +788,17 @@ function contract_payment_prg_pop_ajax(){
     const month = document.getElementById("select_month").value;
 
     const industryIdxschSelect = document.getElementById("industry_idx_sch");
-    const industryIdxschselectedValues = Array.from(industryIdxschSelect.selectedOptions).map(option => option.value);
+    const industryIdxschselectedValues = Array.from(industryIdxschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
     const industryfilterParams = industryIdxschselectedValues.map(val => `industry_idx_sch[]=${encodeURIComponent(val)}`).join("&");
 
     // 업체 셀렉트 값들을 가져오기
     const companyIdxschSelect = document.getElementById("company_idx_sch");
-    const companyIdxschselectedValues = Array.from(companyIdxschSelect.selectedOptions).map(option => option.value);
+    const companyIdxschselectedValues = Array.from(companyIdxschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
     const companyfilterParams = companyIdxschselectedValues.map(val => `company_idx_sch[]=${encodeURIComponent(val)}`).join("&");
 
     // 단지 셀렉트 값들을 가져오기
     const buildingIdschSelect = document.getElementById("building_id_sch");
-    const buildingIdschselectedValues = Array.from(buildingIdschSelect.selectedOptions).map(option => option.value);
+    const buildingIdschselectedValues = Array.from(buildingIdschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
     const buildingfilterParams = buildingIdschselectedValues.map(val => `building_id_sch[]=${encodeURIComponent(val)}`).join("&");
 
 
@@ -803,17 +829,17 @@ const year = document.getElementById("select_year").value;
 const month = document.getElementById("select_month").value;
 
 const industryIdxschSelect = document.getElementById("industry_idx_sch");
-const industryIdxschselectedValues = Array.from(industryIdxschSelect.selectedOptions).map(option => option.value);
+const industryIdxschselectedValues = Array.from(industryIdxschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
 const industryfilterParams = industryIdxschselectedValues.map(val => `industry_idx_sch[]=${encodeURIComponent(val)}`).join("&");
 
 // 업체 셀렉트 값들을 가져오기
 const companyIdxschSelect = document.getElementById("company_idx_sch");
-const companyIdxschselectedValues = Array.from(companyIdxschSelect.selectedOptions).map(option => option.value);
+const companyIdxschselectedValues = Array.from(companyIdxschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
 const companyfilterParams = companyIdxschselectedValues.map(val => `company_idx_sch[]=${encodeURIComponent(val)}`).join("&");
 
 // 단지 셀렉트 값들을 가져오기
 const buildingIdschSelect = document.getElementById("building_id_sch");
-const buildingIdschselectedValues = Array.from(buildingIdschSelect.selectedOptions).map(option => option.value);
+const buildingIdschselectedValues = Array.from(buildingIdschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
 const buildingfilterParams = buildingIdschselectedValues.map(val => `building_id_sch[]=${encodeURIComponent(val)}`).join("&");
 
 
