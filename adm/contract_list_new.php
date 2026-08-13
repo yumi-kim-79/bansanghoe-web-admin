@@ -459,8 +459,21 @@ $(document).ready(function() {
 </div>
 
 <script>
-let currentYear = $("#select_year option").val() || "<?php echo $year; ?>";
-let currentMonth = $("#select_month option").val() || "<?php echo $nowMonth; ?>";
+// ★ $("#select_year option").val() 은 **첫 번째 option**의 값을 돌려준다(선택값이 아님).
+//   그래서 년/월을 바꿔도 항상 목록 맨 위 값으로 조회됐다 → select 자체를 읽도록 수정(2026-08).
+let currentYear = $("#select_year").val() || "<?php echo $year; ?>";
+let currentMonth = $("#select_month").val() || "<?php echo $nowMonth; ?>";
+
+// ★필터 값은 항상 화면(DOM)에서 읽는다 (2026-08 수정)
+//   예전에는 PHP 가 렌더링한 값을 JS 상수로 박아둬서, 드롭다운을 바꿔도
+//   ajax 에는 **페이지 로드 시점의 옛 값**이 전달됐다(= 필터가 전혀 안 걸림).
+//   업종·업체·단지만 DOM 에서 읽고 있었기에 그 셋만 동작했던 것.
+function getFilterValue(id){
+  const el = document.getElementById(id);
+  if (!el) return "";
+  if (el.type === "checkbox") return el.checked ? "1" : "";
+  return el.value || "";
+}
 let viewAll = false;
 
 function updateHeader(year, month, viewAll) {
@@ -548,17 +561,12 @@ function loadTableData() {
   const buildingIdschselectedValues = Array.from(buildingIdschSelect.selectedOptions).map(option => option.value);
   const buildingfilterParams = buildingIdschselectedValues.map(val => `building_id_sch[]=${encodeURIComponent(val)}`).join("&");
 
-  //해지포함
-  const transactionStatusValue = "<?php echo $transaction_status; ?>";
-
-  //지급방식
-  const ptIdxValue = "<?php echo $pt_idx_sch; ?>";
-
-  const paymentStatusSch = "<?php echo $payment_status_sch; ?>";
-
-  const billStatusSch = "<?php echo $bill_status_sch; ?>";
-
-  const btIdxSch = "<?php echo $bt_idx_sch; ?>";
+  //해지포함 / 지급여부 / 지급방식 / 계산서 / 계산서 종류 — 모두 화면 값에서 읽는다
+  const transactionStatusValue = getFilterValue("transaction_status");
+  const ptIdxValue            = getFilterValue("pt_idx_sch");
+  const paymentStatusSch      = getFilterValue("payment_status_sch");
+  const billStatusSch         = getFilterValue("bill_status_sch");
+  const btIdxSch              = getFilterValue("bt_idx_sch");
 
   const baseParams = `year=${currentYear}&month=${currentMonth}&viewAll=${viewAll ? 1 : 0}`;
   const fullParams = `${baseParams}&${industryfilterParams}&${companyfilterParams}&${buildingfilterParams}&transactionStatusValue=${transactionStatusValue}&ptIdxValue=${ptIdxValue}&paymentStatusSch=${paymentStatusSch}&billStatusSch=${billStatusSch}&btIdxSch=${btIdxSch}`;
@@ -614,17 +622,12 @@ const loadSumData = () => {
   const buildingIdschselectedValues = Array.from(buildingIdschSelect.selectedOptions).map(option => option.value);
   const buildingfilterParams = buildingIdschselectedValues.map(val => `building_id_sch[]=${encodeURIComponent(val)}`).join("&");
 
-  //해지포함
-  const transactionStatusValue = "<?php echo $transaction_status; ?>";
-
-  //지급방식
-  const ptIdxValue = "<?php echo $pt_idx_sch; ?>";
-
-  const paymentStatusSch = "<?php echo $payment_status_sch; ?>";
-
-  const billStatusSch = "<?php echo $bill_status_sch; ?>";
-
-  const btIdxSch = "<?php echo $bt_idx_sch; ?>";
+  //해지포함 / 지급여부 / 지급방식 / 계산서 / 계산서 종류 — 모두 화면 값에서 읽는다
+  const transactionStatusValue = getFilterValue("transaction_status");
+  const ptIdxValue            = getFilterValue("pt_idx_sch");
+  const paymentStatusSch      = getFilterValue("payment_status_sch");
+  const billStatusSch         = getFilterValue("bill_status_sch");
+  const btIdxSch              = getFilterValue("bt_idx_sch");
 
   const baseParams = `year=${currentYear}&month=${currentMonth}&viewAll=${viewAll ? 1 : 0}`;
   const fullParams = `${baseParams}&${industryfilterParams}&${companyfilterParams}&${buildingfilterParams}&transactionStatusValue=${transactionStatusValue}&ptIdxValue=${ptIdxValue}&paymentStatusSch=${paymentStatusSch}&billStatusSch=${billStatusSch}&btIdxSch=${btIdxSch}`;
@@ -684,13 +687,11 @@ setTimeout(() => {
 function ct_excel_download(){
     console.log(currentYear, currentMonth, viewAll);
 
-    const ptIdxValue = "<?php echo $pt_idx_sch; ?>";
-
-    const paymentStatusSch = "<?php echo $payment_status_sch; ?>";
-
-    const billStatusSch = "<?php echo $bill_status_sch; ?>";
-
-    const btIdxSch = "<?php echo $bt_idx_sch; ?>";
+    // ★엑셀도 화면 필터를 그대로 따른다(2026-08)
+    const ptIdxValue       = getFilterValue("pt_idx_sch");
+    const paymentStatusSch = getFilterValue("payment_status_sch");
+    const billStatusSch    = getFilterValue("bill_status_sch");
+    const btIdxSch         = getFilterValue("bt_idx_sch");
 
     let params = new URLSearchParams(window.location.search);
     params = params + "&year=" + currentYear + "&month=" + currentMonth + "&viewAll=" + (viewAll ? 1 : 0) + '&ptIdxValue=' + ptIdxValue + '&paymentStatusSch=' + paymentStatusSch + '&billStatusSch=' + billStatusSch + '&btIdxSch=' + btIdxSch;
@@ -777,8 +778,8 @@ function contract_payment_prg_pop_ajax(){
 
     let ct_idx_arr = $("#ct_idx_arr").val();
 
-      //해지포함
-    const transactionStatusValue = "<?php echo $transaction_status; ?>";
+      //해지포함 — 화면 체크 상태를 그대로(2026-08)
+    const transactionStatusValue = getFilterValue("transaction_status");
 
     $.ajax({
 
@@ -818,8 +819,8 @@ const buildingfilterParams = buildingIdschselectedValues.map(val => `building_id
 
 let ct_idx_arr = $("#ct_idx_arr").val();
 
-  //해지포함
-  const transactionStatusValue = "<?php echo $transaction_status; ?>";
+  //해지포함 — 화면 체크 상태를 그대로(2026-08)
+  const transactionStatusValue = getFilterValue("transaction_status");
 
 $.ajax({
 
