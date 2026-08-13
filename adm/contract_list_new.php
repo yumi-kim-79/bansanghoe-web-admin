@@ -548,6 +548,49 @@ function getFilterValue(id){
   if (el.type === "checkbox") return el.checked ? "1" : "";
   return el.value || "";
 }
+
+// ★조건 없이 전체를 훑지 않는다 (2026-08 수정)
+//   계약이 1,500건이 넘고 계약 × 월 셀마다 개별 쿼리가 도는 구조라,
+//   화면을 열자마자 무조건 전체 조회가 돌면서 매번 화면이 멈춘 것처럼 느려졌다.
+//   → 아래 조건 중 하나라도 고른 경우에만 조회한다.
+//      · 업종 / 업체 / 단지 중 하나 (★[전체] 를 고른 것도 "선택"으로 본다)
+//      · 지급여부 / 지급방식 / 계산서 / 계산서 종류 중 하나
+//   년·월과 "해지 포함"은 항상 값이 있거나 보조 조건이므로 세지 않는다.
+function hasSearchCondition(){
+  const picked = function(id){
+    const el = document.getElementById(id);
+    if(!el) return false;
+    return Array.from(el.selectedOptions || []).some(function(o){ return o.value !== ""; });
+  };
+
+  if(picked("industry_idx_sch") || picked("company_idx_sch") || picked("building_id_sch")) return true;
+
+  if(getFilterValue("pt_idx_sch") || getFilterValue("payment_status_sch")
+     || getFilterValue("bill_status_sch") || getFilterValue("bt_idx_sch")) return true;
+
+  return false;
+}
+
+// 조건이 없을 때 보여줄 안내 (빈 목록 + 안내 문구)
+function showSearchGuide(){
+  const fixed  = document.getElementById("fixedTableBody");
+  const scroll = document.getElementById("scrollTableBody");
+  const sums   = document.getElementById("table_sums");
+  if(fixed)  fixed.innerHTML  = "";
+  if(scroll) scroll.innerHTML = "";
+  if(sums)   sums.innerHTML   = "";
+
+  $(".empty_table").find("td").html(
+    "검색 조건을 선택한 뒤 <strong>[검색]</strong> 버튼을 눌러 주세요."
+    + "<br><span style='color:#888;font-size:13px;'>전체 목록을 보시려면 업종·업체·단지에서 <strong>[전체]</strong>를 선택하세요.</span>"
+  );
+  $(".empty_table").show();
+}
+
+function alertNeedCondition(){
+  alert("검색 조건을 하나 이상 선택해 주세요.\n\n· 업종 / 업체 / 단지 중 하나\n· 또는 지급여부 · 지급방식 · 계산서 · 계산서 종류\n\n전체 목록을 보시려면 업종·업체·단지에서 [전체]를 선택하세요.");
+}
+
 let viewAll = false;
 
 function updateHeader(year, month, viewAll) {
@@ -615,6 +658,13 @@ function syncRowHeights() {
 function loadTableData() {
   updateHeader(currentYear, currentMonth, viewAll); // 오른쪽 헤더 생성
 
+  // ★조건이 하나도 없으면 조회하지 않는다(전체 훑기 방지, 2026-08)
+  //   최초 진입 · 월 이동 · 전체보기 등 모든 진입점이 이 함수를 거치므로 여기 한 곳에서 막는다.
+  if(!hasSearchCondition()){
+    showSearchGuide();
+    return;
+  }
+
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "load_table_data2.php");
   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -659,7 +709,13 @@ function loadTableData() {
       //   예전에는 서버가 0건에 400을 던져 아래 else 로 빠졌다.
       //   fixedHtml 에는 ct_idx_arr hidden input 이 항상 들어가므로 <tr> 유무로 본다.
       const hasRow = /<tr[\s>]/i.test(fixedHtml || "");
-      if (hasRow) { $(".empty_table").hide(); } else { $(".empty_table").show(); }
+      if (hasRow) {
+        $(".empty_table").hide();
+      } else {
+        // 조건은 걸었는데 결과가 없는 경우 — 안내 문구를 원래대로 되돌린다
+        $(".empty_table").find("td").html("검색 결과가 없습니다.");
+        $(".empty_table").show();
+      }
 
       syncRowHeights(); // 동기화 호출
     }else{
@@ -757,6 +813,18 @@ document.getElementById("viewAll").onclick = () => {
   viewAll = !viewAll;
   loadTableData();
 };
+
+// ★[검색] 버튼 — 조건이 없으면 페이지를 다시 부르지 않는다(2026-08)
+//   이 폼은 method="get" 이라 submit 하면 페이지가 통째로 새로 뜬다.
+//   조건 없이 누르면 전체 조회가 또 돌기 때문에 여기서 먼저 막는다.
+$("#fsearch").on("submit", function(){
+    if(!hasSearchCondition()){
+        alertNeedCondition();
+        return false;
+    }
+    showSearching(); // 페이지가 새로 뜰 때까지 "검색 중" 표시
+    return true;
+});
 
 // window.onload = loadTableData;
 setTimeout(() => {
