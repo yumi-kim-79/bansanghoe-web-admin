@@ -23,14 +23,24 @@ $end_date = date('Y-m-t',strtotime($month_start."+1 month"));
 //20250718 ban 수정
 // $sql_where = " where (1) and ct.is_del = '0' and building.is_use = 1 and ch.ct_sdate <= '{$end_date}' and ch.ct_edate >= '{$start_date}' ";
 $sql_where = " where (1) and ct.is_del = '0' and building.is_use >= 0 and ch.ct_sdate <= '{$end_date}' and ch.ct_edate >= '{$start_date}' and ct.is_temp = 0 ";
-$sql_where2 = ' and ct.is_temp = 1 ';
+// ★기본값을 "전체"로 (2026-08 수정)
+//   load_table_data2.php 와 **같은 규칙**이어야 한다.
+//   예전에는 업종·업체·단지를 하나도 고르지 않으면 이 조건이 남아
+//   위 $sql_where 의 `ct.is_temp = 0` 과 정면으로 충돌했다(is_temp 가 0이면서 1일 수는 없다).
+//   그래서 업종을 [전체]로 두고 지급방식만 고르면 합계 쿼리가 **항상 0건**이 되어
+//   목록은 나오는데 개수·합계금액만 0으로 찍혔다.
+$sql_where2 = '';
 
+// ★해지 계약 처리는 아래 PHP 쪽(해지월 이후 제외)에서만 한다 (2026-08 수정)
+//   목록(load_table_data2.php)은 여기서 SQL 로 거르지 않고 PHP 로만 판단하는데,
+//   합계 쪽만 SQL 로 한 번 더 걸러서 **목록에는 보이는 계약이 개수에는 안 잡히는**
+//   불일치가 생겼다. 두 파일의 규칙을 같게 맞춘다.
 if($transactionStatusValue){
     $sql_where .= " ";
 
     // $sql_where2 = "";
 }else{
-    $sql_where .= " and ct.ct_status = '0' ";
+    // 예전: $sql_where .= " and ct.ct_status = '0' ";  ← 목록과 규칙이 달라 제거
 }
 
 if($industry_idx_sch){
@@ -120,6 +130,7 @@ foreach ($res as $idx => $row) {
     $ct_arr[$idx]['is_temp'] = $row['is_temp'] ? 'temp' : '';
  
     $data_total = 0;
+    $price = 0; // ★계약마다 초기화 — 안 하면 앞 계약의 금액이 그대로 남아 합계가 부풀려진다(2026-08)
 
     for ($i = 0; $i < $range; $i++) {
 
@@ -163,12 +174,17 @@ foreach ($res as $idx => $row) {
         //계약해지라면
         if($contract_now_rows['ct_status'] == '1'){
             
-            $nowGo = $year."-".$months.'-01'; //현재 년월
+            // ★목록(load_table_data2.php)과 **같은 규칙**으로 맞춘다 (2026-08 수정)
+            //   ① $year(기준년) 이 아니라 그 칸의 실제 연도 $y 를 쓴다
+            //      — 1월 화면에서 -1개월(전년 12월)이 잘못 판정되던 문제
+            //   ② 해지월 "말일"과 비교한다 — 해지월 자체는 살아 있는 달로 본다
+            $nowGo = $y."-".$months.'-01'; //해당 칸의 년월
 
             $months2 = str_pad($contract_now_rows['ct_status_month'], 2, "0", STR_PAD_LEFT); // 월 앞자리 0 붙이기
             $noGo = $contract_now_rows['ct_status_year'].'-'.$months2.'-01'; //계약해지 년월
-            
-            if($noGo < $nowGo){
+            $noGoLast = date("Y-m-t", strtotime($noGo)); //계약해지 년월 마지막일
+
+            if($noGoLast < $nowGo){
                 $ct_arr[$idx]['data'][$i]['classes'] = 'not_contract';
                 $ct_arr[$idx]['data'][$i]['clicks'] = 'no';
             }
@@ -285,11 +301,13 @@ foreach ($res as $idx => $row) {
         }
     
     
-        if($contract_now_rows['ct_status'] == '1'){
-            
-            $ct_arr[$idx]['data'][$i]['first_price'] = "-";
-            
-        }
+        // ★해지 계약의 금액을 "-" 로 지우던 부분 제거 (2026-08 수정)
+        //   목록(load_table_data2.php)은 해지 계약이라도 해지월까지는 금액을 그대로 보여준다.
+        //   합계 쪽만 여기서 금액을 지워서, 목록에는 금액이 찍히는데 합계금액에는
+        //   빠지는 불일치가 있었다. 해지월 이후는 위에서 이미 제외되므로 이 처리는 불필요하다.
+        // if($contract_now_rows['ct_status'] == '1'){
+        //     $ct_arr[$idx]['data'][$i]['first_price'] = "-";
+        // }
 
 
         //계산서 발행여부 검색시
