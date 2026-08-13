@@ -489,27 +489,39 @@ function updateHeader(year, month, viewAll) {
     : `${year}년 ${month}월`;
 }
 
+// ★행 높이 동기화 — 읽기/쓰기를 분리해 강제 리플로우를 2회로 줄인다 (2026-08 수정)
+//
+// 기존: 행마다 [높이 쓰기 → offsetHeight 읽기 → 높이 쓰기] 를 반복했다.
+//   쓰기 직후 읽으면 브라우저가 레이아웃을 즉시 다시 계산(강제 동기 레이아웃)하므로
+//   **행 수만큼 리플로우**가 발생한다. 전체보기처럼 행이 수백~수천이면
+//   그 시간 동안 화면이 통째로 멈춘다("멈췄다 다시 되는" 증상의 원인).
+//
+// 수정: ①전부 리셋(쓰기) → ②전부 측정(읽기) → ③전부 적용(쓰기) 3단계로 분리.
+//   리플로우가 행 수와 무관하게 2회로 고정된다.
 function syncRowHeights() {
   const fixedRows = document.querySelectorAll("#fixedTableBody tr");
   const scrollRows = document.querySelectorAll("#scrollTableBody tr");
 
   const rowCount = Math.min(fixedRows.length, scrollRows.length);
+  if (rowCount === 0) return;
 
+  // ① 리셋 — 쓰기만 모아서
   for (let i = 0; i < rowCount; i++) {
-    const fixedRow = fixedRows[i];
-    const scrollRow = scrollRows[i];
+    fixedRows[i].style.height = "";
+    scrollRows[i].style.height = "";
+  }
 
-    // reset height first
-    fixedRow.style.height = "auto";
-    scrollRow.style.height = "auto";
+  // ② 측정 — 읽기만 모아서 (여기서 리플로우 1회)
+  const heights = new Array(rowCount);
+  for (let i = 0; i < rowCount; i++) {
+    heights[i] = Math.max(fixedRows[i].offsetHeight, scrollRows[i].offsetHeight);
+  }
 
-    // get max height
-    const fixedHeight = fixedRow.offsetHeight;
-    const scrollHeight = scrollRow.offsetHeight;
-    const maxHeight = Math.max(fixedHeight, scrollHeight);
-
-    fixedRow.style.height = maxHeight + "px";
-    scrollRow.style.height = maxHeight + "px";
+  // ③ 적용 — 쓰기만 모아서
+  for (let i = 0; i < rowCount; i++) {
+    const h = heights[i] + "px";
+    fixedRows[i].style.height = h;
+    scrollRows[i].style.height = h;
   }
 }
 
