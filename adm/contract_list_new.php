@@ -162,6 +162,27 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     <span class="btn_ov01"><span class="ov_txt">해지 </span><span class="ov_num"> <?php echo number_format($stop_count) ?>건 </span></span>
 </div> -->
 <link rel="stylesheet" href="/css/select2.css">
+<style>
+/* ★검색 중 오버레이 (2026-08) */
+#ct_searching_overlay{
+    display:none; position:fixed; inset:0; z-index:99999;
+    background:rgba(255,255,255,.65); backdrop-filter:blur(1px);
+    align-items:center; justify-content:center;
+}
+#ct_searching_overlay .ct_searching_inner{
+    background:#fff; border:1px solid #dfe3ea; border-radius:10px;
+    padding:26px 34px; text-align:center; box-shadow:0 6px 24px rgba(0,0,0,.12);
+}
+#ct_searching_overlay .ct_searching_spin{
+    width:34px; height:34px; margin:0 auto 12px;
+    border:3px solid #e3e7ef; border-top-color:#3f51b5; border-radius:50%;
+    animation:ct_spin .8s linear infinite;
+}
+@keyframes ct_spin{ to{ transform:rotate(360deg); } }
+#ct_searching_overlay .ct_searching_text{ font-size:15px; font-weight:600; color:#222; }
+#ct_searching_overlay .ct_searching_sub{ margin-top:6px; font-size:12px; color:#8a8f98; }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <div class="contract_top_wrap">
@@ -494,6 +515,33 @@ let currentMonth = $("#select_month").val() || "<?php echo $nowMonth; ?>";
 //   예전에는 PHP 가 렌더링한 값을 JS 상수로 박아둬서, 드롭다운을 바꿔도
 //   ajax 에는 **페이지 로드 시점의 옛 값**이 전달됐다(= 필터가 전혀 안 걸림).
 //   업종·업체·단지만 DOM 에서 읽고 있었기에 그 셋만 동작했던 것.
+// ★검색 중 표시 (2026-08 추가)
+//   전체 조회는 서버 응답이 오래 걸려 화면이 멈춘 것처럼 보인다.
+//   목록/합계 두 요청이 모두 끝나야 닫으므로 카운터로 관리한다.
+let __loadingCount = 0;
+function showSearching(){
+  __loadingCount++;
+  let box = document.getElementById("ct_searching_overlay");
+  if(!box){
+    box = document.createElement("div");
+    box.id = "ct_searching_overlay";
+    box.innerHTML =
+      '<div class="ct_searching_inner">' +
+        '<div class="ct_searching_spin"></div>' +
+        '<div class="ct_searching_text">검색 중입니다...</div>' +
+        '<div class="ct_searching_sub">조건이 넓으면 시간이 걸릴 수 있습니다.</div>' +
+      '</div>';
+    document.body.appendChild(box);
+  }
+  box.style.display = "flex";
+}
+function hideSearching(){
+  __loadingCount = Math.max(0, __loadingCount - 1);
+  if(__loadingCount > 0) return;
+  const box = document.getElementById("ct_searching_overlay");
+  if(box) box.style.display = "none";
+}
+
 function getFilterValue(id){
   const el = document.getElementById(id);
   if (!el) return "";
@@ -597,6 +645,8 @@ function loadTableData() {
   const baseParams = `year=${currentYear}&month=${currentMonth}&viewAll=${viewAll ? 1 : 0}`;
   const fullParams = `${baseParams}&${industryfilterParams}&${companyfilterParams}&${buildingfilterParams}&transactionStatusValue=${transactionStatusValue}&ptIdxValue=${ptIdxValue}&paymentStatusSch=${paymentStatusSch}&billStatusSch=${billStatusSch}&btIdxSch=${btIdxSch}`;
 
+  showSearching();
+  xhr.onerror = function(){ hideSearching(); };
   xhr.onload = function () {
 
     console.log('xhr', xhr);
@@ -620,6 +670,7 @@ function loadTableData() {
         $(".empty_table").show();
     }
 
+    hideSearching();
     loadSumData();
   };
   xhr.send(fullParams);
@@ -658,6 +709,8 @@ const loadSumData = () => {
   const baseParams = `year=${currentYear}&month=${currentMonth}&viewAll=${viewAll ? 1 : 0}`;
   const fullParams = `${baseParams}&${industryfilterParams}&${companyfilterParams}&${buildingfilterParams}&transactionStatusValue=${transactionStatusValue}&ptIdxValue=${ptIdxValue}&paymentStatusSch=${paymentStatusSch}&billStatusSch=${billStatusSch}&btIdxSch=${btIdxSch}`;
 
+  showSearching();
+  xhr2.onerror = function(){ hideSearching(); };
   xhr2.onload = function () {
 
     console.log('xhr2', xhr2);
@@ -670,6 +723,7 @@ const loadSumData = () => {
     }else{
         //$(".empty_table").show();
     }
+    hideSearching();
   };
   xhr2.send(fullParams);
 }
