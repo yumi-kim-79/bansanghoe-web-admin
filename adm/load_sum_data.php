@@ -254,24 +254,32 @@ foreach ($res as $idx => $row) {
         $company_bill_row = sql_fetch($company_bill_sql);
         // echo $company_bill_sql.'<br>';
 
+        // ★지급 레코드가 없는 달 = 미지급(1) 로 정규화 (2026-08 수정)
+        //   load_table_data2.php 와 **같은 규칙**이어야 한다.
+        //   이 파일은 목록과 별개로 개수/합계를 계산하는데 정규화가 빠져 있어,
+        //   목록에는 행이 나오는데 하단 개수·합계만 0으로 나왔다.
+        $pay_status_norm = (isset($payment_list_now_row['payment_status']) && $payment_list_now_row['payment_status'] !== '' && $payment_list_now_row['payment_status'] !== null)
+                         ? $payment_list_now_row['payment_status']
+                         : 1;
+
         //세번째 셀 값
         if($payment_list_now_row['is_services']){
 
             $ct_arr[$idx]['data'][$i]['thrid_date'] = '서비스';
-            $ct_arr[$idx]['data'][$i]['payment_status'] = $payment_list_now_row['payment_status'];
+            $ct_arr[$idx]['data'][$i]['payment_status'] = $pay_status_norm;
             $ct_arr[$idx]['data'][$i]['payment_type'] = $company_bill_row['payment_type'];
 
         }else{
             if($payment_list_now_row['payment_date'] != ""){
 
                 $ct_arr[$idx]['data'][$i]['thrid_date'] = $payment_list_now_row['payment_date'];
-                $ct_arr[$idx]['data'][$i]['payment_status'] = $payment_list_now_row['payment_status'];
+                $ct_arr[$idx]['data'][$i]['payment_status'] = $pay_status_norm;
                 $ct_arr[$idx]['data'][$i]['payment_type'] = $company_bill_row['payment_type'];
                
             }else{
 
                 $ct_arr[$idx]['data'][$i]['thrid_date'] = "-";
-                $ct_arr[$idx]['data'][$i]['payment_status'] = $payment_list_now_row['payment_status'];
+                $ct_arr[$idx]['data'][$i]['payment_status'] = $pay_status_norm;
                 $ct_arr[$idx]['data'][$i]['payment_type'] = $company_bill_row['payment_type'];
             }
         }

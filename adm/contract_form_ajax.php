@@ -721,7 +721,57 @@ $ct_status_no = $row['ct_status'] ? 'disabeld' : '';
                 <button type="button" onclick="extend_pop_handler('<?php echo $row['ct_idx']; ?>');">연장하기</button>
             <?php }?>
             <button type="button" name="save_type" value="temp" onclick="company_form_pop_close();">닫기</button>
+
+            <?php if($is_admin == 'super' && $ct_idx != ''){ ?>
+            <!-- ★계약 삭제 — 어드민(최고관리자) 계정에만 노출(2026-08).
+                 서버(contract_del_update.php)에서도 같은 권한을 다시 검사한다. -->
+            <button type="button" class="ct_btn_delete"
+                    onclick="contract_delete('<?php echo (int)$ct_idx; ?>');">계약 삭제</button>
+            <?php }?>
         </div>
+
+        <?php if($is_admin == 'super' && $ct_idx != ''){ ?>
+        <style>
+            .ct_btn_delete{
+                margin-left:auto; background:#c0392b; color:#fff; border:none;
+                padding:10px 18px; border-radius:6px; cursor:pointer; font-size:14px;
+            }
+            .ct_btn_delete:hover{ background:#a33125; }
+        </style>
+        <script>
+        // ★계약 삭제 — 되돌리기 어려운 작업이라 단지·업체명을 보여주고 2번 확인받는다.
+        //   삭제는 is_del=1 (소프트 삭제)이라 DB에서 되돌릴 수는 있다.
+        function contract_delete(ct_idx){
+            if(!ct_idx) return;
+
+            var b = document.getElementById("building_name");
+            var c = document.getElementById("company_name");
+            var label = ((b ? b.value : "") + " / " + (c ? c.value : "")).trim();
+
+            if(!confirm(label + "\n\n이 계약을 삭제하시겠습니까?\n목록·SM매니저앱·지급처리에서 모두 사라집니다.")) return;
+            if(!confirm("되돌리려면 개발자에게 요청해야 합니다.\n정말 삭제할까요?")) return;
+
+            $.ajax({
+                url: "./contract_del_update.php",
+                type: "POST",
+                dataType: "json",
+                data: { ct_idx: ct_idx },
+                success: function(res){
+                    if(res && res.result){
+                        alert(res.msg);
+                        company_form_pop_close();
+                        if(typeof loadTableData === "function") loadTableData();
+                    }else{
+                        alert((res && res.msg) ? res.msg : "삭제에 실패했습니다.");
+                    }
+                },
+                error: function(){
+                    alert("삭제 요청 중 오류가 발생했습니다.");
+                }
+            });
+        }
+        </script>
+        <?php }?>
        
     </div>
     <?php }?>

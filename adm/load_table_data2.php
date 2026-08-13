@@ -25,7 +25,12 @@ $end_date = date('Y-m-t',strtotime($month_start."+1 month"));
 // $sql_where = " where (1) and ct.is_del = '0' and building.is_use = 1 and ch.ct_sdate <= '{$end_date}' and ch.ct_edate >= '{$start_date}' ";
 $sql_where = " where (1) and ct.is_del = '0' and ch.ct_sdate <= '{$end_date}' and ch.ct_edate >= '{$start_date}' ";
 
-$sql_where2 = ' and ct.is_temp = 1 ';
+// ★기본값을 "전체"로 (2026-08 수정)
+//   예전에는 업종·업체·단지를 하나도 고르지 않으면 이 조건이 남아
+//   **임시저장 계약만** 조회됐다. 그래서 지급방식·지급여부·계산서만 골라 검색하면
+//   결과가 0건이 되고(=아무것도 안 나오고), 사용자는 이유를 알 수 없었다.
+//   아래 세 필터를 고르면 어차피 이 조건은 비워지던 값이라, 기본값만 ''로 되돌린다.
+$sql_where2 = '';
 
 // if($_SERVER['REMOTE_ADDR'] != ADMIN_IP){
 //     if($transactionStatusValue){
@@ -240,24 +245,33 @@ foreach ($res as $idx => $row) {
         $company_bill_row = sql_fetch($company_bill_sql);
         // echo $company_bill_sql.'<br>';
 
+        // ★지급 레코드가 없는 달 = 미지급(1) 로 정규화한다 (2026-08 수정)
+        //   a_payment_list 는 **지급 처리를 해야 행이 생긴다**. 처리 전에는 행이 없어
+        //   payment_status 가 빈 값으로 남았고, "미지급"(=1) 필터와 매칭되지 않아
+        //   지급여부로 검색하면 결과가 0건이 됐다.
+        //   최상위 쿼리의 IFNULL(payment_list.payment_status, 1) 과 같은 규칙을 여기에도 적용한다.
+        $pay_status_norm = (isset($payment_list_now_row['payment_status']) && $payment_list_now_row['payment_status'] !== '' && $payment_list_now_row['payment_status'] !== null)
+                         ? $payment_list_now_row['payment_status']
+                         : 1;
+
         //세번째 셀 값
         if($payment_list_now_row['is_services']){
 
             $ct_arr[$idx]['data'][$i]['thrid_date'] = '서비스';
-            $ct_arr[$idx]['data'][$i]['payment_status'] = $payment_list_now_row['payment_status'];
+            $ct_arr[$idx]['data'][$i]['payment_status'] = $pay_status_norm;
             $ct_arr[$idx]['data'][$i]['payment_type'] = $company_bill_row['payment_type'];
 
         }else{
             if($payment_list_now_row['payment_date'] != ""){
 
                 $ct_arr[$idx]['data'][$i]['thrid_date'] = $payment_list_now_row['payment_date'];
-                $ct_arr[$idx]['data'][$i]['payment_status'] = $payment_list_now_row['payment_status'];
+                $ct_arr[$idx]['data'][$i]['payment_status'] = $pay_status_norm;
                 $ct_arr[$idx]['data'][$i]['payment_type'] = $company_bill_row['payment_type'];
                
             }else{
 
                 $ct_arr[$idx]['data'][$i]['thrid_date'] = "-";
-                $ct_arr[$idx]['data'][$i]['payment_status'] = $payment_list_now_row['payment_status'];
+                $ct_arr[$idx]['data'][$i]['payment_status'] = $pay_status_norm;
                 $ct_arr[$idx]['data'][$i]['payment_type'] = $company_bill_row['payment_type'];
             }
         }
@@ -634,9 +648,11 @@ $totals = count($ct_arr);
 
 
 // echo $totals.'<br>';
+// ★검색 결과 0건은 "잘못된 요청"이 아니다(2026-08 수정).
+//   예전에는 400 Bad Request 를 던져 콘솔에 에러가 찍혔고, 응답 본문도 버려졌다.
+//   정상 200 으로 빈 목록을 응답하고, "결과 없음" 안내는 화면(JS)이 판단해 띄운다.
 if ($totals == 0) {
-    http_response_code(400);
-    echo '요청 값이 부족합니다.';
+    echo "<!-- SPLIT -->";
     exit;
 }
 
