@@ -701,9 +701,19 @@ function loadTableData() {
 
     console.log('xhr', xhr);
     if (xhr.status === 200) {
-      const [fixedHtml, scrollHtml] = xhr.responseText.split("<!-- SPLIT -->");
+      // ★응답은 세 조각: 좌측표 / 우측표 / 개수·합계 (2026-08)
+      //   개수·합계를 별도 요청(load_sum_data.php)으로 따로 계산하던 것을 없앴다.
+      //   같은 조회·필터 로직이 두 파일에 복사돼 있어 필터 조합마다 숫자가 어긋났기 때문.
+      const parts = xhr.responseText.split("<!-- SPLIT -->");
+      const fixedHtml  = parts[0] || "";
+      const scrollHtml = parts[1] || "";
+      const sumHtml    = parts[2] || "";
+
       document.getElementById("fixedTableBody").innerHTML = fixedHtml || "";
       document.getElementById("scrollTableBody").innerHTML = scrollHtml || "";
+
+      const sumsEl = document.getElementById("table_sums");
+      if (sumsEl) sumsEl.innerHTML = sumHtml;
 
       // ★검색 결과 0건도 정상 응답(200)이므로 여기서 판단한다(2026-08).
       //   예전에는 서버가 0건에 400을 던져 아래 else 로 빠졌다.
@@ -723,66 +733,21 @@ function loadTableData() {
         console.log('2213123123 Error');
         $("#fixedTableBody").empty();
         $("#scrollTableBody").empty();
+        $("#table_sums").empty();
         $(".empty_table").show();
     }
 
     hideSearching();
-    loadSumData();
   };
   xhr.send(fullParams);
 
   
 }
 
-const loadSumData = () => {
-  const xhr2 = new XMLHttpRequest();
-  xhr2.open("POST", "load_sum_data.php");
-  xhr2.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-  //검색필터
-  // 업종 셀렉트 값들을 가져오기
-  const industryIdxschSelect = document.getElementById("industry_idx_sch");
-  const industryIdxschselectedValues = Array.from(industryIdxschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
-  const industryfilterParams = industryIdxschselectedValues.map(val => `industry_idx_sch[]=${encodeURIComponent(val)}`).join("&");
-
-  // 업체 셀렉트 값들을 가져오기
-  const companyIdxschSelect = document.getElementById("company_idx_sch");
-  const companyIdxschselectedValues = Array.from(companyIdxschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
-  const companyfilterParams = companyIdxschselectedValues.map(val => `company_idx_sch[]=${encodeURIComponent(val)}`).join("&");
-
-  // 단지 셀렉트 값들을 가져오기
-  const buildingIdschSelect = document.getElementById("building_id_sch");
-  const buildingIdschselectedValues = Array.from(buildingIdschSelect.selectedOptions).map(option => option.value).filter(v => v !== "" && v !== "ALL");
-  const buildingfilterParams = buildingIdschselectedValues.map(val => `building_id_sch[]=${encodeURIComponent(val)}`).join("&");
-
-  //해지포함 / 지급여부 / 지급방식 / 계산서 / 계산서 종류 — 모두 화면 값에서 읽는다
-  const transactionStatusValue = getFilterValue("transaction_status");
-  const ptIdxValue            = getFilterValue("pt_idx_sch");
-  const paymentStatusSch      = getFilterValue("payment_status_sch");
-  const billStatusSch         = getFilterValue("bill_status_sch");
-  const btIdxSch              = getFilterValue("bt_idx_sch");
-
-  const baseParams = `year=${currentYear}&month=${currentMonth}&viewAll=${viewAll ? 1 : 0}`;
-  const fullParams = `${baseParams}&${industryfilterParams}&${companyfilterParams}&${buildingfilterParams}&transactionStatusValue=${transactionStatusValue}&ptIdxValue=${ptIdxValue}&paymentStatusSch=${paymentStatusSch}&billStatusSch=${billStatusSch}&btIdxSch=${btIdxSch}`;
-
-  showSearching();
-  xhr2.onerror = function(){ hideSearching(); };
-  xhr2.onload = function () {
-
-    console.log('xhr2', xhr2);
-    if (xhr2.status === 200) {
-      //$(".table_sums").hide();
-     
-      document.getElementById("table_sums").innerHTML = xhr2.responseText;
-
-      syncRowHeights(); // 동기화 호출
-    }else{
-        //$(".empty_table").show();
-    }
-    hideSearching();
-  };
-  xhr2.send(fullParams);
-}
+// ★loadSumData() 제거 (2026-08)
+//   개수·합계는 이제 load_table_data2.php 가 목록과 같은 배열에서 계산해
+//   같은 응답의 세 번째 조각으로 함께 내려준다. 별도 요청이 필요 없다.
+//   (load_sum_data.php 파일 자체는 구 화면 contract_list.php 등이 아직 쓰므로 남겨 둔다.)
 
 function adjustMonth(currentYear, currentMonth, direction) {
   // currentMonth는 1~12로 받음

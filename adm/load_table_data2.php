@@ -646,13 +646,58 @@ $ct_idx_arr_t = "'".implode("','", $ct_idx_arr)."'";
 // $totals = sql_num_rows($res);
 $totals = count($ct_arr);
 
+/**
+ * ★개수·합계금액을 목록과 **같은 배열**에서 계산한다 (2026-08 수정)
+ *
+ *  예전에는 load_sum_data.php 라는 별도 파일이 같은 조회·필터 로직을 통째로
+ *  한 벌 더 갖고 있었다. 두 벌이 조금씩 어긋나면서(임시저장 조건, 해지 판정,
+ *  해지 계약 금액 처리 등) **목록에는 보이는데 개수에는 안 잡히는** 불일치가
+ *  필터 조합마다 다르게 터졌다.
+ *
+ *  이제 화면에 실제로 그리는 $ct_arr 하나만 보고 세므로,
+ *  어떤 필터 조합이든 개수 = 목록 행 수, 합계 = 화면에 찍힌 기준월 금액의 합이 된다.
+ *  (요청도 2번 → 1번으로 줄어 검색이 그만큼 빨라진다.)
+ */
+function ct_sum_row($ct_arr, $year, $month){
+    $count = 0;
+    $sum   = 0;
+
+    foreach($ct_arr as $r){
+        $count++; // 목록에 그려지는 행 = 개수
+
+        if(empty($r['data'])) continue;
+
+        foreach($r['data'] as $cell){
+            // 기준월 칸만 합산한다 (화면에서 금액을 보여주는 칸)
+            if($cell['year'] != $year || $cell['month'] != $month) continue;
+
+            // 목록 출력과 **같은 규칙**: not_contract 칸은 '-' 로 찍히므로 합산하지 않는다
+            if($cell['classes'] === 'not_contract') break;
+
+            // "1,200,000" / "0 (서비스)" / "-" 등 표시용 문자열에서 숫자만 뽑는다
+            $digits = preg_replace('/[^0-9]/', '', (string)$cell['first_price']);
+            if($digits !== '') $sum += (int)$digits;
+            break;
+        }
+    }
+
+    return "<tr>"
+         . "<th>개수</th><td>" . number_format($count) . "</td>"
+         . "<th>합계금액</th><td>" . number_format($sum) . "</td>"
+         . "</tr>";
+}
+
 
 // echo $totals.'<br>';
 // ★검색 결과 0건은 "잘못된 요청"이 아니다(2026-08 수정).
 //   예전에는 400 Bad Request 를 던져 콘솔에 에러가 찍혔고, 응답 본문도 버려졌다.
 //   정상 200 으로 빈 목록을 응답하고, "결과 없음" 안내는 화면(JS)이 판단해 띄운다.
+//
+//   응답 형식: 좌측표 <!-- SPLIT --> 우측표 <!-- SPLIT --> 개수·합계
 if ($totals == 0) {
     echo "<!-- SPLIT -->";
+    echo "<!-- SPLIT -->";
+    echo ct_sum_row(array(), $year, $month);
     exit;
 }
 
@@ -706,5 +751,9 @@ foreach($ct_arr as $idxc => $ct_rows){
     }
     echo "</tr>";
 }
+
+// ─── 세 번째 조각: 개수 · 합계금액 ───────────────────────────
+echo "<!-- SPLIT -->";
+echo ct_sum_row($ct_arr, $year, $month);
 
 ?>
