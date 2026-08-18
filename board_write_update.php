@@ -10,6 +10,13 @@ if($bbs_code == "") die(result_data(false, "올바른 접근이 아닙니다.", 
 if($bbs_title == "") die(result_data(false, "제목을 입력해주세요.", []));
 if($bbs_content == "") die(result_data(false, "내용을 입력해주세요.", []));
 
+// ★앱 글쓰기는 순수 텍스트(textarea)라 줄바꿈이 그대로 저장된다 (2026-08 추가)
+//   상세 화면은 내용을 HTML 로 그대로 출력하므로, 변환하지 않으면
+//   여러 줄로 쓴 일정이 한 줄로 붙어 보인다. 태그가 없는 순수 텍스트일 때만 변환한다.
+if (strip_tags($bbs_content) === $bbs_content) {
+    $bbs_content = nl2br($bbs_content);
+}
+
 if($w == "u"){
 
 }else{

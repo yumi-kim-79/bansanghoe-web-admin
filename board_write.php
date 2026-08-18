@@ -316,7 +316,11 @@ function board_submit(){
         let mb_id = "<?php echo $member['mb_id']; ?>";
         let bbs_code = $("#bbs_code option:selected").val();
         let bbs_title = $("#bbs_title").val();
-        let bbs_content = $("#bbs_title").val();
+        // ★내용을 제목 칸에서 읽고 있었다 (2026-08 수정)
+        //   $("#bbs_title") → $("#bbs_content")
+        //   이 오타 때문에 앱으로 쓴 글은 본문에 **제목이 그대로 복사**되고
+        //   실제로 입력한 내용은 전송조차 되지 않고 버려졌다.
+        let bbs_content = $("#bbs_content").val();
 
         var formData = new FormData();
         formData.append('mb_id', mb_id);
