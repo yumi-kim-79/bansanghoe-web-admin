@@ -324,9 +324,16 @@ for ($i=0; $i<count($upload_pdf); $i++)
                          bf_type = '".$bf_type."',
                          bf_datetime = '".G5_TIME_YMDHIS."' ";
         }
-    }
 
-    sql_query($sql);
+        // ★sql_query 가 if 밖에 있었다 (2026-08 수정)
+        //   첨부 없이 등록하면 화면이 빈 파일(blob)을 보내는데, 그 경우 $sql 이
+        //   만들어지지 않는다. 그런데도 실행되어
+        //     · 앞 반복/이미지 루프의 쿼리가 다시 실행되거나(첨부 중복 등록)
+        //     · $sql 이 아예 없으면 빈 쿼리로 DB 오류가 나서
+        //   응답이 JSON 이 아니게 되고, 앱에서는 글이 정상 등록됐는데도
+        //   "[object Object]" 오류창이 떴다. 이미지 루프와 같은 위치로 옮긴다.
+        sql_query($sql);
+    }
 }
 
 echo result_data(true, $bbs_setting['bbs_title'].' 게시글이 등록되었습니다.', $bbs_setting);

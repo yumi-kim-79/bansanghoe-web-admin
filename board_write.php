@@ -334,6 +334,9 @@ function board_submit(){
         }
 
         //파일 첨부
+        // ★빈 첨부칸에 빈 파일(blob)을 채워 보내던 것을 없앤다 (2026-08 수정)
+        //   서버가 이 빈 파일을 실제 업로드로 인식해 0바이트 쓰레기 파일을 만들고,
+        //   첨부 저장 로직도 엉켜 오류 응답이 나갔다. 선택한 파일만 보낸다.
         $("input[name='bf_file[]']").each(function(index) {
             var files = this.files;  // 현재 파일 입력 필드에서 선택된 파일을 가져옴
             if (files.length > 0) {
@@ -341,10 +344,6 @@ function board_submit(){
                 for (var i = 0; i < files.length; i++) {
                     formData.append('bf_file[]', files[i]);  // 고유 인덱스 사용
                 }
-            }else{
-
-                formData.append('bf_file[]', new Blob([''])); 
-                //formData.append(j, 0, new Blob([''], { type: 'application/octet-stream' }));
             }
         });
        
@@ -376,8 +375,14 @@ function board_submit(){
                     }, 700);
                 }
             },
-            error:function(e){
-                alert(e);
+            // ★alert(e) 는 jQuery 객체를 그대로 찍어 "[object Object]" 만 보였다 (2026-08 수정)
+            //   무엇이 잘못됐는지 알 수 없어 원인 파악이 늦어진다.
+            //   사용자에게는 읽을 수 있는 문구를, 개발자에게는 콘솔에 원문을 남긴다.
+            error: function(xhr, status, err){
+                console.log('board_write_update 오류', xhr.status, status, err, xhr.responseText);
+                $("#building_info_pop").hide();
+                $("#fix_btn").attr('disabled', false);
+                showToast("등록 중 오류가 발생했습니다. 게시판 목록에서 등록 여부를 확인해 주세요.");
             }
         });
     }, 50);
