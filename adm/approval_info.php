@@ -272,6 +272,92 @@ if($_SERVER['REMOTE_ADDR'] == "59.16.155.80"){
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
 <script src="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
 <script>
+/* ─────────────────────────────────────────────────────────────
+ * ★결재 버튼이 "눌러도 아무 반응 없음" 문제 대응 (2026-08-25)
+ *
+ *   증상: 상세페이지에서 [서명 불러오기] [반려하기] [승인하기] 만 무반응.
+ *        [다시 서명하기] 는 정상. 특정 PC/계정에서만. 재부팅하면 정상.
+ *
+ *   원인이 될 수 있는 경로가 세 곳이었고, 모두 **화면에 아무것도 남기지 않고 끝난다**.
+ *     ① 브라우저가 confirm/alert 를 차단한 경우
+ *        (크롬에서 "이 페이지에 추가 대화상자를 표시하지 않음" 을 체크하면
+ *         이후 confirm() 은 사용자에게 보이지 않고 즉시 false 를 돌려준다)
+ *        → `if(!confirm(...)) return false;` 가 조용히 종료된다.
+ *        → [다시 서명하기] 만 confirm/alert 를 안 써서 유일하게 동작했다.
+ *        → 브라우저를 완전히 종료(재부팅)하면 해제되므로 "재부팅하면 정상" 과 맞는다.
+ *     ② ajax 에 error 핸들러가 없었다.
+ *        세션 만료 등으로 응답이 JSON 이 아니면 jQuery 는 error 로 빠지는데,
+ *        error 가 없으니 아무 일도 일어나지 않는다.
+ *     ③ 반려하기는 "반려 중입니다" 오버레이를 먼저 띄우는데,
+ *        실패 시 이를 내리는 코드가 없어 화면이 멈춘 것처럼 보였다.
+ *
+ *   → 아래 도우미로 **대화상자가 막혀도 항상 화면에 메시지가 보이도록** 바꾼다.
+ * ───────────────────────────────────────────────────────────── */
+
+/** 화면 상단 배너 안내 — alert 과 달리 브라우저가 막을 수 없다 */
+function apNotice(msg, type){
+    let box = document.getElementById('ap_notice_box');
+    if(!box){
+        box = document.createElement('div');
+        box.id = 'ap_notice_box';
+        box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;'
+            + 'padding:14px 48px 14px 18px;font-size:14px;line-height:1.6;'
+            + 'box-shadow:0 2px 8px rgba(0,0,0,.15);white-space:pre-line;display:none;';
+        const x = document.createElement('button');
+        x.type = 'button';
+        x.textContent = '✕';
+        x.style.cssText = 'position:absolute;top:8px;right:12px;border:0;background:none;'
+            + 'font-size:18px;cursor:pointer;color:inherit;';
+        x.onclick = function(){ box.style.display = 'none'; };
+        box.appendChild(document.createElement('span')).id = 'ap_notice_msg';
+        box.appendChild(x);
+        document.body.appendChild(box);
+    }
+    const err = (type === 'error');
+    box.style.background = err ? '#fdecea' : '#e8f4ff';
+    box.style.color      = err ? '#a3252c' : '#12507b';
+    box.style.borderBottom = '1px solid ' + (err ? '#f5c6cb' : '#b6ddff');
+    document.getElementById('ap_notice_msg').textContent = msg;
+    box.style.display = 'block';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    console.log('[결재]', msg);
+}
+
+/** confirm 대체 — 브라우저가 대화상자를 막고 있으면 그 사실을 알려준다 */
+function apConfirm(msg){
+    const t0 = Date.now();
+    let ok = false;
+    try { ok = window.confirm(msg); } catch(e) { ok = false; }
+
+    // 사람이 읽고 누르면 최소 수백 ms 는 걸린다.
+    // 즉시 false 가 돌아왔다면 대화상자가 뜨지 않은 것이다.
+    if(!ok && (Date.now() - t0) < 60){
+        apNotice(
+            '브라우저가 이 페이지의 확인창을 차단하고 있어 진행할 수 없습니다.\n'
+          + '페이지를 새로고침(F5)한 뒤 다시 시도해 주세요. '
+          + '그래도 같으면 브라우저를 완전히 닫았다가 다시 열어주세요.', 'error');
+        return false;
+    }
+    return ok;
+}
+
+/** ajax 실패 공통 처리 — 예전에는 error 핸들러가 없어 아무 반응이 없었다 */
+function apAjaxFail(xhr, status, err){
+    $("#building_info_pop").hide();
+    let msg = '요청을 처리하지 못했습니다.';
+    if(xhr && xhr.status === 0){
+        msg += '\n네트워크 연결을 확인해 주세요.';
+    }else if(xhr && (xhr.status === 401 || xhr.status === 403)){
+        msg += '\n로그인이 풀렸을 수 있습니다. 다시 로그인해 주세요.';
+    }else if(status === 'parsererror'){
+        msg += '\n로그인이 풀렸을 수 있습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.';
+    }else if(xhr){
+        msg += '\n(오류코드 ' + xhr.status + ')';
+    }
+    apNotice(msg, 'error');
+    console.log('[결재] ajax 실패', status, err, xhr && xhr.responseText);
+}
+
 function bigSize(url){
 	const windowHeight = window.innerHeight;
 	$("#big_size_pop .od_cancel_cont").css("height", `${windowHeight}px`);
@@ -296,7 +382,7 @@ $(function(){
 });
 
 function signLoad(id, ele, approval_cont){
-    if(!confirm("저장된 서명을 불러오시겠습니까?")) return false;
+    if(!apConfirm("저장된 서명을 불러오시겠습니까?")) return false;
     let approval_signature_temp = $("#approval_signature_temp").val();
 
     let sendData = {'mb_id': id};
@@ -306,13 +392,14 @@ function signLoad(id, ele, approval_cont){
         url: "/sign_load_ajax.php",
         data: sendData,
         cache: false,
-        async: false,
+        async: true,          // ★동기 요청은 브라우저를 멈추게 하고 크롬이 경고한다(2026-08)
         dataType: "json",
+        error: apAjaxFail,    // ★없으면 실패 시 아무 반응이 없다
         success: function(data) {
             console.log('data:::', data);
 
             if(data.result == false) {
-                alert(data.msg);
+                apNotice(data.msg, 'error');
                 return false;
             }else{
 
@@ -333,7 +420,7 @@ function signLoad(id, ele, approval_cont){
 
 //반려하기
 function singReject(){
-    if (!confirm("해당 결재내역을 반려 처리 하시겠습니까?")) {
+    if (!apConfirm("해당 결재내역을 반려 처리 하시겠습니까?")) {
         return false;
     }
 
@@ -350,22 +437,24 @@ function singReject(){
             url: "./approval_form_reject.php",
             data: sendData,
             cache: false,
-            async: false,
+            async: true,          // ★동기 요청 제거 (2026-08)
             dataType: "json",
+            error: apAjaxFail,    // ★실패 시 "반려 중입니다" 오버레이가 안 내려가 멈춘 것처럼 보였다
             success: function(data) {
                 console.log('data:::', data);
 
                 if(data.result == false) {
-                    alert(data.msg);
+                    $("#building_info_pop").hide();
+                    apNotice(data.msg, 'error');
                     return false;
                 }else{
 
-                alert(data.msg);
+                $("#building_info_pop").hide();
+                apNotice(data.msg);
 
                 setTimeout(() => {
-                        $("#building_info_pop").hide();
                         window.location.reload();
-                    }, 700);
+                    }, 1500);   // 배너를 읽을 시간 확보 (alert 이 아니라 안 막히므로)
                 }
             }
         });
@@ -378,13 +467,15 @@ function singCheck(){
     let approval_signature = $("#approval_signature").val();
     let approval_cont = $("#approval_cont").val();
 
+    // ★검증 실패를 alert 으로만 알리면, 브라우저가 대화상자를 막았을 때
+    //   사용자에게는 "버튼이 안 눌린다"로 보인다. 반드시 화면에 남긴다.
     if(approval_signature == ""){
-        alert('서명을 입력해주세요.');
+        apNotice('서명이 없습니다. [다시 서명하기] 또는 [서명 불러오기] 로 먼저 서명해 주세요.', 'error');
         return false;
     }
 
     if(approval_cont == ""){
-        alert('결재 단계 정보가 없습니다. 다시 서명하기를 눌러주세요.');
+        apNotice('결재 단계 정보가 없습니다. [다시 서명하기] 를 눌러 서명한 뒤 승인해 주세요.', 'error');
         return false;
     }
 
@@ -395,22 +486,23 @@ function singCheck(){
         url: "./approval_form_check.php",
         data: sendData,
         cache: false,
-        async: false,
+        async: true,          // ★동기 요청 제거 (2026-08)
         dataType: "json",
+        error: apAjaxFail,    // ★없으면 실패 시 아무 반응이 없다
         success: function(data) {
             console.log('data:::', data);
 
             if(data.result == false) {
-                alert(data.msg);
+                apNotice(data.msg, 'error');
                 return false;
             }else{
 
-               alert(data.msg);
+               apNotice(data.msg);
 
                // ✅ 수정: 현재 페이지(approval_info.php)로 reload
                setTimeout(() => {
                     location.replace("/holiday_request_sample.php?sign_id=" + sign_id + "&mem_type=sign_user");
-                }, 150);
+                }, 1500);   // 배너를 읽을 시간 확보
             }
         }
     });
@@ -437,7 +529,7 @@ function clearSign(){
 
 function saveSign(){
     if (signaturePad.isEmpty()) {
-        alert('서명을 입력하세요.');
+        apNotice('서명을 입력하세요.', 'error');
         return false;
     } else {
         const dataURL = signaturePad.toDataURL("image/png");
