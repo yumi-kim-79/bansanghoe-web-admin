@@ -323,22 +323,60 @@ function apNotice(msg, type){
     console.log('[결재]', msg);
 }
 
-/** confirm 대체 — 브라우저가 대화상자를 막고 있으면 그 사실을 알려준다 */
-function apConfirm(msg){
-    const t0 = Date.now();
-    let ok = false;
-    try { ok = window.confirm(msg); } catch(e) { ok = false; }
-
-    // 사람이 읽고 누르면 최소 수백 ms 는 걸린다.
-    // 즉시 false 가 돌아왔다면 대화상자가 뜨지 않은 것이다.
-    if(!ok && (Date.now() - t0) < 60){
-        apNotice(
-            '브라우저가 이 페이지의 확인창을 차단하고 있어 진행할 수 없습니다.\n'
-          + '페이지를 새로고침(F5)한 뒤 다시 시도해 주세요. '
-          + '그래도 같으면 브라우저를 완전히 닫았다가 다시 열어주세요.', 'error');
-        return false;
+/** confirm 대체 — 브라우저 기본 대화상자를 아예 쓰지 않는 자체 확인창 (2026-09)
+ *
+ *  크롬은 아래 상황에서 window.confirm() 을 **사용자에게 보여주지 않고 즉시 false 로** 끝낸다.
+ *    · "이 페이지에 추가 대화상자를 표시하지 않음" 을 한 번 체크한 경우
+ *    · 해당 탭이 앞창의 활성 탭이 아닐 때
+ *      (콘솔 경고: "dialog ... was suppressed because this page is not the active tab of the front window")
+ *    · 사용자 조작과 직접 이어지지 않은 시점에 호출된 경우
+ *
+ *  그래서 버튼이 "눌러도 아무 반응 없음" 으로 보였다.
+ *  직전 대응(차단을 감지해 안내 배너를 띄움)은 원인은 알려줬지만
+ *  결국 결재를 진행할 수 없는 것은 같았다.
+ *  → 브라우저 대화상자를 쓰지 않고 페이지 안에 직접 그린다. 차단될 수 없다.
+ *
+ *  사용법: apConfirm('메시지', function(){ 확인을 눌렀을 때 실행할 코드 });
+ */
+function apConfirm(msg, onYes){
+    let wrap = document.getElementById('ap_confirm_wrap');
+    if(!wrap){
+        wrap = document.createElement('div');
+        wrap.id = 'ap_confirm_wrap';
+        wrap.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;'
+            + 'display:none;background:rgba(0,0,0,.45);align-items:center;justify-content:center;';
+        wrap.innerHTML =
+            '<div role="dialog" aria-modal="true" style="background:#fff;border-radius:8px;'
+          + 'max-width:420px;width:calc(100% - 40px);box-shadow:0 8px 30px rgba(0,0,0,.25);overflow:hidden;">'
+          + '<div id="ap_confirm_msg" style="padding:26px 22px;font-size:15px;line-height:1.7;'
+          + 'color:#222;white-space:pre-line;text-align:center;"></div>'
+          + '<div style="display:flex;border-top:1px solid #eee;">'
+          + '<button type="button" id="ap_confirm_no" style="flex:1;padding:14px;border:0;'
+          + 'background:#f5f5f5;color:#444;font-size:15px;cursor:pointer;">취소</button>'
+          + '<button type="button" id="ap_confirm_yes" style="flex:1;padding:14px;border:0;'
+          + 'background:#3b6ea5;color:#fff;font-size:15px;cursor:pointer;">확인</button>'
+          + '</div></div>';
+        document.body.appendChild(wrap);
     }
-    return ok;
+
+    const onKey = function(e){ if(e.key === 'Escape' || e.keyCode === 27) close(); };
+    const close = function(){
+        wrap.style.display = 'none';
+        document.removeEventListener('keydown', onKey);
+    };
+
+    document.getElementById('ap_confirm_msg').textContent = msg;
+
+    // 이전 호출의 핸들러가 남지 않도록 매번 새로 건다
+    const yes = document.getElementById('ap_confirm_yes');
+    const no  = document.getElementById('ap_confirm_no');
+    yes.onclick  = function(){ close(); if(typeof onYes === 'function') onYes(); };
+    no.onclick   = close;
+    wrap.onclick = function(e){ if(e.target === wrap) close(); };
+    document.addEventListener('keydown', onKey);
+
+    wrap.style.display = 'flex';
+    setTimeout(function(){ try { yes.focus(); } catch(e) {} }, 0);
 }
 
 /** ajax 실패 공통 처리 — 예전에는 error 핸들러가 없어 아무 반응이 없었다 */
@@ -382,7 +420,12 @@ $(function(){
 });
 
 function signLoad(id, ele, approval_cont){
-    if(!apConfirm("저장된 서명을 불러오시겠습니까?")) return false;
+    apConfirm("저장된 서명을 불러오시겠습니까?", function(){
+        signLoadRun(id, ele, approval_cont);
+    });
+}
+
+function signLoadRun(id, ele, approval_cont){
     let approval_signature_temp = $("#approval_signature_temp").val();
 
     let sendData = {'mb_id': id};
@@ -420,9 +463,10 @@ function signLoad(id, ele, approval_cont){
 
 //반려하기
 function singReject(){
-    if (!apConfirm("해당 결재내역을 반려 처리 하시겠습니까?")) {
-        return false;
-    }
+    apConfirm("해당 결재내역을 반려 처리 하시겠습니까?", singRejectRun);
+}
+
+function singRejectRun(){
 
     $("#building_info_pop").show();
 

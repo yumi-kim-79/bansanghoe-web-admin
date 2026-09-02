@@ -75,28 +75,45 @@
         $def_year = date("Y", strtotime($now_month));
         $def_date = date("Y-m", strtotime($now_month));
 
+        // ★ [2026-08] 예외 레코드 날짜 목록 (반복 일정의 특정 날짜 수정/삭제분)
+        //  관리자웹에서 "이 날짜만 삭제"한 일정도 달력에 점이 그대로 남아 목록과 어긋났다.
+        $exception_dates = array();
+        $exc_sql = "SELECT cal_idx, exception_idx, cal_date FROM a_calendar
+                    WHERE exception_idx IS NOT NULL AND exception_idx != '' AND exception_idx != '0' AND exception_idx != 0
+                      AND cal_date like '{$now_month}%' {$sql_sch}";
+        $exc_res = sql_query($exc_sql);
+        while($exc_row = sql_fetch_array($exc_res)){
+            $exception_dates[$exc_row['exception_idx'] . '_' . $exc_row['cal_date']] = true;
+        }
+
+
         // echo $endDate;
 
         foreach ($res2 as $r) {
 
-            // print_r2($r);
             if($r['noti_repeat'] == "MONTH"){
-                
+
                 $date_month = $def_date.'-'.date("d", strtotime($r['cal_date']));
-                // echo $date_month.'<br>';
-        
-                
+
+                // ★ [2026-08] 반복 시작일 이전 / 마감일 이후 / 예외(수정·삭제)가 있는 날짜에는 점을 찍지 않는다
+                if($date_month < $r['cal_date']) continue;
+                if($r['cal_edate'] != '' && $date_month > $r['cal_edate']) continue;
+                if(isset($exception_dates[$r['cal_idx'] . '_' . $date_month])) continue;
+
                 if($date_month <= $endDate){
-                    // echo $endDate.'/'.$date_month.'<br>';
-                    // array_push($month_arr, $r);
                     array_push($schedule_arr, $date_month);
                 }
             }
-        
+
             if($r['noti_repeat'] == "YEAR"){
-                
+
                 $date_year = $def_year.'-'.date("m-d", strtotime($r['cal_date']));
-        
+
+                // ★ [2026-08] 위와 동일 규칙
+                if($date_year < $r['cal_date']) continue;
+                if($r['cal_edate'] != '' && $date_year > $r['cal_edate']) continue;
+                if(isset($exception_dates[$r['cal_idx'] . '_' . $date_year])) continue;
+
                 if($date_year <= $endDate){
                     array_push($schedule_arr, $date_year);
                 }
