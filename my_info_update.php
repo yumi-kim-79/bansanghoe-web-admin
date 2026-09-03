@@ -110,11 +110,15 @@ if($types == "sm"){
 
                 if($row_car['car_type'] != $car_type[$i] || $row_car['car_name'] != $car_name[$i]){
 
+                    // [푸시통일 2026-09] 등록(위 if 분기)에만 붙어 있던 [단지명 N동 N호] prefix 를
+                    //  변경/삭제에도 동일하게 붙인다.
+                    $prefix = build_push_prefix($building_id, $dong_id, $ho_id, 'manager');
+
                     if($car_type[$i] == '' && $car_name[$i] == ''){
-                        $push_title = "[차량삭제] 차량이 삭제되었습니다.";
+                        $push_title = $prefix."[차량삭제] 차량이 삭제되었습니다.";
                         $push_content = $mb_name."님이 ". $building_info['building_name']." 단지에 차량정보를 삭제하였습니다.";
                     }else{
-                        $push_title = "[차량변경] 차량정보가 변경되었습니다.";
+                        $push_title = $prefix."[차량변경] 차량정보가 변경되었습니다.";
                         $push_content = $mb_name."님이 ". $building_info['building_name']." 단지에 차량정보를 변경하였습니다.";
                     }
 
