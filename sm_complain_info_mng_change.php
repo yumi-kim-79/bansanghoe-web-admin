@@ -25,7 +25,11 @@ if($mng_id != ""){
     $mng_sql = "SELECT * FROM g5_member WHERE mb_id = '{$mng_id}'";
     $mng_row = sql_fetch($mng_sql);
 
-    $push_title = '[담당자 변경] 민원 담당자로 변경되었습니다.';
+    // [푸시통일 2026-09] 어느 민원인지 알 수 있도록 [단지명 N동 N호] 식별 prefix 부착
+    //  ($online_complain_info 는 위에서 이미 조회해 둔 민원 정보)
+    $prefix = build_push_prefix($online_complain_info['building_id'], $online_complain_info['dong_id'], $online_complain_info['ho_id'], 'manager');
+
+    $push_title = $prefix.'[담당자 변경] 민원 담당자로 변경되었습니다.';
     $push_content = '민원 담당자로 변경되었습니다. 민원 확인 후 처리 부탁드립니다.';
 
     if($mng_row['mb_token'] != "" && $mng_row['noti6']){ //토큰이 있는경우 푸시 발송 민원알림이 켜져있는경우

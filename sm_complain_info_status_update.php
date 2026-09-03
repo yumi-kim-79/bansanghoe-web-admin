@@ -37,7 +37,11 @@ if($mng_id != ""){
     $mng_sql = "SELECT * FROM g5_member WHERE mb_id = '{$mng_id}'";
     $mng_row = sql_fetch($mng_sql);
 
-    $push_title = '[담당자 배정] 민원 담당자로 배정되었습니다.';
+    // [푸시통일 2026-09] 어느 민원인지 알 수 있도록 [단지명 N동 N호] 식별 prefix 부착
+    $cp_info = sql_fetch("SELECT building_id, dong_id, ho_id FROM a_online_complain WHERE complain_idx = '{$complain_idx}'");
+    $prefix = build_push_prefix($cp_info['building_id'], $cp_info['dong_id'], $cp_info['ho_id'], 'manager');
+
+    $push_title = $prefix.'[담당자 배정] 민원 담당자로 배정되었습니다.';
     $push_content = '민원 담당자로 배정되었습니다. 민원 확인 후 처리 부탁드립니다.';
 
     if($mng_row['mb_token'] != "" && $mng_row['noti6']){ //토큰이 있는경우 푸시 발송

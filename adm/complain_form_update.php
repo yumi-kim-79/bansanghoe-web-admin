@@ -133,8 +133,14 @@ if($w == "u"){
                 WHERE mng.is_del = 0 ORDER BY mng.mng_idx desc";
     $mng_res = sql_query($mng_sql);
 
+    // [푸시통일 2026-09] 관리자웹에서 등록한 민원도 입주민 앱 등록(online_complain_form_update.php)과
+    //  똑같이 [단지명 N동 N호] 식별 prefix 를 붙인다.
+    //  그동안 관리자웹 경로만 prefix 가 없어 매니저 폰에 "204호님의 ..." 처럼 호수만 떴다.
+    //  (루프 밖에서 1회 계산 — build_push_prefix 는 static 캐싱도 한다)
+    $prefix = build_push_prefix($building_id, $dong_id, $ho_id, 'manager');
+
     while($mng_row = sql_fetch_array($mng_res)){
-        $push_title = '[민원신청] '.$complain_title." 민원신청이 있습니다.";
+        $push_title = $prefix.'[민원신청] '.$complain_title." 민원신청이 있습니다.";
         $push_content = $complain_name.'님의 '.$complain_title." 민원신청이 있습니다.";
 
         $insert_push = "INSERT INTO a_push SET
