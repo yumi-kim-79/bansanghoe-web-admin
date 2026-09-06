@@ -223,6 +223,19 @@ $colspan = 16;
     </button>
 </div>
 
+<style>
+/* [민원제목 2026-09] 제목 열이 내용 길이만큼 늘어나던 문제 — 폭 상한을 두고 넘치면 줄바꿈한다.
+   ※ td 에 준 max-width 는 table-layout:auto 에서 무시되므로 안쪽 span 에 건다. */
+.td_ctitle{ white-space:normal; }
+.td_ctitle .ctitle_short,
+.td_ctitle .ctitle_full{ display:inline-block; max-width:260px; word-break:break-all; text-align:left; vertical-align:middle; }
+.td_ctitle .ctitle_short{ cursor:pointer; border-bottom:1px dotted #999; }
+.td_ctitle .ctitle_short:hover{ color:#3b6ea5; }
+.td_ctitle .ctitle_full{ display:none; cursor:pointer; }
+.td_ctitle.is_open .ctitle_short{ display:none; }
+.td_ctitle.is_open .ctitle_full{ display:inline-block; }
+</style>
+
 <form name="fcomplainlist" id="fcomplainlist" action="./complain_list_update.php" method="post">
     <input type="hidden" name="sst" value="<?php echo $sst ?>">
     <input type="hidden" name="sod" value="<?php echo $sod ?>">
@@ -260,7 +273,22 @@ $colspan = 16;
                     <td><?php echo $row['complain_name']; ?></td>
                     <td><?php echo $row['complain_hp']; ?></td>
                     <td><?php echo $row['wname']; ?></td>
-                    <td><?php echo $row['complain_title']; ?></td>
+                    <?php
+                        // [민원제목 2026-09] 제목이 길면 열 너비가 늘어나 표 전체가 읽기 어려워졌다.
+                        //  20자까지만 노출하고, 클릭하면 그 자리에서 전체 제목을 펼친다.
+                        //  (원문을 그대로 DOM 에 두므로 검색·복사·엑셀 다운로드에는 영향 없음)
+                        $c_title  = (string)$row['complain_title'];
+                        $c_islong = (mb_strlen($c_title, 'UTF-8') > 20);
+                        $c_short  = $c_islong ? mb_substr($c_title, 0, 20, 'UTF-8').'…' : $c_title;
+                    ?>
+                    <td class="td_ctitle">
+                        <?php if($c_islong){ ?>
+                        <span class="ctitle_short" title="클릭하면 전체 제목이 보입니다"><?php echo $c_short; ?></span>
+                        <span class="ctitle_full"><?php echo $c_title; ?></span>
+                        <?php }else{ ?>
+                        <?php echo $c_title; ?>
+                        <?php } ?>
+                    </td>
                     <td><?php echo $md_name; ?></td>
                     <td><?php echo $mng_name; ?></td>
                     <td><?php echo $row['edate']; ?></td>
@@ -292,6 +320,11 @@ $colspan = 16;
 <?php echo get_paging(G5_IS_MOBILE ? $config['cf_mobile_pages'] : $config['cf_write_pages'], $page, $total_page, '?' . $qstr . '&page='); ?>
 
 <script>
+
+// [민원제목 2026-09] 잘린 제목 클릭 → 전체 표시 / 다시 클릭 → 접기
+$(document).on('click', '.td_ctitle .ctitle_short, .td_ctitle .ctitle_full', function(){
+    $(this).closest('.td_ctitle').toggleClass('is_open');
+});
 // [항목5] BFCache 복원 시 강제 새로고침 (뒤로가기 최신화)
 window.addEventListener('pageshow', function(event){
     if(event.persisted){ location.reload(); }
