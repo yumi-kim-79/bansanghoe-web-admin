@@ -142,7 +142,12 @@ $grade_res = sql_query($grade_sql);
 $sql = " SELECT sign_off.*, cate.sign_cate_name, mng.mng_name {$sql_common} {$sql_search} {$sql_search2} {$sql_order} limit {$from_record}, {$rows} ";
 $result = sql_query($sql);
 
-$colspan = ($is_admin == 'super' || $member['mb_level'] >= 10) ? 8 : 7;
+// [일괄결재 2026-09] 내 결재(MY) 목록에서는 결재자 본인에게도 체크박스를 노출한다.
+//  기존에는 관리자(super/level10) 에게만 보였고, 용도는 일괄 '삭제' 하나뿐이었다.
+$ap_can_bulk = ($sign_off_status == 'MY');                                        // 일괄결재 버튼 노출
+$ap_show_chk = ($ap_can_bulk || $is_admin == 'super' || $member['mb_level'] >= 10); // 체크박스 열 노출
+
+$colspan = $ap_show_chk ? 8 : 7;
 
 if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
     echo $sql.'<br>';
@@ -238,9 +243,14 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
 
 </form>
 
-<?php if($is_admin == 'super' || $member['mb_level'] >= 10){ ?>
+<?php if($ap_show_chk){ ?>
 <div class="btn_fixed_top">
+    <?php if($ap_can_bulk){ ?>
+    <button type="button" onclick="approvalBulkSign();" class="btn btn_03">선택 일괄결재</button>
+    <?php } ?>
+    <?php if($is_admin == 'super' || $member['mb_level'] >= 10){ ?>
     <button type="button" onclick="approvalBulkDelete();" class="btn btn_01">선택 삭제</button>
+    <?php } ?>
 </div>
 <?php } ?>
 
@@ -251,7 +261,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             <caption><?php echo $g5['title']; ?> 목록</caption>
             <thead>
                 <tr>
-                    <?php if($is_admin == 'super' || $member['mb_level'] >= 10){ ?>
+                    <?php if($ap_show_chk){ ?>
                     <th style="width:40px;"><input type="checkbox" id="approval_chkall" onclick="approvalCheckAll(this);"></th>
                     <?php } ?>
                     <th>번호</th>
@@ -270,7 +280,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                     $class_res = sql_query($class_sql);
                 ?>
                     <tr class="<?php echo $row['mng_id'] == $mb_ids ? 'status_n' : ''; ?>">
-                        <?php if($is_admin == 'super' || $member['mb_level'] >= 10){ ?>
+                        <?php if($ap_show_chk){ ?>
                         <td><input type="checkbox" class="approval_chk" value="<?php echo $row['sign_id']; ?>"></td>
                         <?php } ?>
                         <td>
@@ -344,6 +354,19 @@ function approvalCheckAll(source){
     $(".approval_chk").prop("checked", source.checked);
 }
 
+// [일괄결재 2026-09] 선택한 건을 서명 1회로 한 번에 결재한다.
+//  실제 처리와 진행률 UI 는 inc/approval_bulk_ui.php 의 apBulkOpen() 이 담당한다.
+function approvalBulkSign(){
+    var ids = [];
+    $(".approval_chk:checked").each(function(){
+        var v = parseInt($(this).val(), 10);
+        if(v > 0) ids.push(v);
+    });
+    if(ids.length === 0){ alert("결재할 문서를 하나 이상 선택해 주세요."); return; }
+    apBulkOpen(ids);
+}
+
+
 function approvalBulkDelete(){
     var idxList = [];
     $(".approval_chk:checked").each(function(){ idxList.push($(this).val()); });
@@ -379,5 +402,10 @@ td .adm_sign_steps{text-align:center;}
 .adm_signed{background:#e8f5e9;border-color:#4caf50;color:#2e7d32;}
 .adm_unsigned{background:#f5f5f5;border-color:#ccc;color:#999;}
 </style>
+
+<?php
+// [일괄결재 2026-09] 서명 팝업 + 진행률 + 문서 재캡처 공통 UI
+include_once(G5_PATH.'/inc/approval_bulk_ui.php');
+?>
 <?php
 require_once './admin.tail.php';
