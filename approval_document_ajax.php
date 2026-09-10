@@ -91,6 +91,10 @@ for($i=0;$sign_row = sql_fetch_array($sign_res);$i++){
         }
     }
 ?>
+<?php if($code == 'my_approval'){ ?>
+<div class="sign_pick_row">
+    <label class="sign_pick"><input type="checkbox" class="ap_bulk_chk" value="<?php echo $sign_row['sign_id']; ?>"></label>
+<?php } ?>
 <a href="/holiday_reqeust_info.php?types=<?php echo $sign_row['sign_off_category']; ?>&sign_id=<?php echo $sign_row['sign_id']; ?>&mng=<?php echo $mng_chk; ?>" class="content_box ver3 ver_np sign_list_item">
     <div class="sign_list_left">
         <div class="content_box_ct1">
@@ -115,11 +119,19 @@ for($i=0;$sign_row = sql_fetch_array($sign_res);$i++){
     </div>
     <?php } ?>
 </a>
+<?php if($code == 'my_approval'){ ?>
+</div>
+<?php } ?>
 <?php }?>
 <?php if($i==0){?>
 <div class="content_box_empty"><?php echo $empty_msg; ?></div>
 <?php }?>
 <style>
+/* [일괄결재 2026-09] 내결재 탭에서만 카드 왼쪽에 선택 체크박스를 붙인다 */
+.sign_pick_row { display:flex; align-items:center; gap:10px; }
+.sign_pick_row > .content_box { flex:1; min-width:0; }
+.sign_pick { flex-shrink:0; display:flex; align-items:center; padding:4px; }
+.sign_pick input { width:20px; height:20px; accent-color:#3b6ea5; }
 .sign_list_item {
     display: flex !important;
     align-items: center;

@@ -422,19 +422,39 @@ function fcm_send($token, $title = '푸시테스트 제목', $content = '푸시�
     require_once ('/var/www/html/vendor/autoload.php');
     $url = 'https://fcm.googleapis.com/v1/projects/sinbansang/messages:send';
 
-    // putenv('GOOGLE_APPLICATION_CREDENTIALS='.$_SERVER['DOCUMENT_ROOT'].'/sinbansang_fcm_key.json');
-    putenv('GOOGLE_APPLICATION_CREDENTIALS=/var/www/html/sinbansang_fcm_key.json');
-    $scope = 'https://www.googleapis.com/auth/firebase.messaging';
-    $client = new Google_Client();
-    $client->useApplicationDefaultCredentials();
-    $client->setScopes($scope);
-    $auth_key = $client->fetchAccessTokenWithAssertion();
+
+    // [푸시 2026-09] OAuth 액세스 토큰 캐싱
+    //  기존에는 푸시 1건마다 fetchAccessTokenWithAssertion() 으로 구글에 토큰을 새로 받았다.
+    //  단건 발송에서는 티가 안 났지만, 일괄결재처럼 한 요청에서 수십 건을 보내면
+    //  건마다 구글 왕복이 생겨 타임아웃 위험이 있다.
+    //  토큰 유효기간은 보통 1시간이므로, 한 요청(프로세스) 안에서는 한 번만 받아 재사용한다.
+    static $fcm_token_cache = '';
+    static $fcm_token_expire = 0;
+
+    if($fcm_token_cache === '' || time() >= $fcm_token_expire){
+        // putenv('GOOGLE_APPLICATION_CREDENTIALS='.$_SERVER['DOCUMENT_ROOT'].'/sinbansang_fcm_key.json');
+        putenv('GOOGLE_APPLICATION_CREDENTIALS=/var/www/html/sinbansang_fcm_key.json');
+        $scope = 'https://www.googleapis.com/auth/firebase.messaging';
+        $client = new Google_Client();
+        $client->useApplicationDefaultCredentials();
+        $client->setScopes($scope);
+        $auth_key = $client->fetchAccessTokenWithAssertion();
+
+        if(!is_array($auth_key) || empty($auth_key['access_token'])){
+            error_log("[FCM] OAuth access token 발급 실패");
+            return ['error' => true, 'msg' => 'oauth token failed'];
+        }
+
+        $fcm_token_cache  = $auth_key['access_token'];
+        $fcm_expires_in   = isset($auth_key['expires_in']) ? (int)$auth_key['expires_in'] : 3600;
+        $fcm_token_expire = time() + max(60, $fcm_expires_in - 300); // 만료 5분 전 갱신
+    }
 
     $ch = curl_init();
     //header 설정 후 삽입
 
     $headers = array(
-        'Authorization: Bearer ' . $auth_key['access_token'],
+        'Authorization: Bearer ' . $fcm_token_cache,
         'Content-Type: application/json'
     );
 

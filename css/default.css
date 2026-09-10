@@ -1702,3 +1702,13 @@ gap: 6px;width: 100%;height: 100%;font-weight: 500;}
 
 /* 사내용 캘린더 내용칸 높이 확대 (모바일) */
 #cal_content { height: 350px; }
+
+
+/* [세대목록 2026-09] 소유자/입주자 성함 2줄 표기 (A안)
+   ※ .hh_left/.hh_right 기본 규칙은 sm_car_manage 목록도 함께 쓰므로 건드리지 않고,
+      세대목록에만 붙는 .hh_v3 로 한정해 세로 배치로 바꾼다. */
+.house_hold_list li a.hh_v3 { display:block; }
+.house_hold_list li a.hh_v3 .hh_row { display:flex; align-items:center; justify-content:space-between; }
+.house_hold_list li a.hh_v3 .hh_names { margin-top:5px; display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; font-weight:400; color:#B8B8B8; line-height:1.4; }
+.house_hold_list li a.hh_v3 .hh_names b { font-weight:500; color:#8A8A8A; }
+.house_hold_list li a.hh_v3.ver2 .hh_names b { color:#121212; }

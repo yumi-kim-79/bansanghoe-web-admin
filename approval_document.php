@@ -57,6 +57,21 @@ $depart_res = sql_query($depart_sql);
         </div>
     </div>
 </div>
+
+<!-- [일괄결재 2026-09] 내결재 탭에서만 뜨는 선택바. 하단 탭(86px) 위에 얹는다. -->
+<div id="ap_bulk_bar">
+    <label class="apbar_all"><input type="checkbox" id="ap_bulk_all"> 전체선택</label>
+    <button type="button" id="ap_bulk_go" onclick="apBulkGo();" disabled>선택 결재 <b>0</b>건</button>
+</div>
+<style>
+#ap_bulk_bar{position:fixed;left:0;right:0;bottom:86px;z-index:98;display:none;align-items:center;justify-content:space-between;gap:12px;
+             width:100%;max-width:1024px;margin:0 auto;padding:10px 18px;background:#fff;border-top:1px solid #eee;box-shadow:0 -2px 10px rgba(0,0,0,.06);}
+#ap_bulk_bar .apbar_all{display:flex;align-items:center;gap:7px;font-size:14px;color:#444;}
+#ap_bulk_bar .apbar_all input{width:20px;height:20px;accent-color:#3b6ea5;}
+#ap_bulk_go{padding:11px 18px;border:0;border-radius:6px;background:#3b6ea5;color:#fff;font-size:15px;font-weight:600;}
+#ap_bulk_go[disabled]{background:#c3d0dd;}
+#wrappers.has_bulk_bar{padding-bottom:150px;}
+</style>
 <script>
 // [항목5/6] BFCache 복원(WebView goBack 포함) 시 강제 새로고침 → tab_handler 재실행으로 내결재 탭 + 최신
 window.addEventListener('pageshow', function(event){
@@ -87,6 +102,7 @@ function tab_handler(index, code){
     success: function(msg){ //성공시 이벤트
         //console.log(msg);
         $(".content_box_wrap").html(msg);
+        apBulkBarSync();
     }
 
     });
@@ -125,6 +141,7 @@ function schHandler(){
     success: function(msg){ //성공시 이벤트
         //console.log(msg);
         $(".content_box_wrap").html(msg);
+        apBulkBarSync();
     }
 
     });
@@ -133,7 +150,56 @@ function schHandler(){
 $(function(){
     $(".ipt_date").datepicker({ changeMonth: true, changeYear: true, dateFormat: "yy-mm-dd", showButtonPanel: true, yearRange: "c-99:c+99", maxDate: "+0d", minDate:"-365d" });
 });
+
+// ───── [일괄결재 2026-09] 내결재 탭 선택바 ─────────────────────────────
+//  목록이 ajax 로 갈아끼워지므로, 목록을 그린 뒤 apBulkBarSync() 를 호출해 상태를 맞춘다.
+function apBulkBarSync(){
+    var bar   = document.getElementById('ap_bulk_bar');
+    var items = document.querySelectorAll('.ap_bulk_chk');
+    var show  = (tabCode === 'my_approval' && items.length > 0);
+
+    bar.style.display = show ? 'flex' : 'none';
+    document.getElementById('wrappers').classList.toggle('has_bulk_bar', show);
+
+    var all = document.getElementById('ap_bulk_all');
+    if(all) all.checked = false;
+    apBulkCount();
+}
+
+function apBulkCount(){
+    var n = document.querySelectorAll('.ap_bulk_chk:checked').length;
+    document.querySelector('#ap_bulk_go b').textContent = n;
+    document.getElementById('ap_bulk_go').disabled = (n === 0);
+}
+
+$(document).on('change', '.ap_bulk_chk', function(){
+    apBulkCount();
+    var total   = document.querySelectorAll('.ap_bulk_chk').length;
+    var checked = document.querySelectorAll('.ap_bulk_chk:checked').length;
+    var all = document.getElementById('ap_bulk_all');
+    if(all) all.checked = (total > 0 && total === checked);
+});
+
+$(document).on('change', '#ap_bulk_all', function(){
+    var on = this.checked;
+    document.querySelectorAll('.ap_bulk_chk').forEach(function(c){ c.checked = on; });
+    apBulkCount();
+});
+
+function apBulkGo(){
+    var ids = [];
+    document.querySelectorAll('.ap_bulk_chk:checked').forEach(function(c){
+        var v = parseInt(c.value, 10);
+        if(v > 0) ids.push(v);
+    });
+    if(ids.length === 0){ showToast('결재할 문서를 하나 이상 선택해 주세요.'); return; }
+    apBulkOpen(ids);   // inc/approval_bulk_ui.php
+}
 </script>
+<?php
+// [일괄결재 2026-09] 서명 팝업 + 진행률 + 문서 재캡처 공통 UI (관리자웹과 동일 파일)
+include_once(G5_PATH.'/inc/approval_bulk_ui.php');
+?>
 <?php
 include_once(G5_PATH.'/tail.php');
 ?>

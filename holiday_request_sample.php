@@ -505,6 +505,17 @@ function bbsToImg(){
 
     let sign_id = "<?php echo $sign_id; ?>";
     let sign_off_category = "<?php echo $sign_off_row['sign_off_category']; ?>";
+
+    // [일괄결재 2026-09] mem_type=bulk 이면 숨김 프레임 안에서 캡처만 하고
+    //  화면 이동 없이 부모창에 결과를 알린다. 부모는 이 신호를 받아 다음 건으로 넘어간다.
+    var AP_BULK = (mem_type === 'bulk');
+    function apNotifyParent(ok, msg){
+        try{
+            if(window.parent && window.parent !== window){
+                window.parent.postMessage({ ap: 'capture_done', sign_id: sign_id, ok: !!ok, msg: msg || '' }, '*');
+            }
+        }catch(e){ console.log('[문서캡처] 부모창 통지 실패', e); }
+    }
     let editor = document.querySelector('.building_news_sample_wrap');
     editor.style.backgroundColor = "#fff"; // 배경색 추가 (투명 방지)
 
@@ -528,15 +539,16 @@ function bbsToImg(){
             type: 'POST', // HTTP 메서드
             data: formData,
             cache: false,
-            async: false,
+            async: true,   // ★동기 XHR 제거 (2026-09)
             dataType: "json",
             contentType: false,
             processData: false,
             success: function(data) {
                 console.log('data:::', data);
                 
-                if(data.result == false) { 
+                if(data.result == false) {
                     showToast(data.msg);
+                    if(AP_BULK) apNotifyParent(false, data.msg);
                     return false;
                 }else{
                     //buildingInfoPopClose();
@@ -546,6 +558,10 @@ function bbsToImg(){
                     // setTimeout(() => {
                     //     location.href = "/building_news_info_form.php?w=u&bb_id=" + bb_id
                     // }, 1000);
+                    if(AP_BULK){
+                        // 일괄결재: 화면 이동 없이 부모창에 이 건의 캡처 완료를 알린다
+                        apNotifyParent(true, '');
+                    }else{
                     setTimeout(() => {
 
                         if(mem_type == 'admin'){
@@ -558,10 +574,20 @@ function bbsToImg(){
                             location.replace("/holiday_reqeust_info.php?types=" + sign_off_category + "&sign_id=" + sign_id);
                         }
                     }, 300);
+                    }
                 }
                 
+            },
+            error: function(xhr, status, err){
+                console.log('[문서캡처] 업로드 실패', status, err);
+                if(AP_BULK) apNotifyParent(false, '문서 이미지 업로드에 실패했습니다.');
+                else showToast('문서 이미지 저장에 실패했습니다. 다시 시도해 주세요.');
             }
         });
+    }).catch(function(e){
+        console.log('[문서캡처] html2canvas 실패', e);
+        if(AP_BULK) apNotifyParent(false, '문서 이미지를 만들지 못했습니다.');
+        else showToast('문서 이미지를 만들지 못했습니다. 다시 시도해 주세요.');
     });
 }
 
