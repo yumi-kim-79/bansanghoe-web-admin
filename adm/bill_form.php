@@ -117,7 +117,7 @@ h3, h4 {
                     <th>지역</th>
                     <td colspan="3">
                     <?php if($w == "u"){?>
-                        <input type="hidden" name="post_id" value="<?php echo $row['post_id']; ?>">
+                        <input type="hidden" name="post_id" id="post_id" value="<?php echo $row['post_id']; ?>">
                         <input type="text" name="post_name" id="post_name" class="bansang_ipt" value="<?php echo $row['post_name']; ?>" readonly>
                         <?php }else{ ?>
                             <select name="post_id" id="post_id" class="bansang_sel"  onchange="post_change();">
@@ -147,6 +147,14 @@ h3, h4 {
                 <tr>
                     <th>단지</th>
                     <td colspan="3">
+                        <?php
+                        // [고지서 2026-09] 예약발행(R)/발행(Y) 상태에서는 단지를 바꿀 수 없다.
+                        //  저장(N)/발행취소(C) 상태에서는 단지 검색창을 그대로 노출한다.
+                        $bill_locked = ($w == 'u' && ($row['is_submit'] == 'R' || $row['is_submit'] == 'Y'));
+                        ?>
+                        <?php if($bill_locked){ ?>
+                        <div class="bill_lock_note" style="padding:9px 12px;background:#fdf6e3;border:1px solid #f0dca8;border-radius:4px;color:#8a6d1f;font-size:13px;line-height:1.5;">발행 또는 예약발행된 고지서는 단지를 변경할 수 없습니다. 발행 취소 후 변경해 주세요.</div>
+                        <?php }else{ ?>
                         <div class="sch_box_wrap ">
                             <div class="sch_box_left">
                                 <div class="sch_result_box">
@@ -158,12 +166,13 @@ h3, h4 {
                                 <button type="button" class="bansang_btns ver1" onclick="building_handler();">검색</button>
                             </div> -->
                         </div>
+                        <?php } ?>
                         <input type="hidden" name="building_id" id="building_id" value="<?php echo $row['building_id']; ?>">
                         <input type="text" name="building_name" id="building_name" class="bansang_ipt ver2 mgt10" size="100" placeholder="선택한 단지가 보여집니다." readonly value="<?php echo $row['building_name']; ?>" required>
                        <script>
                         //단지 입력시 ajax
                         $(document).on("keyup", "#building_sch", function(){
-                            var post_id = $("#post_id option:selected").val();
+                            var post_id = $("#post_id").val();
                             let sch_text = this.value;
 
                             if(sch_text != ""){
@@ -192,10 +201,13 @@ h3, h4 {
                         function building_select(id, name){
                             //alert(id);
                             let w = "<?php echo $w; ?>";
-                            let year = $("#bill_year option:selected").val();
-                            let month = $("#bill_month option:selected").val();
+                            let year = $("#bill_year").val();
+                            let month = $("#bill_month").val();
 
-                            let sendData = {'building_id': id, "year": year, "month": month};
+                            // [고지서 2026-09] 수정화면의 년/월은 select 가 아니라 input 인 경우가 있어
+                            //  option:selected 로는 값을 못 읽었다(undefined). .val() 은 양쪽 다 동작한다.
+                            //  자기 자신(현재 고지서)은 중복 검사에서 빼야 한다.
+                            let sendData = {'building_id': id, "year": year, "month": month, "bill_id": "<?php echo $bill_id; ?>"};
 
                             $.ajax({
                                 type: "POST",
@@ -239,7 +251,11 @@ h3, h4 {
                                                     $(".sch_result_box").hide();
                                                     $("#building_sch").val("");
 
+                                                    // [고지서 2026-09] 지역(post_id)도 새 단지 기준으로 갱신한다.
+                                                    //  수정화면에서는 #post_id 가 select 가 아니라 hidden 이라
+                                                    //  id 가 없어 이 코드가 아무 일도 하지 않고 있었다(→ id 부여).
                                                     $("#post_id").val(data.msg).change();
+                                                    if(data.data && data.data.post_name) $("#post_name").val(data.data.post_name);
                                                 
                                                 }
                                             },
