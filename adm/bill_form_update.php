@@ -35,9 +35,40 @@ if($w == "u"){
 
     $bill_check = sql_fetch("SELECT * FROM a_bill WHERE bill_id = '{$bill_id}'");
     
+    // ★ [고지서 2026-09] 단지 변경이 저장되지 않던 문제
+    //
+    //  기존 코드는 SET 절에 'and' 를 붙이고 있었다.
+    //      $sql_add = " and building_id = '{$building_id}', ";
+    //      → "UPDATE a_bill SET and building_id = '..', bill_year = '..' ..."  ← 문법 오류
+    //  그래서 단지를 바꾸면 쿼리 전체가 실패해 년/월·납부기한까지 아무것도 저장되지 않았다.
+    //  단지를 그대로 두면 $sql_add 가 비어 있어 정상 동작했기 때문에 눈에 띄지 않았다.
     $sql_add = "";
-    if($bill_check['building_id'] != $building_id){
-        $sql_add = " and building_id = '{$building_id}', ";
+    $building_changed = false;
+
+    if($building_id != '' && $bill_check['building_id'] != $building_id){
+
+        // 예약발행(R) / 발행(Y) 상태에서는 단지를 바꿀 수 없다
+        if($bill_check['is_submit'] == 'R' || $bill_check['is_submit'] == 'Y'){
+            alert('발행 또는 예약발행된 고지서는 단지를 변경할 수 없습니다.\\n발행 취소 후 다시 시도해 주세요.');
+        }
+
+        // 지역(post_id)은 화면에서 온 값이 아니라 단지 정보에서 다시 읽는다
+        $b_info = sql_fetch("SELECT building_id, post_id FROM a_building WHERE building_id = '{$building_id}'");
+        if(!$b_info || !isset($b_info['building_id'])){
+            alert('선택한 단지 정보를 찾을 수 없습니다.');
+        }
+
+        // 바꾸려는 단지에 같은 년/월 고지서가 이미 있으면 막는다
+        $dup = sql_fetch("SELECT COUNT(*) as cnt FROM a_bill
+                          WHERE building_id = '{$building_id}'
+                            and bill_year = '{$bill_year}' and bill_month = '{$bill_month}'
+                            and is_del = 0 and bill_id != '{$bill_id}'");
+        if($dup['cnt'] > 0){
+            alert('선택한 단지에 해당 년/월 고지서가 이미 있습니다.');
+        }
+
+        $sql_add = " building_id = '{$building_id}', post_id = '{$b_info['post_id']}', ";
+        $building_changed = true;
     }
 
     // 고지서 수정
@@ -55,6 +86,14 @@ if($w == "u"){
         // exit;
     }
     sql_query($update_bill);
+
+    // 단지가 바뀌었는데 이번 저장에 새 명세서가 함께 오지 않았다면,
+    //  이전 단지 기준으로 만들어진 명세서 내역(동/호)은 새 단지와 맞지 않으므로 지운다.
+    //  (새 명세서가 함께 온 경우엔 아래 groupedCnt 분기에서 지우고 다시 넣는다)
+    $has_new_items = (isset($groupedCnt) && $groupedCnt > 0);
+    if($building_changed && !$has_new_items){
+        sql_query("DELETE FROM a_bill_item WHERE bill_id = '{$bill_id}'");
+    }
 
     if($groupedCnt > 0){
         //이전내역 삭제
