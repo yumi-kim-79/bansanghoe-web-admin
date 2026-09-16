@@ -172,7 +172,12 @@ h3, h4 {
                        <script>
                         //단지 입력시 ajax
                         $(document).on("keyup", "#building_sch", function(){
-                            var post_id = $("#post_id").val();
+                            // [고지서 2026-09] 수정 모드에서는 지역으로 검색을 제한하지 않는다.
+                            //  2026-09-15 수정에서 hidden post_id 에 id 를 부여하면서
+                            //  수정화면 단지 검색이 '현재 고지서의 지역' 안에서만 되도록 좁아졌다.
+                            //  → 다른 지역 단지로는 바꿀 수가 없었다. (등록 모드는 기존대로 지역 필터 유지)
+                            var w = "<?php echo $w; ?>";
+                            var post_id = (w === 'u') ? '' : $("#post_id").val();
                             let sch_text = this.value;
 
                             if(sch_text != ""){
