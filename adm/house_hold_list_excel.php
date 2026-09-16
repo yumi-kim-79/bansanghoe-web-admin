@@ -2,6 +2,10 @@
 include_once('./_common.php');
 require_once(G5_PATH.'/lib/PhpSpreadsheet/vendor/autoload.php');
 
+// [단지명 검색 2026-09] 대괄호 등 특수문자가 들어간 단지명도 검색되도록 검색어 원문 복원
+restore_raw_stx();
+
+
 $date = date("Y-m-d");
 
 $sql_common = " from a_building_ho as ho

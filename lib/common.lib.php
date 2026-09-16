@@ -4080,6 +4080,36 @@ function conv_date_format($format, $date, $add='')
 }
 
 // 검색어 특수문자 제거
+/**
+ * [2026-09] 검색어 원문 복원 — 단지명처럼 특수문자가 들어간 '이름' 검색용
+ *
+ *  gnuboard 공통 처리(common.php)가 검색어를 get_search_string() 으로 정제하면서
+ *  [ ] % * = # | + ! $ ~ { } ` ; : ? ^ , 같은 문자를 통째로 지운다.
+ *  게시판 검색을 보호하려는 처리인데, 단지명에 대괄호가 들어간 단지가 있어
+ *  ([테스트]-SM프라자) 관리자 화면의 단지명 검색이 아예 되지 않았다.
+ *  자동완성에서 골라도 대괄호가 빠진 이름으로 바뀌어 조회가 0건이 됐다.
+ *
+ *  게시판 검색이 아니라 이름 LIKE 검색을 하는 화면에서 호출하면
+ *  $stx 를 입력 원문으로 되돌리고 페이징 링크($qstr)도 함께 맞춘다.
+ *  ($_REQUEST 는 common.php 에서 이미 SQL 이스케이프를 거친 값이다)
+ */
+function restore_raw_stx()
+{
+    global $stx, $qstr;
+
+    if (!isset($_REQUEST['stx'])) return;
+
+    $raw = trim($_REQUEST['stx']);
+    if ($raw === '' || $raw === $stx) return;
+
+    // common.php 가 붙여둔 '정제된 stx' 파라미터를 원문 기준으로 교체
+    $old = '&amp;stx=' . urlencode(cut_str($stx, 20, ''));
+    $new = '&amp;stx=' . urlencode($raw);
+    if (strpos($qstr, $old) !== false) $qstr = str_replace($old, $new, $qstr);
+
+    $stx = $raw;
+}
+
 function get_search_string($stx)
 {
     $stx_pattern = array();

@@ -35,10 +35,13 @@ if ($stx) {
 
 
 if($status){
+    // [2026-09] 발행취소(C) 를 저장(N) 과 구분해서 조회한다
     if($status == "RS"){
         $sql_search .= " and bill.is_submit = 'R' ";
     }else if($status == "S"){
         $sql_search .= " and bill.is_submit = 'Y' ";
+    }else if($status == "CS"){
+        $sql_search .= " and bill.is_submit = 'C' ";
     }else{
         $sql_search .= " and bill.is_submit = 'N' ";
     }
@@ -169,6 +172,10 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
             <div class="sch_radios">
                 <input type="radio" name="status" id="status4" value="S" <?php echo $status == 'S' ? 'checked' : '';?>>
                 <label for="status4">발행</label>
+            </div>
+            <div class="sch_radios">
+                <input type="radio" name="status" id="status5" value="CS" <?php echo $status == 'CS' ? 'checked' : '';?>>
+                <label for="status5">발행취소</label>
             </div>
         </div>
     </div>
