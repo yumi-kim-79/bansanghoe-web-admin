@@ -5,6 +5,10 @@ require_once './_common.php';
 
 auth_check_menu($auth, $sub_menu, 'r');
 
+// [단지명 검색 2026-09] 대괄호 등 특수문자가 들어간 단지명도 검색되도록 검색어 원문 복원
+restore_raw_stx();
+
+
 $sql_common = " from a_building_ho as ho 
                 left join a_building_dong as dong on ho.dong_id = dong.dong_id
                 left join a_building as building on ho.building_id = building.building_id 

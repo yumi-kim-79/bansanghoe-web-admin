@@ -464,8 +464,14 @@ h3, h4 {
     <div class="btn_fixed_top">
         <a href="./bill_list.php?<?php echo $qstr ?>" class="btn btn_02">목록</a>
         <!-- <button type="button" class="btn btn_03">저장</button> -->
-        <input type="submit" value="<?php echo $w == 'u' ? '수정' : '저장';?>" id="btn_submit_bill" style="<?php echo $row['is_submit'] == 'N' && $w == "u" ? "display:inline-block;" : ""; ?>" class="btn_submit btn btn_03" accesskey='s'>
-        <?php if($w == "u" && $row['is_submit'] == 'N'){?>
+        <?php
+        // [2026-09] 발행취소(C) 도 저장(N) 과 같이 '수정·재발행 가능' 상태로 본다.
+        //  기존에는 취소 시 상태를 N 으로 되돌렸기 때문에 이 조건이 N 하나로 충분했는데,
+        //  취소를 C 로 구분해 기록하도록 바꾸면서 함께 넓힌다.
+        $bill_reissuable = ($w == 'u' && ($row['is_submit'] == 'N' || $row['is_submit'] == 'C'));
+        ?>
+        <input type="submit" value="<?php echo $w == 'u' ? '수정' : '저장';?>" id="btn_submit_bill" style="<?php echo $bill_reissuable ? "display:inline-block;" : ""; ?>" class="btn_submit btn btn_03" accesskey='s'>
+        <?php if($bill_reissuable){?>
         <button type="button" onclick="billSubmit();" class="btn btn_01">발행</button>
         <button type="button" onclick="billReserPop();" class="btn btn_03">예약 발행</button>
         <?php }?>
@@ -476,6 +482,9 @@ h3, h4 {
                 <button type="button" class="btn btn_02" disabled><?php echo $r_s_date.' '; ?>예약 발행 중</button>
                 <button type="button" onclick="billSubmit();" class="btn btn_01">즉시 발행</button>
             <?php }?>
+        <?php }?>
+        <?php if($w == 'u' && $row['is_submit'] == 'C'){ ?>
+            <button type="button" class="btn btn_02" disabled style="cursor:auto;"><?php echo $row['submited_at'] ? $row['submited_at'].' 발행 → 취소됨' : '발행 취소됨'; ?></button>
         <?php }?>
         <?php if($row['is_submit'] == 'Y'){
             // print_r2($row);
