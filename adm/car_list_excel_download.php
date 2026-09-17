@@ -43,7 +43,10 @@ if($post_id){
     $sql_search .= " and ho.post_id = '{$post_id}' ";
 }
 
-$sql_order = " order by building.building_name asc, ho.ho_name asc, ho.ho_id desc ";
+// [호수 정렬 2026-09] 하이픈 호수(401-1)가 일반 호수(101)보다 앞에 오던 문제
+//  기존: (ho_name REGEXP '^[0-9]+$') ASC → 하이픈 있는 건이 0 이라 전부 앞으로 밀렸다.
+//  변경: 앞자리 숫자 → 하이픈 없는 것 먼저 → 뒷자리 숫자 순 (adm/dong_mng_add.php 와 동일 규칙)
+$sql_order = " order by building.building_name asc, CAST(SUBSTRING_INDEX(ho.ho_name, '-', 1) AS UNSIGNED) ASC, CASE WHEN ho.ho_name REGEXP '-' THEN 1 ELSE 0 END ASC, CAST(SUBSTRING_INDEX(ho.ho_name, '-', -1) AS UNSIGNED) ASC, ho.ho_name ASC , ho.ho_id desc ";
 
 // $sql = " select count(*) as cnt {$sql_common} {$sql_search} {$sql_search2} {$sql_order} ";
 $sql = " select ho.*, post.post_name, building.building_name, dong.dong_name, GROUP_CONCAT(car.car_name ORDER BY car.car_name SEPARATOR ', ') as car_name_list, GROUP_CONCAT(car.car_type ORDER BY car.car_type SEPARATOR ', ') as car_type_list {$sql_common} {$sql_search} GROUP BY ho.ho_id HAVING

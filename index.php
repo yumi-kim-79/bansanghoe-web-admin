@@ -325,7 +325,7 @@ if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
         $ho_sqls = "SELECT ho.*, building.building_name, building.is_use, dong.dong_name FROM a_building_ho as ho
                     LEFT JOIN a_building as building on building.building_id = ho.building_id
                     LEFT JOIN a_building_dong as dong on dong.dong_id = ho.dong_id
-                    WHERE ho.ho_tenant_id = '{$_SESSION['users']['id']}' and ho.is_del = 0 and building.is_use = 1 and ho.ho_status = 'Y' ORDER BY (ho.ho_name REGEXP '^[0-9]+$') ASC, CAST(ho.ho_name AS UNSIGNED), ho.ho_name ASC, ho.ho_id desc";
+                    WHERE ho.ho_tenant_id = '{$_SESSION['users']['id']}' and ho.is_del = 0 and building.is_use = 1 and ho.ho_status = 'Y' ORDER BY CAST(SUBSTRING_INDEX(ho.ho_name, '-', 1) AS UNSIGNED) ASC, CASE WHEN ho.ho_name REGEXP '-' THEN 1 ELSE 0 END ASC, CAST(SUBSTRING_INDEX(ho.ho_name, '-', -1) AS UNSIGNED) ASC, ho.ho_name ASC , ho.ho_id desc";  // [호수 정렬 2026-09] 하이픈 호수가 앞에 오던 문제 수정
                     
                     if($_SERVER['REMOTE_ADDR'] == ADMIN_IP){
                         // echo $ho_sqls; 
