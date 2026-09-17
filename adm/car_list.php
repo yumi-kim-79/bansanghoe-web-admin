@@ -84,7 +84,10 @@ if (!$sst) {
 
 
 
-$sql_order = " order by building.building_name asc, CAST(dong.dong_name AS UNSIGNED) ASC, (ho.ho_name REGEXP '^[0-9]+$') ASC,  CAST(ho.ho_name AS UNSIGNED), ho.ho_name ASC, ho_id desc ";
+// [호수 정렬 2026-09] 하이픈 호수(401-1)가 일반 호수(101)보다 앞에 오던 문제
+//  기존: (ho_name REGEXP '^[0-9]+$') ASC → 하이픈 있는 건이 0 이라 전부 앞으로 밀렸다.
+//  변경: 앞자리 숫자 → 하이픈 없는 것 먼저 → 뒷자리 숫자 순 (adm/dong_mng_add.php 와 동일 규칙)
+$sql_order = " order by building.building_name asc, CAST(dong.dong_name AS UNSIGNED) ASC, CAST(SUBSTRING_INDEX(ho.ho_name, '-', 1) AS UNSIGNED) ASC, CASE WHEN ho.ho_name REGEXP '-' THEN 1 ELSE 0 END ASC, CAST(SUBSTRING_INDEX(ho.ho_name, '-', -1) AS UNSIGNED) ASC, ho.ho_name ASC , ho_id desc ";
 //$sql_order = " order by building.building_name asc, CAST(dong.dong_name AS UNSIGNED) ASC, CAST(ho.ho_name AS UNSIGNED) ASC, ho.ho_id desc ";
 
 
