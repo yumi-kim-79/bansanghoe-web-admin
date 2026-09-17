@@ -1,5 +1,10 @@
 <?php
 include_once('./_common.php');
+
+// [단지명 검색 2026-09] 대괄호 등 특수문자가 들어간 단지명도 검색되도록 검색어 원문 복원
+//  gnuboard 공통 처리가 [ ] % * = 등을 지워서 '[테스트]-SM프라자' 같은 이름이 검색되지 않았다.
+restore_raw_stx();
+
 require_once(G5_PATH.'/lib/PhpSpreadsheet/vendor/autoload.php');
 
 if($_SERVER['REMOTE_ADDR'] != "59.16.155.80"){
