@@ -22,9 +22,13 @@ while($bill_row = sql_fetch_array($bill_res)){
     if($today2 > $bill_row['r_submited_at']){
         // echo $bill_row['bill_id'].'<br>';
 
-        //submited_at = '{$bill_row['r_submited_at']}',
-        $update = "UPDATE a_bill SET 
+        // [2026-09] 발행 시각(submited_at) 기록 — 기존에는 이 줄이 주석 처리돼 있어
+        //  예약발행으로 나간 고지서는 '언제 발행됐는지'가 DB 에 전혀 남지 않았다.
+        //  (즉시발행 bill_form_submit.php 만 submited_at 을 기록하고 있었다)
+        //  그래서 나중에 발행 여부를 따질 때 근거가 updated_at 뿐이었다.
+        $update = "UPDATE a_bill SET
                     is_submit = 'Y',
+                    submited_at = '{$today2}',
                     updated_at = '{$today2}'
                     WHERE bill_id = '{$bill_row['bill_id']}'";
         //echo $update.'<br>';
